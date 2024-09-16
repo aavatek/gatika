@@ -8,7 +8,8 @@ Built with modern web technologies, focusing on usability and speed.
 - SolidStart (framework)
 - BiomeJS (linting + formatting)
 - Vitest (unit testing)
-- Playwright (integration testing)
+- Husky (pre-commit hooks)
+- Commitlint (commit message validation)
 
 ### Setup
 
