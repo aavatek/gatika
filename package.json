@@ -12,6 +12,8 @@
 		"test": "vitest run",
 		"test-watch": "vitest",
 		"test-ui": "vitest --ui",
+		"lint": "bunx biome lint",
+		"format": "bunx biome format --fix",
 		"prepare": "husky"
 	},
 	"type": "module",
