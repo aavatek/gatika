@@ -8,6 +8,7 @@ Built with modern web technologies, focusing on usability and speed.
 - SolidStart (framework)
 - BiomeJS (linting + formatting)
 - Vitest (unit testing)
+- Playwright (integration and e2e testing)
 - Husky (pre-commit hooks)
 - Commitlint (commit message validation)
 
@@ -17,10 +18,10 @@ Built with modern web technologies, focusing on usability and speed.
 2. In the project directory, run:
 
 ```bash
-npm i -g bun                      # if not installed
+npm i -g bun                           # if not installed
 bunx playwright install --with-deps    # if not installed
-bun i                             # install dependencies
-bun dev                           # start development server
+bun i                                  # install dependencies
+bun dev                                # start development server
 ```
 
 3. Navigate to `http://localhost:3000/`
