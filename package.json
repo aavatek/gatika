@@ -1,39 +1,29 @@
 {
 	"name": "gatika",
-	"description": "Project management application using Gantt charts",
+	"type": "module",
 	"version": "0.0.1",
-	"author": "AavaTek",
+	"author": "github.com/aavatek",
 	"private": true,
 	"scripts": {
 		"preinstall": "npx only-allow bun",
 		"dev": "vinxi dev",
-		"build": "vinxi build",
-		"start": "vinxi start",
-		"test": "vitest run",
-		"test-watch": "vitest",
-		"test-ui": "vitest --ui",
-		"lint": "bunx biome lint",
-		"format": "bunx biome format --fix",
-		"prepare": "husky"
+		"lint": "biome lint",
+		"format": "biome format --fix",
+		"test:unit": "vitest run"
 	},
-	"type": "module",
 	"devDependencies": {
 		"@commitlint/cli": "^19.5.0",
 		"@commitlint/config-conventional": "^19.5.0",
 		"@solidjs/meta": "^0.29.4",
-		"@solidjs/router": "^0.14.1",
+		"@solidjs/router": "^0.14.5",
 		"@solidjs/start": "^1.0.6",
-		"@solidjs/testing-library": "^0.8.7",
-		"@testing-library/jest-dom": "^6.4.2",
-		"@testing-library/user-event": "^14.5.2",
-		"@vitest/ui": "^1.5.0",
+		"@solidjs/testing-library": "^0.8.9",
+		"@vitest/browser": "^2.1.1",
 		"husky": "^9.1.6",
-		"jsdom": "^24.0.0",
-		"solid-js": "^1.8.18",
-		"typescript": "^5.4.5",
-		"vinxi": "^0.4.1",
-		"vite": "^5.2.8",
-		"vite-plugin-solid": "^2.10.2",
-		"vitest": "^1.5.0"
+		"playwright": "^1.47.1",
+		"solid-js": "^1.8.22",
+		"typescript": "^5.6.2",
+		"vinxi": "^0.4.3",
+		"vitest": "^2.1.1"
 	}
 }

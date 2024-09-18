@@ -3,7 +3,16 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
 	plugins: [solid()],
-	resolve: {
-		conditions: ["development", "browser"],
+	test: {
+		environment: "node",
+		browser: {
+			enabled: true,
+			headless: true,
+			name: "chromium",
+			provider: "playwright",
+		},
+
+		// bun test:unit looks for tests based on this
+		include: ["src/**/*.{test,spec}.{ts,mts,cts,tsx}"],
 	},
 });

@@ -7,5 +7,5 @@ bun lint
 echo
 
 echo "Running tests..."
-bun test
+bun test:unit
 echo
