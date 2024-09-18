@@ -6,6 +6,10 @@ echo "Linting..."
 bun lint
 echo
 
-echo "Running tests..."
+echo "Running unit tests..."
 bun test:unit
+echo
+
+echo "Running e2e tests..."
+bun test:e2e
 echo

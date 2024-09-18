@@ -9,11 +9,13 @@
 		"dev": "vinxi dev",
 		"lint": "biome lint",
 		"format": "biome format --fix",
-		"test:unit": "vitest run"
+		"test:unit": "vitest run",
+		"test:e2e": "playwright test"
 	},
 	"devDependencies": {
 		"@commitlint/cli": "^19.5.0",
 		"@commitlint/config-conventional": "^19.5.0",
+		"@playwright/test": "^1.47.1",
 		"@solidjs/meta": "^0.29.4",
 		"@solidjs/router": "^0.14.5",
 		"@solidjs/start": "^1.0.6",

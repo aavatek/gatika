@@ -1,4 +1,4 @@
-
+# SolidStart
 dist
 .solid
 .output
@@ -10,7 +10,7 @@ dist
 .env
 .env*.local
 
-# dependencies
+# Dependencies
 /node_modules
 
 # IDEs and editors
@@ -22,7 +22,18 @@ dist
 
 # Temp
 gitignore
+codebase.md
 
 # System Files
 .DS_Store
 Thumbs.db
+
+# Vitest
+coverage/
+__snapshots__/
+__screenshots__/
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
