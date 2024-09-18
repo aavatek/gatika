@@ -10,7 +10,7 @@ export default defineConfig({
 
 	use: {
 		headless: true,
-		baseURL: "http://127.0.0.1:3000",
+		baseURL: "http://localhost:3000",
 		trace: "on-first-retry",
 	},
 
@@ -23,7 +23,7 @@ export default defineConfig({
 
 	webServer: {
 		command: "bun dev",
-		url: "http://127.0.0.1:3000",
+		url: "http://localhost:3000",
 		timeout: 5000,
 		reuseExistingServer: !process.env.CI,
 	},
