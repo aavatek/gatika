@@ -5,6 +5,7 @@ export default defineConfig({
 	plugins: [solid()],
 	test: {
 		environment: "node",
+		setupFiles: ["./vitest.setup.ts"],
 		browser: {
 			enabled: true,
 			headless: true,
