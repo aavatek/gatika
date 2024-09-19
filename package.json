@@ -10,14 +10,18 @@
 		"lint": "bunx biome lint src",
 		"format": "bunx biome format --fix src",
 		"test:unit": "vitest run",
-		"test:e2e": "playwright test"
+		"test:e2e": "playwright test",
+		"prepare": "husky"
 	},
 	"dependencies": {
-		"solid-js": "^1.8.22",
-		"@solidjs/router": "^0.14.5",
+		"@modular-forms/solid": "^0.23.0",
 		"@solidjs/meta": "^0.29.4",
+		"@solidjs/router": "^0.14.5",
 		"@solidjs/start": "^1.0.6",
-		"vinxi": "^0.4.3"
+		"solid-js": "^1.8.22",
+		"uuid": "^10.0.0",
+		"vinxi": "^0.4.3",
+		"zod": "^3.23.8"
 	},
 	"devDependencies": {
 		"@axe-core/playwright": "^4.10.0",
