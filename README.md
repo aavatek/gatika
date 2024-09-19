@@ -36,6 +36,7 @@ bun format       # format files
 bun run test     # run all tests
 bun test:unit    # run unit tests
 bun test:e2e     # run e2e tests
+bun coverage     # run vitest coverage
 ```
 
 ## BiomeJS IDE Setup
