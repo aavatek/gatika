@@ -16,7 +16,13 @@ export default defineConfig({
 			providerOptions: { ...browserConfig.use },
 		},
 
-		// bun test:unit looks for tests based on this
+		coverage: {
+			provider: "v8",
+			reporter: ["text", "json"],
+			reportsDirectory: "./.vitest/coverage",
+			include: ["src/components/**/*", "src/routes/**/*"],
+		},
+
 		include: ["src/**/*.{test,spec}.{ts,mts,cts,tsx}"],
 	},
 });
