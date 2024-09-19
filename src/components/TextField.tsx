@@ -1,4 +1,4 @@
-import { onMount, Show, splitProps, type JSX } from "solid-js";
+import { type JSX, Show, onMount, splitProps } from "solid-js";
 
 type TextFieldProps = {
 	name: string;
