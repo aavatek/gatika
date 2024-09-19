@@ -11,10 +11,10 @@ describe("CreateTaskForm", () => {
 	it("renders the form", () => {
 		render(() => <CreateTaskForm />);
 
-		const input = screen.getByLabelText("Name");
+		const input = screen.getByRole("textbox", { name: "Name" });
 		expect(input).toBeInTheDocument();
 
-		const button = screen.getByRole("button");
+		const button = screen.getByRole("button", { name: "Create" });
 		expect(button).toBeInTheDocument();
 	});
 
@@ -63,10 +63,11 @@ describe("CreateTaskForm", () => {
 		render(() => <CreateTaskForm />);
 
 		const input = screen.getByLabelText("Name");
+
 		await userEvent.type(input, "New Task");
 		expect(input).toHaveValue("New Task");
 
 		await userEvent.click(screen.getByRole("button"));
-		expect(input).toHaveValue(undefined);
+		expect(input).toHaveValue("");
 	});
 });

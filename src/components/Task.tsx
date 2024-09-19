@@ -6,6 +6,7 @@ import {
 } from "@modular-forms/solid";
 import { v4 } from "uuid";
 import { z } from "zod";
+import { TextField } from "./TextField";
 
 const TaskInputSchema = z.object({
 	name: z.string().min(1, { message: "Required" }),
@@ -44,11 +45,13 @@ export const CreateTaskForm = () => {
 		<Form onSubmit={handleSubmit}>
 			<Field name="name">
 				{(field, props) => (
-					<>
-						<label for={field.name}>Name</label>
-						<input id={field.name} value={field.value} type="text" {...props} />
-						{field.error && <p>{field.error}</p>}
-					</>
+					<TextField
+						{...props}
+						type="text"
+						label="Name"
+						value={field.value}
+						error={field.error}
+					/>
 				)}
 			</Field>
 
