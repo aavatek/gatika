@@ -11,8 +11,14 @@ describe("CreateTaskForm", () => {
 	it("renders the form", () => {
 		render(() => <CreateTaskForm />);
 
-		const input = screen.getByRole("textbox", { name: "Name" });
-		expect(input).toBeInTheDocument();
+		const nameInput = screen.getByRole("textbox", { name: "Name" });
+		expect(nameInput).toBeInTheDocument();
+
+		const startDateInput = screen.getByLabelText("Start Date");
+		expect(startDateInput).toBeInTheDocument();
+
+		const plannedEndDateInput = screen.getByLabelText("Planned End Date");
+		expect(plannedEndDateInput).toBeInTheDocument();
 
 		const button = screen.getByRole("button", { name: "Create" });
 		expect(button).toBeInTheDocument();
@@ -22,13 +28,13 @@ describe("CreateTaskForm", () => {
 		render(() => <CreateTaskForm />);
 
 		const button = screen.getByRole("button");
-		userEvent.click(button);
+		await userEvent.click(button);
 
 		const errorMessage = await screen.findByText("Required");
 		expect(errorMessage).toBeInTheDocument();
 	});
 
-	it("removes error message once valid input", async () => {
+	it("removes error message once valid input is provided", async () => {
 		render(() => <CreateTaskForm />);
 		const input = screen.getByLabelText("Name");
 		await userEvent.click(screen.getByRole("button"));
@@ -40,12 +46,18 @@ describe("CreateTaskForm", () => {
 		expect(screen.queryByText("Required")).not.toBeInTheDocument();
 	});
 
-	it("logs task to console when submitted with a valid name", async () => {
+	it("logs task to console when submitted with valid inputs", async () => {
 		const consoleSpy = vi.spyOn(console, "log");
 		render(() => <CreateTaskForm />);
 
-		const input = screen.getByLabelText("Name");
-		await userEvent.type(input, "New Task");
+		const nameInput = screen.getByLabelText("Name");
+		await userEvent.type(nameInput, "New Task");
+
+		const startDateInput = screen.getByLabelText("Start Date");
+		await userEvent.type(startDateInput, "2023-07-01");
+
+		const plannedEndDateInput = screen.getByLabelText("Planned End Date");
+		await userEvent.type(plannedEndDateInput, "2023-07-31");
 
 		const button = screen.getByRole("button");
 		await userEvent.click(button);
@@ -55,6 +67,8 @@ describe("CreateTaskForm", () => {
 				name: "New Task",
 				id: "mocked-uuid",
 				created: expect.any(Date),
+				startDate: expect.any(Date),
+				plannedEndDate: expect.any(Date),
 			}),
 		);
 	});
@@ -62,12 +76,17 @@ describe("CreateTaskForm", () => {
 	it("resets the form after successful submission", async () => {
 		render(() => <CreateTaskForm />);
 
-		const input = screen.getByLabelText("Name");
+		const nameInput = screen.getByLabelText("Name");
+		const startDateInput = screen.getByLabelText("Start Date");
+		const plannedEndDateInput = screen.getByLabelText("Planned End Date");
 
-		await userEvent.type(input, "New Task");
-		expect(input).toHaveValue("New Task");
-
+		await userEvent.type(nameInput, "New Task");
+		await userEvent.type(startDateInput, "07/01/2023");
+		await userEvent.type(plannedEndDateInput, "07/31/2023");
 		await userEvent.click(screen.getByRole("button"));
-		expect(input).toHaveValue("");
+
+		expect(nameInput).toHaveValue("");
+		expect(startDateInput).toHaveValue("");
+		expect(plannedEndDateInput).toHaveValue("");
 	});
 });

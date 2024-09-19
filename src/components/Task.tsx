@@ -6,10 +6,13 @@ import {
 } from "@modular-forms/solid";
 import { v4 } from "uuid";
 import { z } from "zod";
+import { DateInput } from "./DateInput";
 import { TextField } from "./TextField";
 
 const TaskInputSchema = z.object({
 	name: z.string().min(1, { message: "Required" }),
+	startDate: z.coerce.date(),
+	plannedEndDate: z.coerce.date(),
 	// TODO: add more properties
 });
 
@@ -52,6 +55,18 @@ export const CreateTaskForm = () => {
 						value={field.value}
 						error={field.error}
 					/>
+				)}
+			</Field>
+
+			<Field name="startDate" type="Date">
+				{(field, props) => (
+					<DateInput {...props} value={field.value} label="Start Date" />
+				)}
+			</Field>
+
+			<Field name="plannedEndDate" type="Date">
+				{(field, props) => (
+					<DateInput {...props} value={field.value} label="Planned End Date" />
 				)}
 			</Field>
 
