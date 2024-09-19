@@ -1,6 +1,6 @@
 import solid from "vite-plugin-solid";
-import { browserConfig } from "./playwright.config";
 import { defineConfig } from "vitest/config";
+import { browserConfig } from "./playwright.config";
 
 export default defineConfig({
 	plugins: [solid()],
