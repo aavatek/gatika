@@ -1,29 +1,42 @@
 import { defineConfig, devices } from "@playwright/test";
 
+export const browserConfig = {
+	browser: "chromium",
+	headless: true,
+	use: { ...devices["Desktop Chrome"] },
+	url: "http://localhost:3000",
+	viewport: {
+		width: 1280,
+		height: 720,
+	},
+};
+
 export default defineConfig({
-	testDir: "tests/e2e",
+	testDir: "e2e",
+	outputDir: ".playwright/results",
 	fullyParallel: true,
 	forbidOnly: !!process.env.CI,
 	retries: 0,
 	workers: process.env.CI ? 1 : undefined,
-	reporter: [["html", { open: "never" }]],
+
+	reporter: [["html", { open: "never", outputFolder: ".playwright/report" }]],
 
 	use: {
-		headless: true,
-		baseURL: "http://localhost:3000",
+		headless: browserConfig.headless,
+		baseURL: browserConfig.url,
 		trace: "on-first-retry",
 	},
 
 	projects: [
 		{
-			name: "chromium",
-			use: { ...devices["Desktop Chrome"] },
+			name: browserConfig.browser,
+			use: browserConfig.use,
 		},
 	],
 
 	webServer: {
 		command: "bun dev",
-		url: "http://localhost:3000",
+		url: browserConfig.url,
 		timeout: 5000,
 		reuseExistingServer: !process.env.CI,
 	},

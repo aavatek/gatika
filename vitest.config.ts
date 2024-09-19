@@ -1,4 +1,5 @@
 import solid from "vite-plugin-solid";
+import { browserConfig } from "./playwright.config";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
@@ -8,9 +9,11 @@ export default defineConfig({
 		setupFiles: ["./vitest.setup.ts"],
 		browser: {
 			enabled: true,
-			headless: true,
-			name: "chromium",
+			headless: browserConfig.headless,
+			name: browserConfig.browser,
 			provider: "playwright",
+			screenshotDirectory: ".vitest/snapshots",
+			providerOptions: { ...browserConfig.use },
 		},
 
 		// bun test:unit looks for tests based on this

@@ -9,6 +9,7 @@
 		"dev": "vinxi dev",
 		"lint": "bunx biome lint src",
 		"format": "bunx biome format --fix src",
+		"test": "vitest run && playwright test",
 		"test:unit": "vitest run",
 		"test:e2e": "playwright test",
 		"prepare": "husky"

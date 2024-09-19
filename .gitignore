@@ -28,12 +28,6 @@ codebase.md
 .DS_Store
 Thumbs.db
 
-# Vitest
-coverage/
-__snapshots__/
-__screenshots__/
-
-# Playwright
-test-results/
-playwright-report/
-playwright/.cache/
+# Testing
+.vitest
+.playwright
