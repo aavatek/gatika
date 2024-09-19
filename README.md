@@ -5,12 +5,13 @@ Built with modern web technologies, focusing on usability and speed.
 
 ## Stack & Development
 
-- SolidStart (framework)
-- BiomeJS (linting + formatting)
-- Vitest (unit testing)
-- Playwright (integration and e2e testing)
-- Husky (pre-commit hooks)
-- Commitlint (commit message validation)
+- **SolidStart**: Web framework
+- **Vitest**: Unit & Component testing
+- **Playwright**: Integration & E2E testing
+- **Zod**: Schema validation
+- **Husky**: Git hooks
+- **Biome**: Linting & Formatting
+- **Commitlint**: Commit message linting
 
 ### Setup
 
@@ -32,6 +33,7 @@ bun dev                                # start development server
 bun dev          # start dev server
 bun lint         # lint files
 bun format       # format files
+bun run test     # run all tests
 bun test:unit    # run unit tests
 bun test:e2e     # run e2e tests
 ```
