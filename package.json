@@ -13,7 +13,7 @@
 		"test:unit": "vitest run",
 		"test:e2e": "playwright test",
 		"coverage": "vitest run --coverage",
-		"prepare": "husky"
+		"prepare": "lefthook install"
 	},
 	"dependencies": {
 		"@modular-forms/solid": "^0.23.0",
@@ -33,7 +33,7 @@
 		"@solidjs/testing-library": "^0.8.9",
 		"@vitest/browser": "^2.1.1",
 		"@vitest/coverage-v8": "^2.1.1",
-		"husky": "^9.1.6",
+		"lefthook": "^1.7.15",
 		"playwright": "^1.47.1",
 		"typescript": "^5.6.2",
 		"vitest": "^2.1.1"
