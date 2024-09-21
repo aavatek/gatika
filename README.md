@@ -9,7 +9,7 @@ Built with modern web technologies, focusing on usability and speed.
 - **Vitest**: Unit & Component testing
 - **Playwright**: Integration & E2E testing
 - **Zod**: Schema validation
-- **Husky**: Git hooks
+- **Lefthook**: Git hooks
 - **Biome**: Linting & Formatting
 - **Commitlint**: Commit message linting
 
@@ -30,13 +30,13 @@ bun dev                                # start development server
 ### Usage
 
 ```bash
-bun dev          # start dev server
-bun lint         # lint files
-bun format       # format files
-bun run test     # run all tests
-bun test:unit    # run unit tests
-bun test:e2e     # run e2e tests
-bun coverage     # run vitest coverage
+bun dev               # start dev server
+bun lint              # lint files
+bun format            # format files
+bun run test          # run all tests
+bun test:unit         # run unit tests
+bun test:unit:cov     # unit tests coverage
+bun test:e2e          # run e2e tests
 ```
 
 ## BiomeJS IDE Setup
