@@ -5,9 +5,6 @@
 		"clientKind": "git",
 		"useIgnoreFile": true
 	},
-	"files": {
-		"ignore": [".playwright/*", ".vitest"]
-	},
 	"formatter": {
 		"enabled": true,
 		"indentStyle": "tab"

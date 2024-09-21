@@ -1,6 +1,6 @@
 import { cleanup, render, screen } from '@solidjs/testing-library';
-import { TextInput } from './TextInput';
 import { describe, expect, it } from 'vitest';
+import { TextInput } from './TextInput';
 
 describe('TextInput', () => {
 	it('renders text input with label', () => {
