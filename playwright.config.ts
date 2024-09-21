@@ -37,7 +37,7 @@ export default defineConfig({
 	webServer: {
 		command: 'bun dev',
 		url: browserConfig.url,
-		timeout: 5000,
+		timeout: 20000,
 		reuseExistingServer: !process.env.CI,
 	},
 });
