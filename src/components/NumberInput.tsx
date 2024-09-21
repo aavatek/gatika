@@ -1,4 +1,4 @@
-import { createMemo, splitProps, type ComponentProps } from "solid-js";
+import { type ComponentProps, createMemo, splitProps } from 'solid-js';
 
 type NumberInputProps = {
 	name: string;
@@ -9,14 +9,14 @@ type NumberInputProps = {
 	min?: number;
 	max?: number;
 	step?: number;
-} & ComponentProps<"input">;
+} & ComponentProps<'input'>;
 
 export function NumberInput(props: NumberInputProps) {
-	const [, inputProps] = splitProps(props, ["class", "label", "value"]);
+	const [, inputProps] = splitProps(props, ['class', 'label', 'value']);
 
 	const getValue = createMemo(() => {
 		const value = props.value;
-		return value !== undefined && !Number.isNaN(value) ? value : "";
+		return value !== undefined && !Number.isNaN(value) ? value : '';
 	});
 
 	return (

@@ -1,4 +1,4 @@
-import { type JSX, createMemo, splitProps } from "solid-js";
+import { type JSX, createMemo, splitProps } from 'solid-js';
 
 type DateInputProps = {
 	name: string;
@@ -15,14 +15,14 @@ type DateInputProps = {
 };
 
 export function DateInput(props: DateInputProps) {
-	const [, inputProps] = splitProps(props, ["class", "label", "value"]);
+	const [, inputProps] = splitProps(props, ['class', 'label', 'value']);
 
 	const getDate = createMemo(() => {
 		const value = props.value;
 		return value &&
 			!Number.isNaN(value instanceof Date ? value.getTime() : value)
 			? new Date(value).toISOString().slice(0, 10)
-			: "";
+			: '';
 	});
 
 	return (

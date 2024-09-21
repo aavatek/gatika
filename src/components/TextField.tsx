@@ -1,8 +1,8 @@
-import { type JSX, Show, onMount, splitProps } from "solid-js";
+import { type JSX, Show, onMount, splitProps } from 'solid-js';
 
 type TextFieldProps = {
 	name: string;
-	type: "text" | "email" | "tel" | "password" | "url" | "date";
+	type: 'text' | 'email' | 'tel' | 'password' | 'url' | 'date';
 	label: string;
 	placeholder?: string;
 	value: string | undefined;
@@ -17,10 +17,10 @@ type TextFieldProps = {
 
 export function TextField(props: TextFieldProps) {
 	const [, inputProps] = splitProps(props, [
-		"class",
-		"error",
-		"label",
-		"value",
+		'class',
+		'error',
+		'label',
+		'value',
 	]);
 
 	return (
@@ -32,7 +32,7 @@ export function TextField(props: TextFieldProps) {
 			<input
 				{...inputProps}
 				id={props.name}
-				value={props.value || ""}
+				value={props.value || ''}
 				aria-invalid={!!props.error}
 				aria-errormessage={props.error ? `${props.name}-error` : undefined}
 			/>

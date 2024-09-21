@@ -3,14 +3,14 @@ import {
 	createForm,
 	reset,
 	zodForm,
-} from "@modular-forms/solid";
-import { v4 } from "uuid";
-import { z } from "zod";
-import { DateInput } from "./DateInput";
-import { TextField } from "./TextField";
+} from '@modular-forms/solid';
+import { v4 } from 'uuid';
+import { z } from 'zod';
+import { DateInput } from './DateInput';
+import { TextField } from './TextField';
 
 const TaskInputSchema = z.object({
-	name: z.string().min(1, { message: "Required" }),
+	name: z.string().min(1, { message: 'Required' }),
 	startDate: z.coerce.date(),
 	plannedEndDate: z.coerce.date(),
 	// TODO: add more properties
