@@ -7,7 +7,7 @@ import {
 import { v4 } from 'uuid';
 import { z } from 'zod';
 import { DateInput } from './DateInput';
-import { TextField } from './TextField';
+import { TextInput } from './TextInput';
 
 const TaskInputSchema = z.object({
 	name: z.string().min(1, { message: 'Required' }),
@@ -48,10 +48,11 @@ export const CreateTaskForm = () => {
 		<Form onSubmit={handleSubmit}>
 			<Field name="name">
 				{(field, props) => (
-					<TextField
+					<TextInput
 						{...props}
 						type="text"
 						label="Name"
+						placeholder="Task Name"
 						value={field.value}
 						error={field.error}
 					/>
