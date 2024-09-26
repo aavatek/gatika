@@ -1,0 +1,19 @@
+.nav {
+  border: 2px solid black;
+}
+
+.nav-list {
+  display: flex;
+  gap: 1em;
+  list-style-type: none;
+  padding: 1.5rem 1rem;
+}
+
+.nav-item-link {
+  color: black;
+  text-decoration: none;
+}
+
+.nav-item-link-active {
+  text-decoration: underline;
+}
