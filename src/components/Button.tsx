@@ -2,19 +2,26 @@ import { type ComponentProps, type JSX, splitProps } from 'solid-js';
 
 type ButtonProps = {
 	class?: string;
+	type?: 'button' | 'submit' | 'reset';
 	variant?: 'primary' | 'secondary';
 	intent?: 'info' | 'warning' | 'danger' | 'success';
 	content: string;
-} & ComponentProps<'button'>;
+} & Omit<ComponentProps<'button'>, 'type'>;
 
 export function Button(props: ButtonProps) {
-	const variant = props.variant ?? 'primary';
+	const variant = () => props.variant ?? 'primary';
+	const type = () => props.type ?? 'button';
 
-	const classString = `${props.class} ${props.variant} ${props.intent}`;
-	const [, buttonProps] = splitProps(props, ['class', 'variant', 'content']);
+	const classString = `${props.class} ${variant()} ${props.intent}`;
+	const [, buttonProps] = splitProps(props, [
+		'class',
+		'variant',
+		'content',
+		'type',
+	]);
 
 	return (
-		<button {...buttonProps} class={classString}>
+		<button {...buttonProps} type={type()} class={classString}>
 			{props.content}
 		</button>
 	);
