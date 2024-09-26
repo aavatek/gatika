@@ -1,4 +1,9 @@
-import { getByLabelText, render, screen } from '@solidjs/testing-library';
+import {
+	cleanup,
+	getByLabelText,
+	render,
+	screen,
+} from '@solidjs/testing-library';
 import { userEvent } from '@vitest/browser/context';
 import { describe, expect, it, vi } from 'vitest';
 import { Button } from './Button';
@@ -12,7 +17,7 @@ describe('Button', () => {
 		expect(button.textContent).toBe('Do something');
 	});
 
-	it('calls onClick handler when cli cked', async () => {
+	it('calls onClick handler when clicked', async () => {
 		const handleClick = vi.fn();
 		const { getByRole } = render(() => (
 			<Button onClick={handleClick} content="Do something" />
@@ -40,11 +45,33 @@ describe('Button', () => {
 		));
 
 		// check if the button has the correct attributes
-		const buttonElement = getByRole('button');
-		expect(buttonElement).toHaveClass('button');
-		expect(buttonElement).toHaveAttribute('name', name);
-		expect(buttonElement).toHaveAttribute('type', 'submit');
-		expect(buttonElement).toHaveAttribute('aria-label', 'Submit do something');
+		const button = getByRole('button');
+		expect(button).toHaveClass('button');
+		expect(button).toHaveAttribute('name', name);
+		expect(button).toHaveAttribute('type', 'submit');
+		expect(button).toHaveAttribute('aria-label', 'Submit do something');
+	});
+
+	it('should have the correct type', () => {
+		const types: Array<'button' | 'submit' | 'reset'> = [
+			'button',
+			'submit',
+			'reset',
+		];
+
+		for (const type of types) {
+			const { getByRole } = render(() => (
+				<Button type={type} content="Do something" />
+			));
+			const button = getByRole('button');
+			expect(button).toHaveAttribute('type', type);
+		}
+	});
+
+	it('should have the default type "button"', () => {
+		const { getByRole } = render(() => <Button content="Do something" />);
+		const button = getByRole('button');
+		expect(button).toHaveAttribute('type', 'button');
 	});
 });
 
