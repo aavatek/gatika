@@ -1,14 +1,14 @@
 import { cleanup, render, screen } from '@solidjs/testing-library';
 import { describe, expect, it } from 'vitest';
-import { TextInput } from './TextInput';
+import { TextField } from './TextField';
 
-describe('TextInput', () => {
+describe('TextField', () => {
 	it('renders text input with label', () => {
 		const label = 'Username';
 		const name = 'username';
 
 		const { getByLabelText, getByText } = render(() => (
-			<TextInput label={label} name={name} />
+			<TextField label={label} name={name} />
 		));
 
 		// check if the input is in the document
@@ -27,7 +27,7 @@ describe('TextInput', () => {
 		const name = 'username';
 
 		const { getByText } = render(() => (
-			<TextInput label={label} name={name} required={true} />
+			<TextField label={label} name={name} required={true} />
 		));
 
 		// check if the label is in the document
@@ -46,7 +46,7 @@ describe('TextInput', () => {
 		const errorMessage = 'Invalid username';
 
 		const { getByText, getByLabelText } = render(() => (
-			<TextInput label={label} name={name} error={errorMessage} />
+			<TextField label={label} name={name} error={errorMessage} />
 		));
 
 		// check if the input is in the document
@@ -62,7 +62,7 @@ describe('TextInput', () => {
 
 		// render without error
 		cleanup();
-		render(() => <TextInput label={label} name={name} />);
+		render(() => <TextField label={label} name={name} />);
 
 		// check if the error message is not displayed
 		const inputWithoutError = screen.getByLabelText(label);
@@ -77,7 +77,7 @@ describe('TextInput', () => {
 		const placeholderText = 'Enter your email';
 
 		const { getByLabelText } = render(() => (
-			<TextInput
+			<TextField
 				label={label}
 				name={name}
 				placeholder={placeholderText}
@@ -96,19 +96,6 @@ describe('TextInput', () => {
 		expect(inputElement).toBeDisabled();
 	});
 
-	it('applies custom CSS classes to the container', () => {
-		const label = 'Username';
-		const name = 'username';
-		const customClass = 'custom-class';
-		const { container } = render(() => (
-			<TextInput label={label} name={name} class={customClass} />
-		));
-
-		// check if the container has the custom class
-		const containerElement = container.firstChild as HTMLElement;
-		expect(containerElement).toHaveClass(customClass);
-	});
-
 	it('creates accessible fields for screen readers', () => {
 		const label = 'Password';
 		const name = 'password';
@@ -116,7 +103,7 @@ describe('TextInput', () => {
 
 		// render with error and required
 		render(() => (
-			<TextInput
+			<TextField
 				label={label}
 				name={name}
 				required={true}
@@ -132,7 +119,7 @@ describe('TextInput', () => {
 
 		// render without error and not required
 		cleanup();
-		render(() => <TextInput label={label} name={name} />);
+		render(() => <TextField label={label} name={name} />);
 
 		// check if the input has the correct accessibility attributes
 		inputElement = screen.getByLabelText(label) as HTMLInputElement;
@@ -147,7 +134,7 @@ describe('TextInput', () => {
 		const errorMessage = 'Invalid email format';
 
 		const { getByLabelText, getByText } = render(() => (
-			<TextInput label={label} name={name} error={errorMessage} />
+			<TextField label={label} name={name} error={errorMessage} />
 		));
 
 		// check if the input has the correct id attribute

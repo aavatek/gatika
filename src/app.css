@@ -1,4 +1,4 @@
-/* global reset by https://www.joshwcomeau.com/css/custom-css-reset/ */
+/* reset inspired by https://www.joshwcomeau.com/css/custom-css-reset/ */
 
 *,
 *::before,
@@ -39,4 +39,40 @@ h6 {
 	overflow-wrap: break-word;
 }
 
-/* global styles below */
+/* global styles */
+
+main {
+	padding: 1rem;
+	border: 2px solid black;
+	border-top: none;
+	min-height: calc(100vh - 4.75rem);
+}
+
+.header {
+	display: grid;
+	border: 2px solid black;
+	align-items: center;
+	grid-template-columns: repeat(3, 1fr);
+	grid-template-areas: "nav logo empty";
+}
+
+.nav {
+	grid-area: nav;
+	justify-self: start;
+}
+
+.nav-list {
+	display: flex;
+	gap: 1em;
+	list-style-type: none;
+	padding: 1.5rem 1rem;
+}
+
+.link {
+	color: black;
+	text-decoration: none;
+}
+
+.link-active {
+	text-decoration: underline;
+}

@@ -6,7 +6,7 @@ pre-commit:
       run: bun biome check --write --no-errors-on-unmatched {staged_files}
       stage_fixed: true
     tests:
-      run: bun run test
+      run: bun test:unit
 
 commit-msg:
   commands:

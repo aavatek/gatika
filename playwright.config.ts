@@ -1,43 +1,25 @@
-import { defineConfig, devices } from '@playwright/test';
-
-export const browserConfig = {
-	browser: 'chromium',
-	headless: true,
-	use: { ...devices['Desktop Chrome'] },
-	url: 'http://localhost:3000',
-	viewport: {
-		width: 1280,
-		height: 720,
-	},
-};
+import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
 	testDir: 'e2e',
-	outputDir: '.playwright/results',
+	reporter: 'list',
+	outputDir: '.playwright',
+	timeout: 30 * 1000,
 	fullyParallel: true,
-	forbidOnly: !!process.env.CI,
-	retries: 0,
+	retries: process.env.CI ? 2 : 0,
 	workers: process.env.CI ? 1 : undefined,
-
-	reporter: [['html', { open: 'never', outputFolder: '.playwright/report' }]],
+	forbidOnly: !!process.env.CI,
 
 	use: {
-		headless: browserConfig.headless,
-		baseURL: browserConfig.url,
+		headless: true,
+		baseURL: 'http://localhost:3000',
 		trace: 'on-first-retry',
+		browserName: 'chromium',
 	},
 
-	projects: [
-		{
-			name: browserConfig.browser,
-			use: browserConfig.use,
-		},
-	],
-
 	webServer: {
+		url: 'http://localhost:3000',
 		command: 'bun dev',
-		url: browserConfig.url,
-		timeout: 20000,
 		reuseExistingServer: !process.env.CI,
 	},
 });

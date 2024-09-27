@@ -1,38 +1,34 @@
-import {
-	type SubmitHandler,
-	createForm,
-	reset,
-	zodForm,
-} from '@modular-forms/solid';
-import { v4 } from 'uuid';
-import { z } from 'zod';
-import { DateInput } from './DateInput';
-import { TextInput } from './TextInput';
+import type { SubmitHandler } from '@modular-forms/solid';
+import { createForm, reset, valiForm } from '@modular-forms/solid';
+import type { InferOutput } from 'valibot';
+import * as v from 'valibot';
+import { Button } from './form/Button';
+import { DateField } from './form/DateField';
+import { TextField } from './form/TextField';
 
-const TaskInputSchema = z.object({
-	name: z.string().min(1, { message: 'Required' }),
-	startDate: z.coerce.date(),
-	plannedEndDate: z.coerce.date(),
-	// TODO: add more properties
+const TaskInputSchema = v.object({
+	name: v.pipe(v.string('Invalid'), v.nonEmpty('Required')),
+	startDate: v.date(),
+	endDate: v.date(),
 });
 
-const TaskSchema = TaskInputSchema.extend({
-	id: z.string().uuid(),
-	created: z.date(),
-	// TODO: add more properties
+const TaskSchema = v.object({
+	...TaskInputSchema.entries,
+	id: v.pipe(v.string(), v.uuid()),
+	created: v.date(),
 });
 
-type TaskInput = z.infer<typeof TaskInputSchema>;
-type Task = z.infer<typeof TaskSchema>;
+type TaskInput = InferOutput<typeof TaskInputSchema>;
+type Task = InferOutput<typeof TaskSchema>;
 
-export const CreateTaskForm = () => {
+export const TaskForm = () => {
 	const [createTaskForm, { Form, Field }] = createForm<TaskInput>({
-		validate: zodForm(TaskInputSchema),
+		validate: valiForm(TaskInputSchema),
 	});
 
 	const handleSubmit: SubmitHandler<TaskInput> = (data, _) => {
 		const task: Task = {
-			id: v4(),
+			id: crypto.randomUUID(),
 			created: new Date(),
 			...data,
 		};
@@ -48,7 +44,7 @@ export const CreateTaskForm = () => {
 		<Form onSubmit={handleSubmit}>
 			<Field name="name">
 				{(field, props) => (
-					<TextInput
+					<TextField
 						{...props}
 						type="text"
 						label="Name"
@@ -61,17 +57,17 @@ export const CreateTaskForm = () => {
 
 			<Field name="startDate" type="Date">
 				{(field, props) => (
-					<DateInput {...props} value={field.value} label="Start Date" />
+					<DateField {...props} value={field.value} label="Start Date" />
 				)}
 			</Field>
 
-			<Field name="plannedEndDate" type="Date">
+			<Field name="endDate" type="Date">
 				{(field, props) => (
-					<DateInput {...props} value={field.value} label="Planned End Date" />
+					<DateField {...props} value={field.value} label="End Date" />
 				)}
 			</Field>
 
-			<button type="submit">Create</button>
+			<Button type="submit" content="Create" />
 		</Form>
 	);
 };

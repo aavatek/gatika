@@ -1,10 +1,9 @@
-# SolidStart
+# Build
 dist
 .solid
 .output
 .vercel
 .netlify
-.vinxi
 
 # Environment
 .env
@@ -25,8 +24,8 @@ gitignore
 codebase.md
 
 # System Files
-.DS_Store
 Thumbs.db
+.DS_Store
 
 # Testing
 .vitest

@@ -1,24 +1,33 @@
+/* @refresh reload */
+
 import { MetaProvider, Title } from '@solidjs/meta';
-import { Router } from '@solidjs/router';
-import { FileRoutes } from '@solidjs/start/router';
-import { Suspense } from 'solid-js';
-import NavBar from './components/NavBar';
+import { Route, Router } from '@solidjs/router';
+import { ErrorBoundary, Suspense, render } from 'solid-js/web';
 
-// global reset + styles
-import './app.css';
+// global components
+import Head from './components/Head';
+import Layout from './components/Layout';
 
-export default function App() {
-	return (
-		<Router
-			root={(props) => (
-				<MetaProvider>
-					<Title>Gatika</Title>
-					<NavBar />
-					<Suspense>{props.children}</Suspense>
-				</MetaProvider>
-			)}
-		>
-			<FileRoutes />
-		</Router>
-	);
-}
+// routes
+import { default as Dashboard } from './routes/Dashboard';
+import { default as NotFound } from './routes/NotFound';
+import { default as Unexpected } from './routes/Unexpected';
+
+render(
+	() => (
+		<ErrorBoundary fallback={Unexpected}>
+			<MetaProvider>
+				<Head />
+				<Suspense>
+					<Router root={Layout}>
+						<Route path="/" component={Dashboard} />
+						<Route path="*" component={NotFound} />
+					</Router>
+				</Suspense>
+			</MetaProvider>
+		</ErrorBoundary>
+	),
+
+	// this is defined in project root index.html
+	document.getElementById('app') as HTMLElement,
+);
