@@ -4,7 +4,7 @@ import {
 	render,
 	screen,
 } from '@solidjs/testing-library';
-import userEvent from '@testing-library/user-event';
+import { userEvent } from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { Button } from './Button';
 
