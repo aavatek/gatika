@@ -39,7 +39,41 @@ h6 {
 	overflow-wrap: break-word;
 }
 
+ul {
+	list-style-type: none;
+}
+
+a {
+	text-decoration: none;
+	color: inherit;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a[aria-current]:not([aria-current="false"]) {
+	text-decoration: underline;
+}
+
 /* global styles */
+
+body {
+	font-family:
+		-apple-system,
+		BlinkMacSystemFont,
+		avenir next,
+		avenir,
+		segoe ui,
+		helvetica neue,
+		helvetica,
+		Cantarell,
+		Ubuntu,
+		roboto,
+		noto,
+		arial,
+		sans-serif;
+}
 
 main {
 	padding: 1rem;
@@ -53,7 +87,7 @@ main {
 	border: 2px solid black;
 	align-items: center;
 	grid-template-columns: repeat(3, 1fr);
-	grid-template-areas: "nav logo empty";
+	grid-template-areas: "nav empty empty";
 }
 
 .nav {
@@ -66,13 +100,4 @@ main {
 	gap: 1em;
 	list-style-type: none;
 	padding: 1.5rem 1rem;
-}
-
-.link {
-	color: black;
-	text-decoration: none;
-}
-
-.link-active {
-	text-decoration: underline;
 }
