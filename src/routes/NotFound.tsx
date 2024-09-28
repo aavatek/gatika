@@ -1,7 +1,7 @@
 export default function Page() {
 	return (
 		<main>
-			<h1>Page not found</h1>
+			<h1>Sivua ei löytynyt</h1>
 		</main>
 	);
 }
