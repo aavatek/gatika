@@ -1,9 +1,4 @@
-import {
-	cleanup,
-	getByLabelText,
-	render,
-	screen,
-} from '@solidjs/testing-library';
+import { render } from '@solidjs/testing-library';
 import { userEvent } from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { Button } from './Button';
