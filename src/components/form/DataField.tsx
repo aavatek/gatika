@@ -2,7 +2,7 @@ import { type ComponentProps, createEffect, createMemo } from 'solid-js';
 import { For, createSignal } from 'solid-js';
 import type { Task } from '../Task';
 import { Button } from './Button';
-import { TextField } from './TextField';
+import { InputField } from './InputField';
 
 type ComboboxProps = {
 	options: Task[];
@@ -70,7 +70,7 @@ export function Combobox(props: ComboboxProps) {
 				</For>
 			</datalist>
 
-			<TextField
+			<InputField
 				autocomplete="off"
 				label="Dependencies"
 				placeholder="Combobox"
