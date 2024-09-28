@@ -18,7 +18,10 @@ export default function Header() {
 			<nav class="nav">
 				<ul class="nav-list">
 					<li class="nav-list-item">
-						<Link label="Dashboard" href="/" end={true} />
+						<Link label="Yleiskatsaus" href="/" end={true} />
+					</li>
+					<li class="nav-list-item">
+						<Link label="Tehtävät" href="/tasks" />
 					</li>
 				</ul>
 			</nav>

@@ -1,3 +1,4 @@
+import { TaskForm, TaskList } from '$src/components/Task';
 import { Navigate, useNavigate, useParams } from '@solidjs/router';
 import { Show } from 'solid-js';
 import { Button } from '../components/form/Button';
@@ -22,6 +23,16 @@ export function TaskView() {
 				</main>
 			)}
 		</Show>
+	);
+}
+
+export function TaskListView() {
+	return (
+		<main>
+			<h1>Tehtävät</h1>
+			<TaskForm />
+			<TaskList />
+		</main>
 	);
 }
 
