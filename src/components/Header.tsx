@@ -1,5 +1,4 @@
 import { A, type AnchorProps } from '@solidjs/router';
-import { For, splitProps } from 'solid-js';
 
 type LinkProps = {
 	label: string;
