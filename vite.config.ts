@@ -15,6 +15,9 @@ export default defineConfig({
 		outDir: 'dist',
 		target: 'esnext',
 		cssMinify: 'lightningcss',
+		rollupOptions: {
+			cache: true,
+		},
 	},
 
 	test: {
@@ -33,7 +36,7 @@ export default defineConfig({
 	resolve: {
 		alias: {
 			$src: path.resolve(__dirname, './src'),
-			$assets: path.resolve(__dirname, './assets'),
+			$public: path.resolve(__dirname, './public'),
 			$routes: path.resolve(__dirname, './src/routes'),
 			$components: path.resolve(__dirname, './src/components'),
 		},
