@@ -1,6 +1,6 @@
-import { type ComponentProps, Show, createMemo, splitProps } from 'solid-js';
-import { FieldError } from './FieldError';
-import { FieldLabel } from './FieldLabel';
+import { FieldError } from '$components/form/FieldError';
+import { FieldLabel } from '$components/form/FieldLabel';
+import { type ComponentProps, createMemo, splitProps } from 'solid-js';
 
 export type InputFieldProps = {
 	label: string;

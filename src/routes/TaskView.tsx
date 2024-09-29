@@ -1,8 +1,8 @@
-import { TaskForm, TaskList } from '$src/components/Task';
-import { Navigate, useNavigate, useParams } from '@solidjs/router';
+import { Button } from '$components/form/Button';
+import { TaskForm, TaskList } from '$components/task/Task';
+import { tasks } from '$lib/api';
+import { useNavigate, useParams } from '@solidjs/router';
 import { Show } from 'solid-js';
-import { Button } from '../components/form/Button';
-import { tasks } from '../lib/api';
 
 export function TaskView() {
 	const params = useParams();

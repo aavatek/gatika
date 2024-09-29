@@ -1,8 +1,8 @@
+import { Button } from '$components/form/Button';
+import { InputField } from '$components/form/InputField';
+import type { Task } from '$components/task/Task.model';
 import { type ComponentProps, createEffect, createMemo } from 'solid-js';
 import { For, createSignal } from 'solid-js';
-import type { Task } from '../Task';
-import { Button } from './Button';
-import { InputField } from './InputField';
 
 type ComboboxProps = {
 	options: Task[];

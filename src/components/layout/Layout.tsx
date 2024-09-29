@@ -1,5 +1,5 @@
+import Header from '$components/header/Header';
 import type { JSXElement } from 'solid-js';
-import Header from './Header';
 
 type LayoutProps = {
 	children?: JSXElement;
