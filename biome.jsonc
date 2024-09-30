@@ -22,5 +22,8 @@
 		"formatter": {
 			"quoteStyle": "single"
 		}
+	},
+	"organizeImports": {
+		"enabled": false
 	}
 }
