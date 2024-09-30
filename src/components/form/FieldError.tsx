@@ -1,4 +1,5 @@
-import { Show } from 'solid-js';
+import { createMemo } from 'solid-js';
+import styles from './@.module.css';
 
 type FieldErrorProps = {
 	id?: string;
@@ -6,9 +7,11 @@ type FieldErrorProps = {
 };
 
 export function FieldError(props: FieldErrorProps) {
+	const hidden = createMemo(() => (props.error ? undefined : 'true'));
+
 	return (
-		<Show when={props.error} fallback={<output aria-hidden="true" />}>
-			<output id={props.id}>{props.error}</output>
-		</Show>
+		<output id={props.id} aria-hidden={hidden()} class={styles.error}>
+			{props.error}
+		</output>
 	);
 }

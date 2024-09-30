@@ -1,0 +1,22 @@
+.header {
+	display: grid;
+	grid-template-columns: 2fr 1fr 2fr;
+	grid-template-areas: "a b c";
+	align-items: center;
+	border-bottom: 2px solid black;
+}
+
+.header > :nth-child(1) {
+	grid-area: a;
+	justify-self: start;
+}
+
+.header > :nth-child(2) {
+	grid-area: b;
+	justify-self: center;
+}
+
+.header > :nth-child(3) {
+	grid-area: c;
+	justify-self: end;
+}

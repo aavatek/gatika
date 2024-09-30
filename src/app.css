@@ -10,7 +10,6 @@
 
 body {
 	line-height: 1.5;
-	-webkit-font-smoothing: antialiased;
 }
 
 img,
@@ -39,4 +38,29 @@ h6 {
 	overflow-wrap: break-word;
 }
 
+/* global variables - temporary values */
+
+:root {
+	/* font family */
+	--ff-sans: "Inter", sans-serif;
+	--ff-mono: "Fira Code", monospace;
+	--ff-serif: "Merriweather", serif;
+
+	/* space / size */
+	--s-xs: 0.25rem;
+	--s-s: 0.5rem;
+	--s-m: 1rem;
+	--s-l: 1.5rem;
+	--s-xl: 3rem;
+	--s-xxl: 4rem;
+}
+
 /* global styles below */
+
+body {
+	font-family: var(--ff-sans);
+}
+
+main {
+	padding: var(--s-m);
+}

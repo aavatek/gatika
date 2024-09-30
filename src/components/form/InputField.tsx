@@ -1,6 +1,8 @@
-import { FieldError } from '$components/form/FieldError';
-import { FieldLabel } from '$components/form/FieldLabel';
-import { type ComponentProps, createMemo, splitProps } from 'solid-js';
+import { FieldError } from './FieldError';
+import { FieldLabel } from './FieldLabel';
+import { createMemo, splitProps } from 'solid-js';
+import type { ComponentProps } from 'solid-js';
+import styles from './@.module.css';
 
 export type InputFieldProps = {
 	label: string;
@@ -29,7 +31,7 @@ export function InputField(props: InputFieldProps) {
 	);
 
 	return (
-		<div>
+		<div class={styles.formField}>
 			<FieldLabel
 				name={props.name}
 				label={props.label}
@@ -42,6 +44,7 @@ export function InputField(props: InputFieldProps) {
 				value={getValue()}
 				aria-invalid={props.error ? 'true' : undefined}
 				aria-errormessage={getErrorId()}
+				class={styles.input}
 			/>
 
 			<FieldError id={getErrorId()} error={props.error} />

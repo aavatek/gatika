@@ -5,6 +5,7 @@ import browserslist from 'browserslist';
 import { browserslistToTargets } from 'lightningcss';
 import { defineConfig } from 'vite';
 import solid from 'vite-plugin-solid';
+import { w } from '@solid-primitives/storage/dist/persisted-fWOjSMPO';
 
 export default defineConfig({
 	plugins: [solid()],
@@ -44,11 +45,8 @@ export default defineConfig({
 
 	resolve: {
 		alias: {
-			$src: path.resolve(__dirname, './src'),
-			$lib: path.resolve(__dirname, './src/lib'),
-			$public: path.resolve(__dirname, './public'),
-			$routes: path.resolve(__dirname, './src/routes'),
-			$components: path.resolve(__dirname, './src/components'),
+			$$: path.resolve(__dirname, './'),
+			$: path.resolve(__dirname, './src'),
 		},
 	},
 });
