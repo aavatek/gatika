@@ -1,13 +1,14 @@
 import { FieldError } from './FieldError';
 import { FieldLabel } from './FieldLabel';
 import { createMemo, splitProps } from 'solid-js';
+import { formatDate, getDate } from '@solid-primitives/date';
 import type { ComponentProps } from 'solid-js';
 import styles from './@.module.css';
 
 export type InputFieldProps = {
 	label: string;
 	error?: string;
-	value?: string | Date | number;
+	value?: string | number | Date;
 } & Omit<ComponentProps<'input'>, 'value'>;
 
 export function InputField(props: InputFieldProps) {
@@ -17,10 +18,8 @@ export function InputField(props: InputFieldProps) {
 		switch (true) {
 			case props.value == null:
 				return String();
-			case props.type === 'date' && props.value instanceof Date:
-				return props.value.toISOString().split('T')[0];
-			case props.type === 'number' && typeof props.value === 'number':
-				return props.value.toString();
+			case props.value instanceof Date && !Number.isNaN(props.value.getTime()):
+				return formatDate(props.value);
 			default:
 				return String(props.value);
 		}

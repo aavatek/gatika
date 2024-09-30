@@ -40,16 +40,14 @@ export function View() {
 
 export function EditView() {
 	const params = useParams();
-	const navigate = useNavigate();
 	const task = tasks.read(params.id);
-	const handleBack = () => navigate(-1);
 
 	return (
 		<Show when={task()} fallback={<NotFoundView />}>
 			{(task) => (
 				<main class={styles.taskEditView}>
 					<h1>Tehtävän muokkaus</h1>
-					<Button content="Peruuta" onclick={handleBack} />
+					<TaskForm task={task()} />
 				</main>
 			)}
 		</Show>

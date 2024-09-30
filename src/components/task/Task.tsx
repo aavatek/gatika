@@ -1,13 +1,21 @@
 import * as v from 'valibot';
 import type { SubmitHandler } from '@modular-forms/solid';
-import { createForm, reset, valiForm } from '@modular-forms/solid';
-import { For } from 'solid-js';
+import { createForm, reset, setValues, valiForm } from '@modular-forms/solid';
+import { createMemo, For, Match, Switch } from 'solid-js';
 import { Link } from '$/components/Nav';
 import { Button } from '$/components/form/Button';
 import { InputField } from '$/components/form/InputField';
-import { type Task, type TaskInput, TaskSchema } from './Task.model';
+import type { Task, TaskInput } from './Task.model';
+import { TaskSchema, TaskInputSchema } from './Task.model';
 import { tasks } from '$/lib/api';
 import styles from './Task.module.css';
+import { useNavigate } from '@solidjs/router';
+import {
+	createDate,
+	formatDate,
+	getDate,
+	getDateDifference,
+} from '@solid-primitives/date';
 
 export const TaskList = () => {
 	return (
@@ -31,24 +39,74 @@ const TaskListItem = (props: Task) => {
 	);
 };
 
-export const TaskForm = () => {
+type TaskFormProps = {
+	task?: Task;
+};
+
+export const TaskForm = (props: TaskFormProps) => {
+	const navigate = useNavigate();
 	const [createTaskForm, { Form, Field }] = createForm<TaskInput>({
-		validate: valiForm(TaskSchema),
+		validate: valiForm(TaskInputSchema),
 	});
 
 	const handleSubmit: SubmitHandler<TaskInput> = (data, _) => {
 		try {
-			const taskData: Task = v.parse(TaskSchema, data);
-			tasks.create(taskData);
-			reset(createTaskForm);
+			if (props.task) {
+				tasks.update(props.task.id, {
+					...props.task,
+					...data,
+					updated: new Date(),
+				});
+			} else {
+				tasks.create(
+					v.parse(TaskSchema, {
+						...v.parse(TaskInputSchema, data),
+						id: crypto.randomUUID(),
+						created: new Date(),
+						updated: new Date(),
+					}),
+				);
+
+				reset(createTaskForm);
+			}
 		} catch (e) {
-			console.error(e);
+			handleError(e as Error);
 		}
 	};
 
+	const handleError = (error: Error) => {
+		console.error(error);
+	};
+
+	const handleCancel = () => {
+		navigate(-1);
+	};
+
+	if (props.task) {
+		setValues(createTaskForm, { name: props.task.name });
+		if (props.task.startDate) {
+			setValues(createTaskForm, {
+				startDate: new Date(props.task.startDate),
+			});
+		}
+		if (props.task.endDate) {
+			setValues(createTaskForm, {
+				endDate: new Date(props.task.endDate),
+			});
+		}
+	}
+
 	return (
 		<section class={styles.taskFormWrapper}>
-			<h2>Luo tehtävä</h2>
+			<Switch>
+				<Match when={props.task}>
+					<h2>Muokkaa</h2>
+				</Match>
+				<Match when={!props.task}>
+					<h2>Luo tehtävä</h2>
+				</Match>
+			</Switch>
+
 			<Form onSubmit={handleSubmit} class={styles.taskForm}>
 				<Field name="name">
 					{(field, props) => (
@@ -87,7 +145,15 @@ export const TaskForm = () => {
 					)}
 				</Field>
 
-				<Button type="submit" content="Luo tehtävä" />
+				<Switch>
+					<Match when={props.task}>
+						<Button type="submit" content="Tallenna" />
+						<Button type="button" content="Peruuta" onClick={handleCancel} />
+					</Match>
+					<Match when={!props.task}>
+						<Button type="submit" content="Luo tehtävä" />
+					</Match>
+				</Switch>
 			</Form>
 		</section>
 	);

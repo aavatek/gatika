@@ -18,6 +18,7 @@
 	},
 	"dependencies": {
 		"@modular-forms/solid": "^0.23.0",
+		"@solid-primitives/date": "^2.0.23",
 		"@solid-primitives/storage": "^4.2.1",
 		"@solidjs/meta": "^0.29.4",
 		"@solidjs/router": "^0.14.7",
