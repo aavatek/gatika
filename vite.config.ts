@@ -5,7 +5,6 @@ import browserslist from 'browserslist';
 import { browserslistToTargets } from 'lightningcss';
 import { defineConfig } from 'vite';
 import solid from 'vite-plugin-solid';
-import { w } from '@solid-primitives/storage/dist/persisted-fWOjSMPO';
 
 export default defineConfig({
 	plugins: [solid()],
