@@ -1,6 +1,8 @@
 /// <reference types="vitest" />
 
 import path from 'node:path';
+import browserslist from 'browserslist';
+import { browserslistToTargets } from 'lightningcss';
 import { defineConfig } from 'vite';
 import solid from 'vite-plugin-solid';
 
@@ -17,6 +19,13 @@ export default defineConfig({
 		cssMinify: 'lightningcss',
 		rollupOptions: {
 			cache: true,
+		},
+	},
+
+	css: {
+		transformer: 'lightningcss',
+		lightningcss: {
+			targets: browserslistToTargets(browserslist('>= 0.25%')),
 		},
 	},
 
