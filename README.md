@@ -8,7 +8,6 @@ Built with modern web technologies, focusing on usability and speed.
 - **SolidStart**: Web framework
 - **Vitest**: Unit & Component testing
 - **Playwright**: Integration & E2E testing
-- **Zod**: Schema validation
 - **Lefthook**: Git hooks
 - **Biome**: Linting & Formatting
 - **Commitlint**: Commit message linting
