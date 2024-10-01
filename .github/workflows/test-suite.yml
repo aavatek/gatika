@@ -18,7 +18,7 @@ jobs:
       - run: bun install
       - name: Install Playwright dependencies
         run: bun playwright install --with-deps
-      - name: Run unit tests
+      - name: Run unit & component tests
         run: bun run test:unit
-      - name: Run integration tests
-        run: bun run test:integration
+      - name: Run e2e & integration tests
+        run: bun run test:e2e
