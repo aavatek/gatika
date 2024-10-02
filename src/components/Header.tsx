@@ -1,27 +1,15 @@
-import { A, type AnchorProps } from '@solidjs/router';
-
-type LinkProps = {
-	label: string;
-} & AnchorProps;
-
-export const Link = (props: LinkProps) => {
-	return (
-		<A class="link" activeClass="link-active" {...props}>
-			{props.label}
-		</A>
-	);
-};
+import { Nav } from './Nav';
+import styles from './Header.module.css';
 
 export default function Header() {
+	const links = [
+		{ label: 'Yleiskatsaus', href: '/' },
+		{ label: 'Tehtävät', href: '/tasks' },
+	];
+
 	return (
-		<header class="header">
-			<nav class="nav">
-				<ul class="nav-list">
-					<li class="nav-list-item">
-						<Link label="Dashboard" href="/" end={true} />
-					</li>
-				</ul>
-			</nav>
+		<header class={styles.header}>
+			<Nav items={links} />
 		</header>
 	);
 }

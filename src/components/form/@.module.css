@@ -1,0 +1,16 @@
+.formField {
+	display: flex;
+	flex-direction: column;
+}
+
+.input,
+.button {
+	padding: var(--s-s);
+	appearance: none;
+}
+
+/* fix for mobile safari */
+.input {
+	min-width: calc(100% - var(--s-m));
+	min-height: var(--s-xl);
+}

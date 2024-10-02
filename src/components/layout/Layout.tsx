@@ -1,8 +1,5 @@
 import type { JSXElement } from 'solid-js';
-import Header from './Header';
-
-// reset + global styles
-import '$src/app.css';
+import Header from '$/components/Header';
 
 type LayoutProps = {
 	children?: JSXElement;

@@ -4,15 +4,18 @@ import { MetaProvider } from '@solidjs/meta';
 import { Route, Router } from '@solidjs/router';
 import { ErrorBoundary, Suspense, render } from 'solid-js/web';
 
+// global styles
+import './app.css';
+
 // global components
-import Head from './components/Head';
-import Layout from './components/Layout';
+import Head from './components/layout/Head';
+import Layout from './components/layout/Layout';
 
 // routes
-import { default as Dashboard } from './routes/Dashboard';
+import { default as Index } from './routes/Index';
 import { default as NotFound } from './routes/NotFound';
-import { TaskEditView, TaskView } from './routes/TaskView';
 import { default as Unexpected } from './routes/Unexpected';
+import { ListView, View, EditView } from './routes/TaskView';
 
 render(
 	() => (
@@ -21,10 +24,13 @@ render(
 				<Head />
 				<Suspense>
 					<Router root={Layout}>
-						<Route path="/" component={Dashboard} />
-						<Route path="/tasks/:id" component={TaskView} />
-						<Route path="/tasks/:id/edit" component={TaskEditView} />
+						<Route path="/" component={Index} />
 						<Route path="*" component={NotFound} />
+						<Route path="/tasks">
+							<Route path="/" component={ListView} />
+							<Route path="/:id" component={View} />
+							<Route path="/:id/edit" component={EditView} />
+						</Route>
 					</Router>
 				</Suspense>
 			</MetaProvider>

@@ -1,0 +1,19 @@
+.taskListView {
+	display: grid;
+	grid-template-areas:
+		"header header header"
+		"list form form";
+}
+
+.taskListView > :nth-child(1) {
+	grid-area: header;
+}
+
+.taskListView > :nth-child(2) {
+	grid-area: list;
+}
+
+.taskListView > :nth-child(3) {
+	grid-area: form;
+	justify-self: center;
+}

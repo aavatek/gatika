@@ -1,6 +1,8 @@
 /// <reference types="vitest" />
 
 import path from 'node:path';
+import browserslist from 'browserslist';
+import { browserslistToTargets } from 'lightningcss';
 import { defineConfig } from 'vite';
 import solid from 'vite-plugin-solid';
 
@@ -20,6 +22,13 @@ export default defineConfig({
 		},
 	},
 
+	css: {
+		transformer: 'lightningcss',
+		lightningcss: {
+			targets: browserslistToTargets(browserslist('>= 0.25%')),
+		},
+	},
+
 	test: {
 		globals: true,
 		isolate: false,
@@ -35,10 +44,8 @@ export default defineConfig({
 
 	resolve: {
 		alias: {
-			$src: path.resolve(__dirname, './src'),
-			$public: path.resolve(__dirname, './public'),
-			$routes: path.resolve(__dirname, './src/routes'),
-			$components: path.resolve(__dirname, './src/components'),
+			$$: path.resolve(__dirname, './'),
+			$: path.resolve(__dirname, './src'),
 		},
 	},
 });

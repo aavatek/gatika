@@ -1,39 +1,35 @@
-import { makePersisted, storageSync } from '@solid-primitives/storage';
 import { createMemo } from 'solid-js';
 import { createStore, produce } from 'solid-js/store';
-import type { Task } from '../components/Task';
+import { makePersisted, storageSync } from '@solid-primitives/storage';
+import type { Task } from '$/components/task/Task.model';
 
-export const [taskStore, setTaskStore, init] = makePersisted(
-	createStore<Task[]>([]),
-	{
-		name: 'taskStore',
-		storage: localStorage,
-		sync: storageSync,
-	},
-);
+export const [store, setStore, init] = makePersisted(createStore<Task[]>([]), {
+	name: 'tasks',
+	storage: localStorage,
+	sync: storageSync,
+});
 
 export const tasks = {
 	create: (task: Task) => {
-		setTaskStore(
+		setStore(
 			produce((store) => {
 				store.push(task);
 			}),
 		);
 	},
 
-	read: (id: string) =>
-		createMemo(() => taskStore.find((task) => task.id === id)),
+	read: (id: string) => createMemo(() => store.find((task) => task.id === id)),
 
-	update: (id: string, updatedTask: Partial<Task>) => {
-		setTaskStore(
+	update: (id: string, data: Partial<Task>) => {
+		setStore(
 			(task) => task.id === id,
-			produce((task) => Object.assign(task, updatedTask)),
+			produce((task) => Object.assign(task, data)),
 		);
 	},
 
 	delete: (id: string) => {
-		setTaskStore((store) => store.filter((task) => task.id !== id));
+		setStore((store) => store.filter((task) => task.id !== id));
 	},
 
-	list: () => taskStore,
+	list: () => store,
 };
