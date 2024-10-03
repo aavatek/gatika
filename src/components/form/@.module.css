@@ -14,3 +14,11 @@
 	min-width: calc(100% - var(--s-m));
 	min-height: var(--s-xl);
 }
+
+.checkbox {
+	margin-left: 10px;
+	width: 15px;
+	height: 15px;
+	border: black solid 1px;
+	appearance: none;
+}
