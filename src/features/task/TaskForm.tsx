@@ -1,7 +1,7 @@
 import { createForm, reset, setValues, valiForm } from '@modular-forms/solid';
 import type { SubmitHandler } from '@modular-forms/solid';
 import type { Task, TaskInput } from './@.schema';
-import type { Accessor, JSX } from 'solid-js';
+import { children, type Accessor, type JSX } from 'solid-js';
 import { Button } from '$/components/form/Button';
 import { InputField } from '$/components/form/Input';
 import { TaskEditSchema, TaskSchema, taskTypes } from './@.schema';
@@ -24,6 +24,7 @@ type TaskFormProps = {
 
 export const TaskForm = (props: TaskFormProps) => {
 	const [, { Form, Field }] = props.form;
+	const Buttons = children(() => props.children);
 
 	return (
 		<Form onSubmit={props.onSubmit} class={styles.taskForm}>
@@ -75,8 +76,7 @@ export const TaskForm = (props: TaskFormProps) => {
 				)}
 			</Field>
 
-			{/* buttons */}
-			{props.children}
+			{Buttons()}
 		</Form>
 	);
 };
