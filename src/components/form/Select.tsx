@@ -1,58 +1,43 @@
 import type { ComponentProps } from 'solid-js';
-import { createMemo, For, splitProps } from 'solid-js';
+import { createMemo, createUniqueId, splitProps, For } from 'solid-js';
 import { FieldError, FieldLabel } from './Field';
 import styles from './@.module.css';
 
 type SelectProps = {
-	value?: string | string[] | undefined;
 	label: string;
 	error?: string;
 	options: readonly string[];
 } & ComponentProps<'select'>;
 
-/**
- * Select field that allows users to select predefined values.
- */
 export function Select(props: SelectProps) {
-	const [_, selectProps] = splitProps(props, [
-		'value',
-		'options',
-		'label',
-		'error',
-	]);
+	const [_, selectProps] = splitProps(props, ['options', 'label', 'error']);
 
-	const getValues = createMemo(() =>
-		Array.isArray(props.value)
-			? props.value
-			: typeof props.value === 'string'
-				? [props.value]
-				: [],
-	);
-
-	const getValueLabel = (value: string) => {
-		return value === '' ? 'Valitse' : value;
-	};
+	const id = createUniqueId();
+	const errorId = createMemo(() => (props.error ? `${id}-error` : undefined));
+	const values = createMemo(() => (props.value ? [props.value] : []));
 
 	return (
 		<div>
-			<FieldLabel name={props.name} label={props.label} />
+			<FieldLabel for={id} label={props.label} />
+
 			<select
 				{...selectProps}
+				id={id}
+				aria-invalid={props.error ? 'true' : undefined}
+				aria-errormessage={errorId()}
 				class={styles.select}
-				id={props.name}
-				aria-invalid={!!props.error}
-				aria-errormessage={`${props.name}-error`}
 			>
 				<For each={props.options}>
 					{(value) => (
-						<option value={value} selected={getValues().includes(value)}>
-							{getValueLabel(value)}
+						<option value={value} selected={values().includes(value)}>
+							{value === '' && 'Valitse'}
+							{value !== '' && value}
 						</option>
 					)}
 				</For>
 			</select>
 
-			<FieldError id={`${props.name}-error`} error={props.error} />
+			<FieldError id={errorId()} error={props.error} />
 		</div>
 	);
 }
