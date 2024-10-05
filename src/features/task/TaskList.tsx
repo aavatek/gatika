@@ -9,7 +9,7 @@ export const TaskList = () => {
 		<section class={styles.taskListWrapper}>
 			<h2>Kaikki tehtävät</h2>
 			<ol class={styles.taskList}>
-				<For each={tasks.list()}>
+				<For each={tasks.list()} fallback={<p>Ei tehtäviä</p>}>
 					{(task: Task) => <TaskListItem {...task} />}
 				</For>
 			</ol>
