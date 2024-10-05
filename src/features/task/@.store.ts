@@ -1,9 +1,9 @@
 import { createMemo } from 'solid-js';
 import { createStore, produce } from 'solid-js/store';
 import { makePersisted, storageSync } from '@solid-primitives/storage';
-import type { Task } from '$/components/task/Task.model';
+import type { Task } from './@.schema';
 
-export const [store, setStore, init] = makePersisted(createStore<Task[]>([]), {
+const [store, setStore] = makePersisted(createStore<Task[]>([]), {
 	name: 'tasks',
 	storage: localStorage,
 	sync: storageSync,

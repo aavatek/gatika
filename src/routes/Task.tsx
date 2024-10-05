@@ -1,19 +1,10 @@
 import { useNavigate, useParams } from '@solidjs/router';
-import { Show } from 'solid-js';
+import { createMemo, Show } from 'solid-js';
 import { Button } from '$/components/form/Button';
-import { TaskForm, TaskList } from '$/components/task/Task';
-import { tasks } from '$/lib/api';
-import styles from './TaskView.module.css';
-
-export function ListView() {
-	return (
-		<main class={styles.taskListView}>
-			<h1>Tehtävät</h1>
-			<TaskList />
-			<TaskForm />
-		</main>
-	);
-}
+import { TaskList } from '$/features/task/TaskList';
+import { TaskForm } from '$/features/task/TaskCreateForm';
+import { tasks } from '$/features/task/@.store';
+import styles from './@.module.css';
 
 export function View() {
 	const params = useParams();
@@ -41,16 +32,28 @@ export function View() {
 export function EditView() {
 	const params = useParams();
 	const task = tasks.read(params.id);
+	const navigate = useNavigate();
+	const handleBack = () => navigate(-1);
 
 	return (
 		<Show when={task()} fallback={<NotFoundView />}>
 			{(task) => (
 				<main class={styles.taskEditView}>
-					<h1>Tehtävän muokkaus</h1>
-					<TaskForm task={task()} />
+					<h1>Tehtävä: {task().name} (muokkaus)</h1>
+					<Button content="Takaisin" onClick={handleBack} />
 				</main>
 			)}
 		</Show>
+	);
+}
+
+export function ListView() {
+	return (
+		<main class={styles.taskListView}>
+			<h1>Tehtävät</h1>
+			<TaskList />
+			<TaskForm />
+		</main>
 	);
 }
 

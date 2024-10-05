@@ -1,11 +1,11 @@
 import type { JSXElement } from 'solid-js';
-import Header from '$/components/Header';
+import Header from '$/components/core/Header';
 
 type LayoutProps = {
 	children?: JSXElement;
 };
 
-export default function Layout(props: LayoutProps) {
+export default function RootLayout(props: LayoutProps) {
 	return (
 		<>
 			<Header />

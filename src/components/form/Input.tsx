@@ -1,8 +1,7 @@
-import { FieldError } from './FieldError';
-import { FieldLabel } from './FieldLabel';
+import type { ComponentProps } from 'solid-js';
 import { createMemo, splitProps } from 'solid-js';
 import { formatDate, getDate } from '@solid-primitives/date';
-import type { ComponentProps } from 'solid-js';
+import { FieldLabel, FieldError } from './Field';
 import styles from './@.module.css';
 
 export type InputFieldProps = {

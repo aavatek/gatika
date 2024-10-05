@@ -1,6 +1,6 @@
 import { A, type AnchorProps } from '@solidjs/router';
 import { For, Match, Show, Switch, mergeProps } from 'solid-js';
-import styles from './Nav.module.css';
+import styles from './@.module.css';
 
 type LinkProps = { label: string } & AnchorProps;
 export const Link = (props: LinkProps) => {

@@ -1,5 +1,5 @@
 import { Nav } from './Nav';
-import styles from './Header.module.css';
+import styles from './@.module.css';
 
 export default function Header() {
 	const links = [
