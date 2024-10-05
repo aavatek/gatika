@@ -60,7 +60,7 @@ export const TaskSchema = v.pipe(
 		v.partialCheck(
 			[['startDate'], ['endDate']],
 			({ startDate, endDate }) =>
-				startDate && endDate ? startDate < endDate : true,
+				startDate && endDate ? startDate <= endDate : true,
 			err.date.endBeforeStart,
 		),
 		['endDate'],
