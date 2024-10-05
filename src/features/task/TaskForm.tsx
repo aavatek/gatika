@@ -1,20 +1,13 @@
-import {
-	createForm,
-	getErrors,
-	reset,
-	setValues,
-	valiForm,
-} from '@modular-forms/solid';
+import { createForm, reset, setValues, valiForm } from '@modular-forms/solid';
 import type { SubmitHandler } from '@modular-forms/solid';
 import type { Task, TaskInput } from './@.schema';
-import { type Accessor, createEffect, type JSX, Match, Switch } from 'solid-js';
+import type { Accessor, JSX } from 'solid-js';
 import { Button } from '$/components/form/Button';
 import { InputField } from '$/components/form/Input';
 import { TaskEditSchema, TaskSchema, taskTypes } from './@.schema';
 import { tasks } from './@.store';
 import styles from './@.module.css';
 import * as v from 'valibot';
-import { WriteStream } from 'node:tty';
 import { useNavigate } from '@solidjs/router';
 import { Select } from '$/components/form/Select';
 
@@ -81,6 +74,7 @@ export const TaskForm = (props: TaskFormProps) => {
 				)}
 			</Field>
 
+			{/* buttons */}
 			{props.children}
 		</Form>
 	);
@@ -108,7 +102,7 @@ export const CreateTaskForm = () => {
 		<section>
 			<h2>Luo tehtävä</h2>
 			<TaskForm onSubmit={handleSubmit} form={form}>
-				<Button type="submit" content="Luo tehtävä" />
+				<Button type="submit" label="Luo tehtävä" />
 			</TaskForm>
 		</section>
 	);
@@ -136,18 +130,14 @@ export const EditTaskForm = (props: EditTaskFormProps) => {
 		console.error(validate.issues);
 	};
 
-	createEffect(() => {
-		console.log(props.task().name);
-	});
-
 	setValues(form[0], { ...props.task() });
 
 	return (
 		<section>
 			<h2>Muokkaa tehtävää</h2>
 			<TaskForm onSubmit={handleSubmit} form={form}>
-				<Button type="submit" content="Tallenna" />
-				<Button content="Peruuta" onclick={() => navigate(-1)} />
+				<Button type="submit" label="Tallenna" />
+				<Button label="Peruuta" onclick={() => navigate(-1)} />
 			</TaskForm>
 		</section>
 	);

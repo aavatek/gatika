@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from '@solidjs/router';
-import { createMemo, Show } from 'solid-js';
+import { Show } from 'solid-js';
 import { Button } from '$/components/form/Button';
 import { TaskList } from '$/features/task/TaskList';
 import { CreateTaskForm, EditTaskForm } from '$/features/task/TaskForm';
@@ -20,9 +20,9 @@ export function View() {
 			{(task) => (
 				<main class={styles.taskView}>
 					<h1>Tehtävä: {task().name}</h1>
-					<Button content="Takaisin" onclick={handleBack} />
-					<Button content="Muokkaa" onclick={handleEdit} />
-					<Button content="Poista" onclick={handleDelete} />
+					<Button label="Takaisin" onclick={handleBack} />
+					<Button label="Muokkaa" onclick={handleEdit} />
+					<Button label="Poista" onclick={handleDelete} />
 				</main>
 			)}
 		</Show>
@@ -64,7 +64,7 @@ const NotFoundView = () => {
 	return (
 		<main class={styles.taskNotFound}>
 			<h1>Tehtävää ei löytynyt</h1>
-			<Button content="Takaisin" onclick={handleBack} />
+			<Button label="Takaisin" onclick={handleBack} />
 		</main>
 	);
 };

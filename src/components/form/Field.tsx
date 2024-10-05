@@ -2,14 +2,14 @@ import { createMemo } from 'solid-js';
 import styles from './@.module.css';
 
 type FieldLabelProps = {
-	name?: string;
-	label?: string;
+	for: string;
+	label: string;
 	required?: boolean;
 };
 
 export const FieldLabel = (props: FieldLabelProps) => {
 	return (
-		<label for={props.name} class={styles.label}>
+		<label for={props.for} class={styles.label}>
 			{props.label}
 			{props.required && <span aria-hidden="true"> *</span>}
 		</label>

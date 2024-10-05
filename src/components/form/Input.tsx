@@ -1,6 +1,6 @@
 import type { ComponentProps } from 'solid-js';
-import { createMemo, splitProps } from 'solid-js';
-import { formatDate, getDate } from '@solid-primitives/date';
+import { createMemo, createUniqueId, splitProps } from 'solid-js';
+import { formatDate } from '@solid-primitives/date';
 import { FieldLabel, FieldError } from './Field';
 import styles from './@.module.css';
 
@@ -13,7 +13,7 @@ export type InputFieldProps = {
 export function InputField(props: InputFieldProps) {
 	const [, inputProps] = splitProps(props, ['label', 'error', 'value']);
 
-	const getValue = createMemo(() => {
+	const value = createMemo(() => {
 		switch (true) {
 			case props.value == null:
 				return String();
@@ -24,28 +24,23 @@ export function InputField(props: InputFieldProps) {
 		}
 	});
 
-	const getErrorId = createMemo(() =>
-		props.error ? `${props.name}-error` : undefined,
-	);
+	const id = createUniqueId();
+	const errorId = createMemo(() => (props.error ? `${id}-error` : undefined));
 
 	return (
 		<div class={styles.formField}>
-			<FieldLabel
-				name={props.name}
-				label={props.label}
-				required={props.required}
-			/>
+			<FieldLabel for={id} label={props.label} required={props.required} />
 
 			<input
 				{...inputProps}
-				id={props.name}
-				value={getValue()}
+				id={id}
+				value={value()}
 				aria-invalid={props.error ? 'true' : undefined}
-				aria-errormessage={getErrorId()}
+				aria-errormessage={errorId()}
 				class={styles.input}
 			/>
 
-			<FieldError id={getErrorId()} error={props.error} />
+			<FieldError id={errorId()} error={props.error} />
 		</div>
 	);
 }

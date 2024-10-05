@@ -1,6 +1,6 @@
 import { render } from '@solidjs/testing-library';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { InputField } from './Input';
 import { Button } from './Button';
 import { createSignal } from 'solid-js';
@@ -96,7 +96,7 @@ describe('InputField', () => {
 // target: developer
 describe('Button', () => {
 	it('should render a button', () => {
-		const { getByRole } = render(() => <Button content="Do something" />);
+		const { getByRole } = render(() => <Button label="Do something" />);
 
 		const button = getByRole('button');
 		expect(button.textContent).toBe('Do something');
@@ -105,7 +105,7 @@ describe('Button', () => {
 	it('calls onClick handler when clicked', async () => {
 		const handleClick = vi.fn();
 		const { getByRole } = render(() => (
-			<Button onClick={handleClick} content="Do something" />
+			<Button onClick={handleClick} label="Do something" />
 		));
 
 		const button = getByRole('button');
@@ -123,7 +123,7 @@ describe('Button', () => {
 			<Button
 				name={name}
 				type="submit"
-				content="Do something"
+				label="Do something"
 				aria-label="Submit do something"
 			/>
 		));
@@ -144,17 +144,11 @@ describe('Button', () => {
 
 		for (const type of types) {
 			const { getByRole } = render(() => (
-				<Button type={type} content="Do something" />
+				<Button type={type} label="Do something" />
 			));
 			const button = getByRole('button');
 			expect(button).toHaveAttribute('type', type);
 		}
-	});
-
-	it('should have the default type "button"', () => {
-		const { getByRole } = render(() => <Button content="Do something" />);
-		const button = getByRole('button');
-		expect(button).toHaveAttribute('type', 'button');
 	});
 });
 

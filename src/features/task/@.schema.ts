@@ -8,7 +8,7 @@ const err = {
 		tooLong: 'Nimi on liian pitkä',
 	},
 	date: {
-		invalid: 'Viallinen päivämäärä',
+		invalid: 'Syötä päivämäärä',
 		tooEarly: 'Vähintään 01.01.1950',
 		tooLate: 'Enintään 31.12.2050',
 		endBeforeStart: 'Tehtävä ei voi päättyä ennen alkamista',
@@ -47,9 +47,9 @@ const TypeSchema = v.picklist(taskTypes);
 export const TaskSchema = v.pipe(
 	v.object({
 		name: NameSchema,
-		startDate: v.optional(DateSchema),
-		endDate: v.optional(DateSchema),
-		type: v.undefinedable(TypeSchema),
+		startDate: DateSchema,
+		endDate: DateSchema,
+		type: TypeSchema,
 		dependants: v.optional(v.array(IdSchema)),
 		dependencies: v.optional(v.array(IdSchema)),
 	}),

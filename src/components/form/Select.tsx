@@ -1,26 +1,20 @@
+import type { ComponentProps } from 'solid-js';
 import { createMemo, For, splitProps } from 'solid-js';
-import styles from './@.module.css';
 import { FieldError, FieldLabel } from './Field';
+import styles from './@.module.css';
 
 type SelectProps = {
-	name?: string;
 	value?: string | string[] | undefined;
-	options: readonly string[];
-	multiple?: boolean;
-	size?: string | number;
-	placeholder?: string;
-	required?: boolean;
-	class?: string;
 	label: string;
 	error?: string;
-};
+	options: readonly string[];
+} & ComponentProps<'select'>;
 
 /**
  * Select field that allows users to select predefined values.
  */
 export function Select(props: SelectProps) {
-	const [, selectProps] = splitProps(props, [
-		'class',
+	const [_, selectProps] = splitProps(props, [
 		'value',
 		'options',
 		'label',

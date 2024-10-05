@@ -1,18 +1,17 @@
-import { type ComponentProps, createMemo, splitProps } from 'solid-js';
+import { splitProps } from 'solid-js';
+import type { ComponentProps } from 'solid-js';
 import styles from './@.module.css';
 
 type ButtonProps = {
-	type?: 'button' | 'submit' | 'reset';
-	content: string;
-} & Omit<ComponentProps<'button'>, 'type'>;
+	label: string;
+} & ComponentProps<'button'>;
 
 export function Button(props: ButtonProps) {
-	const type = createMemo(() => props.type ?? 'button');
-	const [, buttonProps] = splitProps(props, ['content']);
+	const [_, buttonProps] = splitProps(props, ['label']);
 
 	return (
-		<button {...buttonProps} type={type()} class={styles.button}>
-			{props.content}
+		<button {...buttonProps} class={styles.button}>
+			{props.label}
 		</button>
 	);
 }

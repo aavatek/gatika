@@ -15,6 +15,11 @@
 			"recommended": true,
 			"style": {
 				"noCommaOperator": "off"
+			},
+			"correctness": {
+				"noUnusedImports": "error",
+				"noUnusedLabels": "error",
+				"noUnusedFunctionParameters": "error"
 			}
 		}
 	},
