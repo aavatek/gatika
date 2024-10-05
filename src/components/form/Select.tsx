@@ -1,10 +1,11 @@
 import { createMemo, For, splitProps } from 'solid-js';
 import styles from './@.module.css';
+import { FieldError, FieldLabel } from './Field';
 
 type SelectProps = {
 	name?: string;
 	value?: string | string[] | undefined;
-	options: { label: string; value: string }[];
+	options: readonly string[];
 	multiple?: boolean;
 	size?: string | number;
 	placeholder?: string;
@@ -26,7 +27,6 @@ export function Select(props: SelectProps) {
 		'error',
 	]);
 
-	// Create values list
 	const getValues = createMemo(() =>
 		Array.isArray(props.value)
 			? props.value
@@ -35,8 +35,13 @@ export function Select(props: SelectProps) {
 				: [],
 	);
 
+	const getValueLabel = (value: string) => {
+		return value === '' ? 'Valitse' : value;
+	};
+
 	return (
 		<div>
+			<FieldLabel name={props.name} label={props.label} />
 			<select
 				{...selectProps}
 				class={styles.select}
@@ -45,13 +50,15 @@ export function Select(props: SelectProps) {
 				aria-errormessage={`${props.name}-error`}
 			>
 				<For each={props.options}>
-					{({ label, value }) => (
+					{(value) => (
 						<option value={value} selected={getValues().includes(value)}>
-							{label}
+							{getValueLabel(value)}
 						</option>
 					)}
 				</For>
 			</select>
+
+			<FieldError id={`${props.name}-error`} error={props.error} />
 		</div>
 	);
 }

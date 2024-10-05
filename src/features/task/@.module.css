@@ -27,27 +27,32 @@
 	grid-template-columns: 1fr 1fr;
 	grid-template-areas:
 		"name         name"
+		"type         type"
 		"startDate    endDate"
 		"createButton createButton"
 		"cancelButton cancelButton";
 }
 
-.taskForm > :nth-child(1) {
+.taskForm> :nth-child(1) {
 	grid-area: name;
 }
 
-.taskForm > :nth-child(2) {
+.taskForm> :nth-child(2) {
+	grid-area: type;
+}
+
+.taskForm> :nth-child(3) {
 	grid-area: startDate;
 }
 
-.taskForm > :nth-child(3) {
+.taskForm> :nth-child(4) {
 	grid-area: endDate;
 }
 
-.taskForm > :nth-child(4) {
+.taskForm> :nth-child(5) {
 	grid-area: createButton;
 }
 
-.taskForm > :nth-child(5) {
+.taskForm> :nth-child(6) {
 	grid-area: cancelButton;
 }

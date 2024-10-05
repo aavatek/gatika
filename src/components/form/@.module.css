@@ -6,25 +6,16 @@
 .input,
 .button {
 	padding: var(--s-s);
-	appearance: none;
+}
+
+.select {
+	width: 100%;
+	padding: calc(var(--s-s) + .25em);
 }
 
 /* fix for mobile safari */
 .input {
 	min-width: calc(100% - var(--s-m));
 	min-height: var(--s-xl);
-}
-
-.checkbox {
-	margin-left: 10px;
-	width: 15px;
-	height: 15px;
-	border: black solid 1px;
 	appearance: none;
-}
-
-.select {
-	width: 50%;
-	padding: 5rem;
-	border-color: black;
 }
