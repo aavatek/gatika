@@ -10,6 +10,7 @@ import styles from './@.module.css';
 import * as v from 'valibot';
 import { useNavigate } from '@solidjs/router';
 import { Select } from '$/components/form/Select';
+import { formatDate } from '@solid-primitives/date';
 
 // ---------------------------------------------------------------------------------
 // ---------------------------------------------------------------------------------
@@ -50,7 +51,7 @@ export const TaskForm = (props: TaskFormProps) => {
 				)}
 			</Field>
 
-			<Field name="startDate" type="Date">
+			<Field name="startDate">
 				{(field, props) => (
 					<InputField
 						{...props}
@@ -62,7 +63,7 @@ export const TaskForm = (props: TaskFormProps) => {
 				)}
 			</Field>
 
-			<Field name="endDate" type="Date">
+			<Field name="endDate">
 				{(field, props) => (
 					<InputField
 						{...props}
@@ -130,7 +131,12 @@ export const EditTaskForm = (props: EditTaskFormProps) => {
 		console.error(validate.issues);
 	};
 
-	setValues(form[0], { ...props.task() });
+	setValues(form[0], {
+		name: props.task().name,
+		type: props.task().type,
+		startDate: formatDate(new Date(props.task().startDate)),
+		endDate: formatDate(new Date(props.task().endDate)),
+	});
 
 	return (
 		<section>

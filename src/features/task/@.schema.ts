@@ -4,7 +4,7 @@ import { tasks } from './@.store';
 
 const err = {
 	name: {
-		empty: 'Nimi ei voi olla tyhjä',
+		empty: 'Syötä nimi',
 		tooLong: 'Nimi on liian pitkä',
 	},
 	date: {
@@ -30,6 +30,8 @@ export const taskTypes = [
 ] as const;
 
 const DateSchema = v.pipe(
+	v.string(),
+	v.transform((value) => new Date(value)),
 	v.date(err.date.invalid),
 	v.minValue(new Date('1950-01-01'), err.date.tooEarly),
 	v.maxValue(new Date('2050-12-31'), err.date.tooLate),

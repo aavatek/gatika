@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { InputField } from './Input';
 import { Button } from './Button';
 import { createSignal } from 'solid-js';
+import { formatDate } from '@solid-primitives/date';
 
 describe('InputField', () => {
 	it('renders an input field with different types', () => {
@@ -65,7 +66,7 @@ describe('InputField', () => {
 				type="date"
 				name="start date"
 				label="Start date"
-				value={new Date('2021-09-01')}
+				value={formatDate(new Date('2021-09-01'))}
 			/>
 		));
 
