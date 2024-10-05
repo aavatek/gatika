@@ -13,7 +13,10 @@ export function View() {
 
 	const handleBack = () => navigate(-1);
 	const handleEdit = () => navigate(`/tasks/${params.id}/edit`);
-	const handleDelete = () => (tasks.delete(params.id), navigate(-1));
+	const handleDelete = () => {
+		tasks.delete(params.id);
+		navigate('/tasks', { replace: true });
+	};
 
 	return (
 		<Show when={task()} fallback={<NotFoundView />}>
