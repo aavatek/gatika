@@ -5,6 +5,7 @@ import { InputField } from './Input';
 import { Button } from './Button';
 import { createSignal } from 'solid-js';
 import { formatDate } from '@solid-primitives/date';
+import { FieldError } from './Field';
 
 describe('InputField', () => {
 	it('renders an input field with different types', () => {
@@ -153,14 +154,33 @@ describe('Button', () => {
 	});
 });
 
-describe('FieldLabel', () => {
-	it('should render a field label', () => {
-		// TODO: write tests
+describe('FieldError', () => {
+	const errorMessage = 'Error is present';
+
+	it('renders an error message', () => {
+		const { getByText } = render(() => <FieldError error={errorMessage} />);
+
+		const fieldError = getByText(errorMessage);
+		expect(fieldError.textContent).toBe(errorMessage);
+	});
+
+	it('has appropriate aria attribute', () => {
+		const [props, setProps] = createSignal({});
+
+		const { container } = render(() => (
+			<FieldError {...props} aria-disabled="true" />
+		));
+
+		const fieldError = container.querySelector('output') as HTMLOutputElement;
+		expect(fieldError).toHaveAttribute('aria-hidden', 'true');
+
+		setProps({ error: errorMessage });
+		expect(fieldError).not.toHaveAttribute('aria-hidden');
 	});
 });
 
-describe('FieldError', () => {
-	it('should render an error message', () => {
+describe('FieldLabel', () => {
+	it('should render a field label', () => {
 		// TODO: write tests
 	});
 });
