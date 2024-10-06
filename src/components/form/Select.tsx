@@ -1,43 +1,45 @@
 import type { ComponentProps } from 'solid-js';
-import { createMemo, createUniqueId, splitProps, For } from 'solid-js';
-import { FieldError, FieldLabel } from './Field';
+import { createUniqueId, splitProps, For, Show } from 'solid-js';
+import { FieldLabel } from './Field';
 import styles from './@.module.css';
 
 type SelectProps = {
 	label: string;
+	value?: string;
 	error?: string;
+	placeholder?: string;
 	options: readonly string[];
 } & ComponentProps<'select'>;
 
 export function Select(props: SelectProps) {
-	const [_, selectProps] = splitProps(props, ['options', 'label', 'error']);
-
 	const id = createUniqueId();
-	const errorId = createMemo(() => (props.error ? `${id}-error` : undefined));
-	const values = createMemo(() => (props.value ? [props.value] : []));
+	const [_, selectProps] = splitProps(props, [
+		'options',
+		'label',
+		'error',
+		'placeholder',
+	]);
 
 	return (
 		<div>
 			<FieldLabel for={id} label={props.label} />
 
-			<select
-				{...selectProps}
-				id={id}
-				aria-invalid={props.error ? 'true' : undefined}
-				aria-errormessage={errorId()}
-				class={styles.select}
-			>
+			<select {...selectProps} id={id} class={styles.select}>
+				<Show when={props.placeholder}>
+					<option value="" label={props.placeholder} />
+				</Show>
+
 				<For each={props.options}>
 					{(value) => (
-						<option value={value} selected={values().includes(value)}>
-							{value === '' && 'Valitse'}
-							{value !== '' && value}
-						</option>
+						<option
+							value={value}
+							label={value}
+							selected={value === props.value}
+							class={styles.option}
+						/>
 					)}
 				</For>
 			</select>
-
-			<FieldError id={errorId()} error={props.error} />
 		</div>
 	);
 }

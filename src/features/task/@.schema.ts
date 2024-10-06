@@ -16,7 +16,6 @@ const err = {
 };
 
 export const taskTypes = [
-	'',
 	'NetworkConstruction',
 	'InvestmentTask',
 	'Maintenance',
@@ -43,15 +42,19 @@ const NameSchema = v.pipe(
 	v.maxLength(255, err.name.tooLong),
 );
 
+const TypeSchema = v.pipe(
+	v.union([v.literal(''), v.picklist(taskTypes)]),
+	v.transform((value) => (value === '' ? undefined : value)),
+);
+
 const IdSchema = v.pipe(v.string(), v.uuid());
-const TypeSchema = v.picklist(taskTypes);
 
 export const TaskSchema = v.pipe(
 	v.object({
 		name: NameSchema,
 		startDate: DateSchema,
 		endDate: DateSchema,
-		type: TypeSchema,
+		type: v.optional(TypeSchema),
 		dependants: v.optional(v.array(IdSchema)),
 		dependencies: v.optional(v.array(IdSchema)),
 	}),

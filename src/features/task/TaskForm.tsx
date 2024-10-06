@@ -23,7 +23,7 @@ type TaskFormProps = {
 };
 
 export const TaskForm = (props: TaskFormProps) => {
-	const [, { Form, Field }] = props.form;
+	const [_, { Form, Field }] = props.form;
 	const Buttons = children(() => props.children);
 
 	return (
@@ -36,6 +36,7 @@ export const TaskForm = (props: TaskFormProps) => {
 						label="Tehtävän nimi"
 						value={field.value}
 						error={field.error}
+						required
 					/>
 				)}
 			</Field>
@@ -48,6 +49,7 @@ export const TaskForm = (props: TaskFormProps) => {
 						options={taskTypes}
 						value={field.value}
 						error={field.error}
+						placeholder="Valitse tyyppi"
 					/>
 				)}
 			</Field>
@@ -60,6 +62,7 @@ export const TaskForm = (props: TaskFormProps) => {
 						label="Alkaa"
 						value={field.value}
 						error={field.error}
+						required
 					/>
 				)}
 			</Field>
@@ -72,6 +75,7 @@ export const TaskForm = (props: TaskFormProps) => {
 						label="Päättyy (suunniteltu)"
 						value={field.value}
 						error={field.error}
+						required
 					/>
 				)}
 			</Field>
