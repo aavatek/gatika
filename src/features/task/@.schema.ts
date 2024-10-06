@@ -28,6 +28,13 @@ export const taskTypes = [
 	'Inspection',
 ] as const;
 
+export const taskStatus = [
+	'Suunniteltu',
+	'Käynnissä',
+	'Valmis',
+	'Viivästynyt',
+] as const;
+
 const DateSchema = v.pipe(
 	v.string(),
 	v.transform((value) => new Date(value)),
@@ -47,6 +54,11 @@ const TypeSchema = v.pipe(
 	v.transform((value) => (value === '' ? undefined : value)),
 );
 
+const StatusSchema = v.pipe(
+	v.union([v.literal(''), v.picklist(taskStatus)]),
+	v.transform((value) => (value === '' ? undefined : value)),
+);
+
 const IdSchema = v.pipe(v.string(), v.uuid());
 
 export const TaskSchema = v.pipe(
@@ -55,6 +67,7 @@ export const TaskSchema = v.pipe(
 		startDate: DateSchema,
 		endDate: DateSchema,
 		type: v.optional(TypeSchema),
+		status: v.optional(StatusSchema),
 		dependants: v.optional(v.array(IdSchema)),
 		dependencies: v.optional(v.array(IdSchema)),
 	}),
@@ -101,9 +114,16 @@ export const TaskSchema = v.pipe(
 	})),
 );
 
-export const TaskEditSchema = v.object({
-	...TaskSchema.entries,
-});
+export const TaskEditSchema = v.pipe(
+	v.object({
+		...TaskSchema.entries,
+	}),
+
+	v.transform((input) => ({
+		...input,
+		updated: new Date(),
+	})),
+);
 
 export type TaskInput = v.InferInput<typeof TaskSchema>;
 export type Task = v.InferOutput<typeof TaskSchema>;

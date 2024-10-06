@@ -27,7 +27,7 @@
 	grid-template-columns: 1fr 1fr;
 	grid-template-areas:
 		"name         name"
-		"type         type"
+		"type         status"
 		"startDate    endDate"
 		"createButton createButton"
 		"cancelButton cancelButton";
@@ -42,17 +42,21 @@
 }
 
 .taskForm> :nth-child(3) {
-	grid-area: startDate;
+	grid-area: status;
 }
 
 .taskForm> :nth-child(4) {
-	grid-area: endDate;
+	grid-area: startDate;
 }
 
 .taskForm> :nth-child(5) {
-	grid-area: createButton;
+	grid-area: endDate;
 }
 
 .taskForm> :nth-child(6) {
+	grid-area: createButton;
+}
+
+.taskForm> :nth-child(7) {
 	grid-area: cancelButton;
 }

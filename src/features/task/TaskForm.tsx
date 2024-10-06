@@ -4,7 +4,7 @@ import type { Task, TaskInput } from './@.schema';
 import { children, type Accessor, type JSX } from 'solid-js';
 import { Button } from '$/components/form/Button';
 import { InputField } from '$/components/form/Input';
-import { TaskEditSchema, TaskSchema, taskTypes } from './@.schema';
+import { TaskEditSchema, TaskSchema, taskStatus, taskTypes } from './@.schema';
 import { tasks } from './@.store';
 import styles from './@.module.css';
 import * as v from 'valibot';
@@ -50,6 +50,19 @@ export const TaskForm = (props: TaskFormProps) => {
 						value={field.value}
 						error={field.error}
 						placeholder="Valitse tyyppi"
+					/>
+				)}
+			</Field>
+
+			<Field name="status">
+				{(field, props) => (
+					<Select
+						{...props}
+						label="Tilanne"
+						options={taskStatus}
+						value={field.value}
+						error={field.error}
+						placeholder="Valitse tilanne"
 					/>
 				)}
 			</Field>
@@ -136,8 +149,7 @@ export const EditTaskForm = (props: EditTaskFormProps) => {
 	};
 
 	setValues(form[0], {
-		name: props.task().name,
-		type: props.task().type,
+		...props.task(),
 		startDate: formatDate(new Date(props.task().startDate)),
 		endDate: formatDate(new Date(props.task().endDate)),
 	});
