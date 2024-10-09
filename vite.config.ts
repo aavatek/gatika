@@ -1,13 +1,14 @@
 /// <reference types="vitest" />
 
-import path from 'node:path';
-import browserslist from 'browserslist';
 import { browserslistToTargets } from 'lightningcss';
 import { defineConfig } from 'vite';
-import solid from 'vite-plugin-solid';
+import { default as uno } from 'unocss/vite';
+import { default as solid } from 'vite-plugin-solid';
+import { default as path } from 'node:path';
+import { default as browserslist } from 'browserslist';
 
 export default defineConfig({
-	plugins: [solid()],
+	plugins: [uno(), solid()],
 
 	server: {
 		port: 3000,
