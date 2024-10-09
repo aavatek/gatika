@@ -1,24 +1,23 @@
-import { createForm, reset, setValues, valiForm } from '@modular-forms/solid';
-import type { SubmitHandler } from '@modular-forms/solid';
-import type { Task, TaskInput } from './@.schema';
-import { children, type Accessor, type JSX } from 'solid-js';
-import { Button } from '$/components/form/Button';
-import { InputField } from '$/components/form/Input';
+import { type Accessor, type JSX, children } from 'solid-js';
+import { useNavigate } from '@solidjs/router';
+import { formatDate } from '@solid-primitives/date';
+import * as mf from '@modular-forms/solid';
+import * as v from 'valibot';
+import { Button } from '$components/form/Button';
+import { InputField } from '$components/form/Input';
+import { Select } from '$components/form/Select';
 import { TaskEditSchema, TaskSchema, taskStatus, taskTypes } from './@.schema';
+import type { Task, TaskInput } from './@.schema';
 import { tasks } from './@.store';
 import styles from './@.module.css';
-import * as v from 'valibot';
-import { useNavigate } from '@solidjs/router';
-import { Select } from '$/components/form/Select';
-import { formatDate } from '@solid-primitives/date';
 
 // ---------------------------------------------------------------------------------
 // ---------------------------------------------------------------------------------
 
 type TaskFormProps = {
-	form: ReturnType<typeof createForm<TaskInput>>;
+	form: ReturnType<typeof mf.createForm<TaskInput>>;
 	onCancel?: () => void;
-	onSubmit: SubmitHandler<TaskInput>;
+	onSubmit: mf.SubmitHandler<TaskInput>;
 	children?: JSX.Element;
 };
 
@@ -102,15 +101,15 @@ export const TaskForm = (props: TaskFormProps) => {
 // ---------------------------------------------------------------------------------
 
 export const CreateTaskForm = () => {
-	const form = createForm<TaskInput>({
-		validate: valiForm(TaskSchema),
+	const form = mf.createForm<TaskInput>({
+		validate: mf.valiForm(TaskSchema),
 	});
 
-	const handleSubmit: SubmitHandler<TaskInput> = (data, _) => {
+	const handleSubmit: mf.SubmitHandler<TaskInput> = (data, _) => {
 		const validate = v.safeParse(TaskSchema, data);
 		if (validate.success) {
 			tasks.create(validate.output);
-			return reset(form[0]);
+			return mf.reset(form[0]);
 		}
 
 		console.error(validate.issues);
@@ -135,11 +134,11 @@ type EditTaskFormProps = {
 
 export const EditTaskForm = (props: EditTaskFormProps) => {
 	const navigate = useNavigate();
-	const form = createForm<TaskInput>({
-		validate: valiForm(TaskSchema),
+	const form = mf.createForm<TaskInput>({
+		validate: mf.valiForm(TaskSchema),
 	});
 
-	const handleSubmit: SubmitHandler<TaskInput> = (data, _) => {
+	const handleSubmit: mf.SubmitHandler<TaskInput> = (data, _) => {
 		const validate = v.safeParse(TaskEditSchema, data);
 		if (validate.success) {
 			return tasks.update(props.task().id, validate.output);
@@ -148,7 +147,7 @@ export const EditTaskForm = (props: EditTaskFormProps) => {
 		console.error(validate.issues);
 	};
 
-	setValues(form[0], {
+	mf.setValues(form[0], {
 		...props.task(),
 		startDate: formatDate(new Date(props.task().startDate)),
 		endDate: formatDate(new Date(props.task().endDate)),

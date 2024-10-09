@@ -1,6 +1,6 @@
 import type { Task } from './@.schema';
 import { For } from 'solid-js';
-import { Link } from '$/components/core/Nav';
+import { Link } from '$components/core/Nav';
 import { tasks } from './@.store';
 import styles from './@.module.css';
 

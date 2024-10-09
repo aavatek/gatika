@@ -5,6 +5,7 @@ export default function Header() {
 	const links = [
 		{ label: 'Yleiskatsaus', href: '/' },
 		{ label: 'Tehtävät', href: '/tasks' },
+		{ label: 'Gantt', href: '/gantt' },
 	];
 
 	return (

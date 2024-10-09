@@ -33,30 +33,30 @@
 		"cancelButton cancelButton";
 }
 
-.taskForm> :nth-child(1) {
+.taskForm > :nth-child(1) {
 	grid-area: name;
 }
 
-.taskForm> :nth-child(2) {
+.taskForm > :nth-child(2) {
 	grid-area: type;
 }
 
-.taskForm> :nth-child(3) {
+.taskForm > :nth-child(3) {
 	grid-area: status;
 }
 
-.taskForm> :nth-child(4) {
+.taskForm > :nth-child(4) {
 	grid-area: startDate;
 }
 
-.taskForm> :nth-child(5) {
+.taskForm > :nth-child(5) {
 	grid-area: endDate;
 }
 
-.taskForm> :nth-child(6) {
+.taskForm > :nth-child(6) {
 	grid-area: createButton;
 }
 
-.taskForm> :nth-child(7) {
+.taskForm > :nth-child(7) {
 	grid-area: cancelButton;
 }

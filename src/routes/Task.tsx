@@ -1,9 +1,9 @@
 import { useNavigate, useParams } from '@solidjs/router';
 import { Show } from 'solid-js';
-import { Button } from '$/components/form/Button';
-import { TaskList } from '$/features/task/TaskList';
-import { CreateTaskForm, EditTaskForm } from '$/features/task/TaskForm';
-import { tasks } from '$/features/task/@.store';
+import { Button } from '$components/form/Button';
+import { TaskList } from '$features/task/TaskList';
+import { CreateTaskForm, EditTaskForm } from '$features/task/TaskForm';
+import { tasks } from '$features/task/@.store';
 import styles from './@.module.css';
 
 export function View() {
@@ -35,8 +35,6 @@ export function View() {
 export function EditView() {
 	const params = useParams();
 	const task = tasks.read(params.id);
-	const navigate = useNavigate();
-	const handleBack = () => navigate(-1);
 
 	return (
 		<Show when={task()} fallback={<NotFoundView />}>

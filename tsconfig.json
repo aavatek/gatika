@@ -13,8 +13,10 @@
 		"isolatedModules": true,
 		"baseUrl": "./",
 		"paths": {
-			"$$/*": ["/*"],
-			"$/*": ["src/*"]
+			"$root/*": ["./*"],
+			"$routes/*": ["./src/routes/*"],
+			"$features/*": ["./src/features/*"],
+			"$components/*": ["./src/components/*"]
 		}
 	}
 }

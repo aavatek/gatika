@@ -42,11 +42,12 @@ export default defineConfig({
 			include: ['src/**/*.ts', 'src/**/*.tsx'],
 		},
 	},
-
 	resolve: {
 		alias: {
-			$$: path.resolve(__dirname, './'),
-			$: path.resolve(__dirname, './src'),
+			$root: path.resolve(__dirname, '.'),
+			$routes: path.resolve(__dirname, './src/routes'),
+			$features: path.resolve(__dirname, './src/features'),
+			$components: path.resolve(__dirname, './src/components'),
 		},
 	},
 });

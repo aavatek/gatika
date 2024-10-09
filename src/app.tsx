@@ -5,17 +5,18 @@ import { Route, Router } from '@solidjs/router';
 import { ErrorBoundary, Suspense, render } from 'solid-js/web';
 
 // global styles
+import 'virtual:uno.css';
 import './app.css';
 
 // global components
-import Head from './components/core/Meta';
-import RootLayout from './layout/Root';
+import Head from '$components/core/Meta';
+import Layout from '$components/core/Layout';
 
 // routes
-import { default as Dashboard } from './routes/Dashboard';
-import { default as NotFound } from './routes/[404]';
-import { default as Unexpected } from './routes/[500]';
-import { ListView, View, EditView } from './routes/Task';
+import { Page as NotFound } from '$routes/[404]';
+import { Page as Unexpected } from '$routes/[500]';
+import { Page as Dashboard } from '$routes/Dashboard';
+import { ListView, View, EditView } from '$routes/Task';
 
 render(
 	() => (
@@ -23,7 +24,7 @@ render(
 			<MetaProvider>
 				<Head />
 				<Suspense>
-					<Router root={RootLayout}>
+					<Router root={Layout}>
 						<Route path="/" component={Dashboard} />
 						<Route path="*" component={NotFound} />
 						<Route path="/tasks">
