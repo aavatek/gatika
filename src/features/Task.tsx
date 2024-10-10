@@ -192,6 +192,16 @@ export const TaskForm = (props: TaskFormProps) => {
 	const [_, { Form, Field }] = props.form;
 	const Buttons = children(() => props.children);
 
+	const typeOptions = taskTypes.map((type) => ({
+		label: type,
+		value: type,
+	}));
+
+	const statusOptions = taskStatus.map((type) => ({
+		label: type,
+		value: type,
+	}));
+
 	return (
 		<Form onSubmit={props.onSubmit}>
 			<Field name="name">
@@ -212,7 +222,7 @@ export const TaskForm = (props: TaskFormProps) => {
 					<SelectField
 						{...props}
 						label="Tehtävätyyppi"
-						options={taskTypes}
+						options={typeOptions}
 						value={field.value}
 						error={field.error}
 						placeholder="Valitse tyyppi"
@@ -225,7 +235,7 @@ export const TaskForm = (props: TaskFormProps) => {
 					<SelectField
 						{...props}
 						label="Tilanne"
-						options={taskStatus}
+						options={statusOptions}
 						value={field.value}
 						error={field.error}
 						placeholder="Valitse tilanne"
