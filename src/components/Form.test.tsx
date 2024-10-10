@@ -1,11 +1,11 @@
-import { render } from '@solidjs/testing-library';
-import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
-import { InputField } from './Input';
-import { Button } from './Button';
 import { createSignal } from 'solid-js';
 import { formatDate } from '@solid-primitives/date';
-import { FieldError } from './Field';
+import { describe, expect, it, vi } from 'vitest';
+import { render } from '@solidjs/testing-library';
+import { default as userEvent } from '@testing-library/user-event';
+import { Button, InputField, FieldError } from './Form';
+
+// -------------------------------------------------------------------------------------
 
 describe('InputField', () => {
 	it('renders an input field with different types', () => {
@@ -50,12 +50,10 @@ describe('InputField', () => {
 		));
 		const input = getByLabelText('Task name') as HTMLInputElement;
 
-		// input has error
 		setProps({ error: 'This field has error' });
 		expect(input).toHaveAttribute('aria-invalid', 'true');
 		expect(input).toHaveAttribute('aria-errormessage');
 
-		// input field is disabled
 		setProps({ disabled: true, 'aria-disabled': 'true' });
 		expect(input).toHaveAttribute('disabled');
 		expect(input).toHaveAttribute('aria-disabled', 'true');
@@ -95,7 +93,8 @@ describe('InputField', () => {
 	});
 });
 
-// target: developer
+// -------------------------------------------------------------------------------------
+
 describe('Button', () => {
 	it('should render a button', () => {
 		const { getByRole } = render(() => <Button label="Do something" />);
@@ -113,7 +112,6 @@ describe('Button', () => {
 		const button = getByRole('button');
 		await userEvent.click(button);
 
-		// check that the onClick handler was called
 		expect(handleClick).toHaveBeenCalled();
 		expect(handleClick).toHaveBeenCalledTimes(1);
 	});
@@ -130,7 +128,6 @@ describe('Button', () => {
 			/>
 		));
 
-		// check if the button has the correct attributes
 		const button = getByRole('button');
 		expect(button).toHaveAttribute('name', name);
 		expect(button).toHaveAttribute('type', 'submit');
@@ -153,6 +150,8 @@ describe('Button', () => {
 		}
 	});
 });
+
+// -------------------------------------------------------------------------------------
 
 describe('FieldError', () => {
 	const errorMessage = 'Error is present';
@@ -179,8 +178,16 @@ describe('FieldError', () => {
 	});
 });
 
-describe('FieldLabel', () => {
-	it('should render a field label', () => {
-		// TODO: write tests
-	});
+// -------------------------------------------------------------------------------------
+
+describe.todo('FieldLabel', () => {
+	// TODO: write tests for FieldLabel
 });
+
+// -------------------------------------------------------------------------------------
+
+describe.todo('SelectField', () => {
+	// TODO: write tests for SelectField
+});
+
+// -------------------------------------------------------------------------------------

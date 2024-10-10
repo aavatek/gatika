@@ -1,13 +1,14 @@
 /// <reference types="vitest" />
 
-import path from 'node:path';
-import browserslist from 'browserslist';
 import { browserslistToTargets } from 'lightningcss';
 import { defineConfig } from 'vite';
-import solid from 'vite-plugin-solid';
+import { default as uno } from 'unocss/vite';
+import { default as solid } from 'vite-plugin-solid';
+import { default as path } from 'node:path';
+import { default as browserslist } from 'browserslist';
 
 export default defineConfig({
-	plugins: [solid()],
+	plugins: [uno(), solid()],
 
 	server: {
 		port: 3000,
@@ -41,11 +42,12 @@ export default defineConfig({
 			include: ['src/**/*.ts', 'src/**/*.tsx'],
 		},
 	},
-
 	resolve: {
 		alias: {
-			$$: path.resolve(__dirname, './'),
-			$: path.resolve(__dirname, './src'),
+			'@root': path.resolve(__dirname, '.'),
+			'@routes': path.resolve(__dirname, './src/routes'),
+			'@features': path.resolve(__dirname, './src/features'),
+			'@components': path.resolve(__dirname, './src/components'),
 		},
 	},
 });
