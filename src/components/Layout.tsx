@@ -13,7 +13,7 @@ export const Layout = (props: LayoutProps) => {
 		<>
 			<MetaTags />
 			<Header />
-			<main>{props.children}</main>
+			{props.children}
 		</>
 	);
 };
@@ -36,6 +36,7 @@ const Header = () => {
 	const links = [
 		{ href: '/', innerText: 'Yleiskatsaus' },
 		{ href: '/projects', innerText: 'Projektit' },
+		{ href: '/gantt', innerText: 'Gantt' },
 	];
 
 	return (

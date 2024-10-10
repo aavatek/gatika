@@ -8,6 +8,7 @@ import { NotFound, Unexpected } from '@root/src/routes/+Error';
 import { Dashboard } from '@routes/+Index';
 import { PListView, PView, PEditView } from '@routes/+Project';
 import { TView, TEditView } from '@routes/+Task';
+import { Gantt } from './routes/+Gantt';
 
 // styles
 import 'virtual:uno.css';
@@ -19,8 +20,9 @@ render(
 			<MetaProvider>
 				<Suspense>
 					<Router root={Layout}>
-						<Route path="/" component={Dashboard} />
 						<Route path="*" component={NotFound} />
+						<Route path="/" component={Dashboard} />
+						<Route path="/gantt" component={Gantt} />
 						<Route path="/projects">
 							<Route path="/" component={PListView} />
 							<Route path="/:projectID">
