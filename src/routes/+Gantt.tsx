@@ -22,6 +22,7 @@ export const Gantt = () => {
 		<main>
 			<h1>Gantt</h1>
 			<SelectField
+				label="Valitse tehtävät"
 				placeholder="Kaikki"
 				options={projectSelectOptions}
 				value={selected()}

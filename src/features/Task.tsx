@@ -1,11 +1,11 @@
 import type { Accessor, JSX } from 'solid-js';
-import { For, children, createMemo, splitProps } from 'solid-js';
+import { For, Show, children, createMemo, splitProps } from 'solid-js';
 import { A, useNavigate } from '@solidjs/router';
 import {
-	formatDate,
-	getDate,
-	getDateDifference,
 	getTime,
+	getDate,
+	formatDate,
+	getDateDifference,
 	DAY,
 } from '@solid-primitives/date';
 import * as mf from '@modular-forms/solid';
@@ -205,6 +205,8 @@ type TaskFormProps = {
 	onCancel?: () => void;
 	onSubmit: mf.SubmitHandler<TaskInput>;
 	children?: JSX.Element;
+	project?: Project['id'];
+	task?: Task['id'];
 };
 
 export const TaskForm = (props: TaskFormProps) => {
@@ -220,6 +222,12 @@ export const TaskForm = (props: TaskFormProps) => {
 		label: type,
 		value: type,
 	}));
+
+	const dependencies = createMemo(() =>
+		(props.project ? tasks.listByProject(props.project) : tasks.list()).filter(
+			(task) => task.id !== props.task,
+		),
+	);
 
 	return (
 		<Form onSubmit={props.onSubmit}>
@@ -270,7 +278,6 @@ export const TaskForm = (props: TaskFormProps) => {
 						label="Alkaa"
 						value={field.value}
 						error={field.error}
-						required
 					/>
 				)}
 			</Field>
@@ -283,10 +290,27 @@ export const TaskForm = (props: TaskFormProps) => {
 						label="Päättyy (suunniteltu)"
 						value={field.value}
 						error={field.error}
-						required
 					/>
 				)}
 			</Field>
+
+			<Show when={dependencies()}>
+				<For each={dependencies()}>
+					{(task) => (
+						<Field name="dependencies" type="string[]">
+							{(field, props) => (
+								<InputField
+									{...props}
+									label={task.name}
+									type="checkbox"
+									value={task.id}
+									checked={field.value?.includes(task.id)}
+								/>
+							)}
+						</Field>
+					)}
+				</For>
+			</Show>
 
 			{Buttons()}
 		</Form>
@@ -321,7 +345,7 @@ export const TaskCreateForm = (props: TaskCreateFormProps) => {
 	return (
 		<section>
 			<h2>Luo tehtävä</h2>
-			<TaskForm onSubmit={handleSubmit} form={form}>
+			<TaskForm onSubmit={handleSubmit} form={form} project={props.project}>
 				<Button type="submit" label="Luo tehtävä" />
 			</TaskForm>
 		</section>
@@ -360,7 +384,12 @@ export const TaskEditForm = (props: TaskEditFormProps) => {
 	return (
 		<section>
 			<h2>Muokkaa tehtävää</h2>
-			<TaskForm onSubmit={handleSubmit} form={form}>
+			<TaskForm
+				onSubmit={handleSubmit}
+				form={form}
+				task={props.task().id}
+				project={props.task().project as Project['id']}
+			>
 				<Button type="submit" label="Tallenna" />
 				<Button label="Peruuta" onclick={() => navigate(-1)} />
 			</TaskForm>
