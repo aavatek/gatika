@@ -16,7 +16,8 @@ import Layout from '$components/core/Layout';
 import { Page as NotFound } from '$routes/[404]';
 import { Page as Unexpected } from '$routes/[500]';
 import { Page as Dashboard } from '$routes/Dashboard';
-import { ListView, View, EditView } from '$routes/Task';
+import { ProjectListView, ProjectView, ProjectEditView } from '$routes/Project';
+import { TaskView, TaskEditView } from '$routes/Task';
 
 render(
 	() => (
@@ -27,10 +28,14 @@ render(
 					<Router root={Layout}>
 						<Route path="/" component={Dashboard} />
 						<Route path="*" component={NotFound} />
+						<Route path="/projects">
+							<Route path="/" component={ProjectListView} />
+							<Route path="/:id" component={ProjectView} />
+							<Route path="/:id/edit" component={ProjectEditView} />
+						</Route>
 						<Route path="/tasks">
-							<Route path="/" component={ListView} />
-							<Route path="/:id" component={View} />
-							<Route path="/:id/edit" component={EditView} />
+							<Route path="/:id" component={TaskView} />
+							<Route path="/:id/edit" component={TaskEditView} />
 						</Route>
 					</Router>
 				</Suspense>

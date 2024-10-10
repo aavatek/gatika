@@ -6,7 +6,7 @@ import { CreateTaskForm, EditTaskForm } from '$features/task/TaskForm';
 import { tasks } from '$features/task/@.store';
 import styles from './@.module.css';
 
-export function View() {
+export function TaskView() {
 	const params = useParams();
 	const navigate = useNavigate();
 	const task = tasks.read(params.id);
@@ -32,7 +32,7 @@ export function View() {
 	);
 }
 
-export function EditView() {
+export function TaskEditView() {
 	const params = useParams();
 	const task = tasks.read(params.id);
 

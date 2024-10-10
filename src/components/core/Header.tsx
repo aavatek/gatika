@@ -4,8 +4,7 @@ import styles from './@.module.css';
 export default function Header() {
 	const links = [
 		{ label: 'Yleiskatsaus', href: '/' },
-		{ label: 'Tehtävät', href: '/tasks' },
-		{ label: 'Gantt', href: '/gantt' },
+		{ label: 'Projektit', href: '/projects' },
 	];
 
 	return (
