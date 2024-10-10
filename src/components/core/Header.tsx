@@ -1,5 +1,4 @@
 import { Nav } from './Nav';
-import styles from './@.module.css';
 
 export default function Header() {
 	const links = [
@@ -8,7 +7,7 @@ export default function Header() {
 	];
 
 	return (
-		<header class={styles.header}>
+		<header>
 			<Nav items={links} />
 		</header>
 	);

@@ -2,13 +2,12 @@ import type { Project } from './@.schema';
 import { For } from 'solid-js';
 import { Link } from '$components/core/Nav';
 import { projects } from './@.store';
-import styles from './@.module.css';
 
 export const ProjectList = () => {
 	return (
-		<section class={styles.projectListWrapper}>
+		<section>
 			<h2>Kaikki projektit</h2>
-			<ol class={styles.projectList}>
+			<ol>
 				<For each={projects.list()} fallback={<p>Ei projekteja</p>}>
 					{(project: Project) => <ProjectListItem {...project} />}
 				</For>
@@ -19,7 +18,7 @@ export const ProjectList = () => {
 
 const ProjectListItem = (props: Project) => {
 	return (
-		<li class={styles.projectListItem}>
+		<li>
 			<span>{props.name}</span>
 			<Link href={`/projects/${props.id}`} label="Näytä" />
 		</li>

@@ -3,7 +3,6 @@ import { Show } from 'solid-js';
 import { Button } from '$components/form/Button';
 import { EditTaskForm } from '$features/task/TaskForm';
 import { tasks } from '$features/task/@.store';
-import styles from './@.module.css';
 
 export function TaskView() {
 	const params = useParams();
@@ -20,7 +19,7 @@ export function TaskView() {
 	return (
 		<Show when={task()} fallback={<NotFoundView />}>
 			{(task) => (
-				<main class={styles.taskView}>
+				<main>
 					<h1>Tehtävä: {task().name}</h1>
 					<Button label="Takaisin" onclick={handleBack} />
 					<Button label="Muokkaa" onclick={handleEdit} />
@@ -38,7 +37,7 @@ export function TaskEditView() {
 	return (
 		<Show when={task()} fallback={<NotFoundView />}>
 			{(task) => (
-				<main class={styles.taskEditView}>
+				<main>
 					<h1>Tehtävä: {task().name}</h1>
 					<EditTaskForm task={task} />
 				</main>
@@ -52,7 +51,7 @@ const NotFoundView = () => {
 	const handleBack = () => navigate(-1);
 
 	return (
-		<main class={styles.taskNotFound}>
+		<main>
 			<h1>Tehtävää ei löytynyt</h1>
 			<Button label="Takaisin" onclick={handleBack} />
 		</main>

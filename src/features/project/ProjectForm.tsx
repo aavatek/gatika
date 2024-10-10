@@ -12,7 +12,6 @@ import { InputField } from '$components/form/Input';
 import { Button } from '$components/form/Button';
 import { projects } from './@.store';
 import { useNavigate } from '@solidjs/router';
-import styles from './@.module.css';
 
 type ProjectFormProps = {
 	form: ReturnType<typeof mf.createForm<ProjectInput>>;
@@ -26,7 +25,7 @@ export const ProjectForm = (props: ProjectFormProps) => {
 	const Buttons = children(() => props.children);
 
 	return (
-		<Form onSubmit={props.onSubmit} class={styles.projectForm}>
+		<Form onSubmit={props.onSubmit}>
 			<Field name="name">
 				{(field, props) => (
 					<InputField

@@ -1,30 +1,31 @@
 import { A, type AnchorProps } from '@solidjs/router';
 import { For, Match, Show, Switch, mergeProps } from 'solid-js';
-import styles from './@.module.css';
 
-type LinkProps = { label: string } & AnchorProps;
+type LinkProps = {
+	label: string;
+} & AnchorProps;
+
 export const Link = (props: LinkProps) => {
 	const linkProps = mergeProps({ end: true }, props);
-	return (
-		<A {...linkProps} class={styles.link}>
-			{props.label}
-		</A>
-	);
+	return <A {...linkProps}>{props.label}</A>;
 };
 
-type NavProps = { items?: LinkProps[] };
+type NavProps = {
+	items?: LinkProps[];
+};
+
 export function Nav(props: NavProps) {
 	const listItems = props.items ?? [];
 
 	return (
 		<Show when={listItems.length > 0}>
-			<nav class={styles.nav}>
+			<nav>
 				<Switch>
 					<Match when={listItems.length > 1}>
-						<ul class={styles.navList}>
+						<ul>
 							<For each={listItems}>
 								{(item) => (
-									<li class={styles.navListItem}>
+									<li>
 										<Link {...item} />
 									</li>
 								)}

@@ -4,9 +4,9 @@ import { MetaProvider } from '@solidjs/meta';
 import { Route, Router } from '@solidjs/router';
 import { ErrorBoundary, Suspense, render } from 'solid-js/web';
 
-// global styles
+// unocss & reset
 import 'virtual:uno.css';
-import './app.css';
+// import '@unocss/reset/eric-meyer.css';
 
 // global components
 import Head from '$components/core/Meta';

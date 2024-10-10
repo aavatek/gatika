@@ -1,5 +1,4 @@
 import { splitProps } from 'solid-js';
-import styles from './@.module.css';
 
 type CheckboxProps = {
 	name?: string;
@@ -30,7 +29,6 @@ export function Checkbox(props: CheckboxProps) {
 			{props.label}
 			<input
 				type="checkbox"
-				class={styles.checkbox}
 				{...inputProps}
 				id={props.name}
 				value={props.value || ''}

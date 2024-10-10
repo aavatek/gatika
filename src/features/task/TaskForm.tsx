@@ -9,7 +9,6 @@ import { Select } from '$components/form/Select';
 import { TaskEditSchema, TaskSchema, taskStatus, taskTypes } from './@.schema';
 import type { Task, TaskInput } from './@.schema';
 import { tasks } from './@.store';
-import styles from './@.module.css';
 import type { Project } from '$features/project/@.schema';
 
 // ---------------------------------------------------------------------------------
@@ -27,7 +26,7 @@ export const TaskForm = (props: TaskFormProps) => {
 	const Buttons = children(() => props.children);
 
 	return (
-		<Form onSubmit={props.onSubmit} class={styles.taskForm}>
+		<Form onSubmit={props.onSubmit}>
 			<Field name="name">
 				{(field, props) => (
 					<InputField

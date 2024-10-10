@@ -1,7 +1,6 @@
 import type { ComponentProps } from 'solid-js';
 import { createUniqueId, splitProps, For, Show } from 'solid-js';
 import { FieldLabel } from './Field';
-import styles from './@.module.css';
 
 type SelectProps = {
 	label: string;
@@ -24,7 +23,7 @@ export function Select(props: SelectProps) {
 		<div>
 			<FieldLabel for={id} label={props.label} />
 
-			<select {...selectProps} id={id} class={styles.select}>
+			<select {...selectProps} id={id}>
 				<Show when={props.placeholder}>
 					<option value="" label={props.placeholder} />
 				</Show>
@@ -35,7 +34,6 @@ export function Select(props: SelectProps) {
 							value={value}
 							label={value}
 							selected={value === props.value}
-							class={styles.option}
 						/>
 					)}
 				</For>

@@ -1,6 +1,5 @@
 import { splitProps } from 'solid-js';
 import type { ComponentProps } from 'solid-js';
-import styles from './@.module.css';
 
 type ButtonProps = {
 	label: string;
@@ -9,9 +8,5 @@ type ButtonProps = {
 export function Button(props: ButtonProps) {
 	const [_, buttonProps] = splitProps(props, ['label']);
 
-	return (
-		<button {...buttonProps} class={styles.button}>
-			{props.label}
-		</button>
-	);
+	return <button {...buttonProps}>{props.label}</button>;
 }
