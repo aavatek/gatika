@@ -5,7 +5,7 @@ Built with modern web technologies, focusing on usability and speed.
 
 ## Stack & Development
 
-- **SolidStart**: Web framework
+- **SolidJS**: UI Library
 - **Vitest**: Unit & Component testing
 - **Playwright**: Integration & E2E testing
 - **Lefthook**: Git hooks
@@ -30,6 +30,7 @@ bun dev                                # start development server
 
 ```bash
 bun dev               # start dev server
+bun preview           # bundle and preview build
 bun lint              # lint files
 bun format            # format files
 bun run test          # run all tests
