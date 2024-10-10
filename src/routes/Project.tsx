@@ -1,27 +1,63 @@
-import { useNavigate } from '@solidjs/router';
-import { Button } from '../components/form/Button';
+import { useNavigate, useParams } from '@solidjs/router';
+import { Button } from '$components/form/Button';
+import { projects } from '$features/project/@.store';
+import { Show } from 'solid-js';
+import {
+	CreateProjectForm,
+	EditProjectForm,
+} from '../features/project/ProjectForm';
+import { ProjectList } from '../features/project/ProjectList';
+import { TaskList } from '../features/task/TaskList';
 
 export const ProjectListView = () => {
 	return (
 		<main>
 			<h1>Projektit</h1>
+			<CreateProjectForm />
+			<ProjectList />
 		</main>
 	);
 };
 
 export const ProjectView = () => {
+	const params = useParams();
+	const navigate = useNavigate();
+	const project = projects.read(params.projectId);
+
+	const handleBack = () => navigate(-1);
+	const handleEdit = () => navigate(`/projects/${params.projectId}/edit`);
+	const handleDelete = () => {
+		projects.delete(params.id);
+		navigate('/projects', { replace: true });
+	};
 	return (
-		<main>
-			<h1>Projekti: ...</h1>
-		</main>
+		<Show when={project()} fallback={<NotFoundView />}>
+			{(project) => (
+				<main>
+					<h1>Projekti: {project().name}</h1>
+					<Button label="Takaisin" onclick={handleBack} />
+					<Button label="Muokkaa" onclick={handleEdit} />
+					<Button label="Poista" onclick={handleDelete} />
+					<TaskList />
+				</main>
+			)}
+		</Show>
 	);
 };
 
 export const ProjectEditView = () => {
+	const params = useParams();
+	const project = projects.read(params.projectId);
+
 	return (
-		<main>
-			<h1>Projekti: ...</h1>
-		</main>
+		<Show when={project()} fallback={<NotFoundView />}>
+			{(project) => (
+				<main>
+					<h1>Projekti: {project().name}</h1>
+					<EditProjectForm project={project} />
+				</main>
+			)}
+		</Show>
 	);
 };
 
@@ -31,7 +67,7 @@ const NotFoundView = () => {
 
 	return (
 		<main>
-			<h1>Tehtävää ei löytynyt</h1>
+			<h1>Projektia ei löytynyt</h1>
 			<Button label="Takaisin" onclick={handleBack} />
 		</main>
 	);

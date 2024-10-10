@@ -30,12 +30,12 @@ render(
 						<Route path="*" component={NotFound} />
 						<Route path="/projects">
 							<Route path="/" component={ProjectListView} />
-							<Route path="/:id" component={ProjectView} />
-							<Route path="/:id/edit" component={ProjectEditView} />
-						</Route>
-						<Route path="/tasks">
-							<Route path="/:id" component={TaskView} />
-							<Route path="/:id/edit" component={TaskEditView} />
+							<Route path="/:projectId" component={ProjectView} />
+							<Route path="/:projectId/edit" component={ProjectEditView} />
+							<Route path="/tasks">
+								<Route path="/:taskId" component={TaskView} />
+								<Route path="/:taskId/edit" component={TaskEditView} />
+							</Route>
 						</Route>
 					</Router>
 				</Suspense>

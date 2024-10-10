@@ -9,10 +9,10 @@ import styles from './@.module.css';
 export function TaskView() {
 	const params = useParams();
 	const navigate = useNavigate();
-	const task = tasks.read(params.id);
+	const task = tasks.read(params.taskId);
 
 	const handleBack = () => navigate(-1);
-	const handleEdit = () => navigate(`/tasks/${params.id}/edit`);
+	const handleEdit = () => navigate(`/tasks/${params.taskId}/edit`);
 	const handleDelete = () => {
 		tasks.delete(params.id);
 		navigate('/tasks', { replace: true });
@@ -34,7 +34,7 @@ export function TaskView() {
 
 export function TaskEditView() {
 	const params = useParams();
-	const task = tasks.read(params.id);
+	const task = tasks.read(params.taskId);
 
 	return (
 		<Show when={task()} fallback={<NotFoundView />}>
