@@ -1,13 +1,14 @@
 import { useNavigate, useParams } from '@solidjs/router';
 import { Button } from '$components/form/Button';
-import { projects } from '$features/project/@.store';
 import { Show } from 'solid-js';
+import { projects } from '$features/project/@.store';
+import { ProjectList } from '$features/project/ProjectList';
+import { TaskList } from '$features/task/TaskList';
+import { CreateTaskForm } from '$features/task/TaskForm';
 import {
 	CreateProjectForm,
 	EditProjectForm,
-} from '../features/project/ProjectForm';
-import { ProjectList } from '../features/project/ProjectList';
-import { TaskList } from '../features/task/TaskList';
+} from '$features/project/ProjectForm';
 
 export const ProjectListView = () => {
 	return (
@@ -38,7 +39,8 @@ export const ProjectView = () => {
 					<Button label="Takaisin" onclick={handleBack} />
 					<Button label="Muokkaa" onclick={handleEdit} />
 					<Button label="Poista" onclick={handleDelete} />
-					<TaskList />
+					<CreateTaskForm projectID={project().id} />
+					<TaskList projectID={project().id} />
 				</main>
 			)}
 		</Show>

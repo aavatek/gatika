@@ -10,6 +10,7 @@ import { TaskEditSchema, TaskSchema, taskStatus, taskTypes } from './@.schema';
 import type { Task, TaskInput } from './@.schema';
 import { tasks } from './@.store';
 import styles from './@.module.css';
+import type { Project } from '$features/project/@.schema';
 
 // ---------------------------------------------------------------------------------
 // ---------------------------------------------------------------------------------
@@ -100,7 +101,11 @@ export const TaskForm = (props: TaskFormProps) => {
 // ---------------------------------------------------------------------------------
 // ---------------------------------------------------------------------------------
 
-export const CreateTaskForm = () => {
+type CreateTaskFormProps = {
+	projectID: Project['id'];
+};
+
+export const CreateTaskForm = (props: CreateTaskFormProps) => {
 	const form = mf.createForm<TaskInput>({
 		validate: mf.valiForm(TaskSchema),
 	});
@@ -108,7 +113,11 @@ export const CreateTaskForm = () => {
 	const handleSubmit: mf.SubmitHandler<TaskInput> = (data, _) => {
 		const validate = v.safeParse(TaskSchema, data);
 		if (validate.success) {
-			tasks.create(validate.output);
+			tasks.create({
+				...validate.output,
+				project: props.projectID,
+			});
+
 			return mf.reset(form[0]);
 		}
 

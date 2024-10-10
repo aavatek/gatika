@@ -1,8 +1,7 @@
 import { useNavigate, useParams } from '@solidjs/router';
 import { Show } from 'solid-js';
 import { Button } from '$components/form/Button';
-import { TaskList } from '$features/task/TaskList';
-import { CreateTaskForm, EditTaskForm } from '$features/task/TaskForm';
+import { EditTaskForm } from '$features/task/TaskForm';
 import { tasks } from '$features/task/@.store';
 import styles from './@.module.css';
 
@@ -14,8 +13,8 @@ export function TaskView() {
 	const handleBack = () => navigate(-1);
 	const handleEdit = () => navigate(`/tasks/${params.taskId}/edit`);
 	const handleDelete = () => {
-		tasks.delete(params.id);
-		navigate('/tasks', { replace: true });
+		tasks.delete(params.taskId);
+		navigate(-1);
 	};
 
 	return (
@@ -45,16 +44,6 @@ export function TaskEditView() {
 				</main>
 			)}
 		</Show>
-	);
-}
-
-export function ListView() {
-	return (
-		<main class={styles.taskListView}>
-			<h1>Tehtävät</h1>
-			<TaskList />
-			<CreateTaskForm />
-		</main>
 	);
 }
 

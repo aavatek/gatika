@@ -68,6 +68,7 @@ export const TaskSchema = v.pipe(
 		endDate: DateSchema,
 		type: v.optional(TypeSchema),
 		status: v.optional(StatusSchema),
+		project: v.optional(v.pipe(v.string(), v.uuid())),
 		dependants: v.optional(v.array(IdSchema)),
 		dependencies: v.optional(v.array(IdSchema)),
 	}),
