@@ -1,7 +1,13 @@
 import type { Accessor, JSX } from 'solid-js';
 import { For, children, createMemo, splitProps } from 'solid-js';
 import { A, useNavigate } from '@solidjs/router';
-import { formatDate, getTime } from '@solid-primitives/date';
+import {
+	formatDate,
+	getDate,
+	getDateDifference,
+	getTime,
+	DAY,
+} from '@solid-primitives/date';
 import * as mf from '@modular-forms/solid';
 import * as v from 'valibot';
 import { Button, InputField, SelectField } from '@components/Form';
@@ -97,8 +103,6 @@ const DateSchema = v.pipe(
 			v.maxValue(new Date('2050-12-31'), err.date.tooLate),
 		),
 	),
-
-	v.transform((value) => (value ? formatDate(value) : undefined)),
 );
 
 const NameSchema = v.pipe(
@@ -122,40 +126,38 @@ const IdSchema = v.pipe(v.string(), v.uuid());
 export const TaskSchema = v.pipe(
 	v.object({
 		name: NameSchema,
-		startDate: DateSchema,
-		endDate: DateSchema,
+		start: DateSchema,
+		end: DateSchema,
 		type: v.optional(TypeSchema),
 		status: v.optional(StatusSchema),
 		project: v.optional(v.pipe(v.string(), v.uuid())),
-		dependants: v.optional(v.array(IdSchema)),
 		dependencies: v.optional(v.array(IdSchema)),
 	}),
 
 	v.forward(
 		v.partialCheck(
-			[['startDate'], ['endDate']],
-			({ startDate, endDate }) =>
-				startDate && endDate ? startDate <= endDate : true,
+			[['start'], ['end']],
+			({ start, end }) => (start && end ? start <= end : true),
 			err.date.endBeforeStart,
 		),
-		['endDate'],
+		['end'],
 	),
 
 	v.forward(
 		v.partialCheck(
-			[['startDate'], ['dependencies']],
+			[['start'], ['dependencies']],
 
 			// biome-ignore lint: <TODO: figure out a type safe way>
 			(input): any => {
-				if (input.startDate && input.dependencies) {
+				if (input.start && input.dependencies) {
 					const sortedEndDates = input.dependencies
 						.map((id) => tasks.read(id as Task['id']))
-						.map((task) => task()?.endDate)
+						.map((task) => task()?.end)
 						.filter((date) => date !== undefined)
 						.sort((a, b) => getTime(b) - getTime(a));
 
 					return sortedEndDates.length > 0
-						? getTime(input.startDate) > getTime(sortedEndDates[0])
+						? getTime(input.start) > getTime(sortedEndDates[0])
 						: true;
 				}
 
@@ -163,18 +165,32 @@ export const TaskSchema = v.pipe(
 			},
 			err.date.dependencyConflict,
 		),
-		['startDate'],
+		['start'],
 	),
 
 	v.transform((input) => ({
 		...input,
 		id: crypto.randomUUID(),
+		duration:
+			input.start && input.end
+				? getDateDifference(input.start, input.end) / DAY
+				: undefined,
 	})),
 );
 
-export const TaskEditSchema = v.object({
-	...TaskSchema.entries,
-});
+export const TaskEditSchema = v.pipe(
+	v.object({
+		...TaskSchema.entries,
+	}),
+
+	v.transform((input) => ({
+		...input,
+		duration:
+			input.start && input.end
+				? getDateDifference(input.start, input.end) / DAY
+				: undefined,
+	})),
+);
 
 export type TaskInput = v.InferInput<typeof TaskSchema>;
 export type Task = v.InferOutput<typeof TaskSchema>;
@@ -246,7 +262,7 @@ export const TaskForm = (props: TaskFormProps) => {
 				)}
 			</Field>
 
-			<Field name="startDate">
+			<Field name="start">
 				{(field, props) => (
 					<InputField
 						{...props}
@@ -259,7 +275,7 @@ export const TaskForm = (props: TaskFormProps) => {
 				)}
 			</Field>
 
-			<Field name="endDate">
+			<Field name="end">
 				{(field, props) => (
 					<InputField
 						{...props}
@@ -335,8 +351,10 @@ export const TaskEditForm = (props: TaskEditFormProps) => {
 
 	mf.setValues(form[0], {
 		...props.task(),
-		startDate: props.task().startDate,
-		endDate: props.task().endDate,
+		start: props.task().start
+			? formatDate(getDate(props.task().start as Date))
+			: '',
+		end: props.task().end ? formatDate(getDate(props.task().end as Date)) : '',
 	});
 
 	return (
