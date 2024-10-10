@@ -3,39 +3,31 @@
 import { MetaProvider } from '@solidjs/meta';
 import { Route, Router } from '@solidjs/router';
 import { ErrorBoundary, Suspense, render } from 'solid-js/web';
+import { Layout } from '@components/Layout';
+import { NotFound, Unexpected } from '@root/src/routes/+Error';
+import { Dashboard } from '@routes/+Index';
+import { PListView, PView, PEditView } from '@routes/+Project';
+import { TView, TEditView } from '@routes/+Task';
 
-// unocss & reset
+// styles
 import 'virtual:uno.css';
-// import '@unocss/reset/eric-meyer.css';
-
-// global components
-import Head from '$components/core/Meta';
-import Layout from '$components/core/Layout';
-
-// routes
-import { Page as NotFound } from '$routes/[404]';
-import { Page as Unexpected } from '$routes/[500]';
-import { Page as Dashboard } from '$routes/Dashboard';
-import { ProjectListView, ProjectView, ProjectEditView } from '$routes/Project';
-import { TaskView, TaskEditView } from '$routes/Task';
 
 render(
 	() => (
 		<ErrorBoundary fallback={Unexpected}>
 			<MetaProvider>
-				<Head />
 				<Suspense>
 					<Router root={Layout}>
 						<Route path="/" component={Dashboard} />
 						<Route path="*" component={NotFound} />
 						<Route path="/projects">
-							<Route path="/" component={ProjectListView} />
-							<Route path="/:projectId" component={ProjectView} />
-							<Route path="/:projectId/edit" component={ProjectEditView} />
+							<Route path="/" component={PListView} />
+							<Route path="/:projectId" component={PView} />
+							<Route path="/:projectId/edit" component={PEditView} />
 						</Route>
 						<Route path="/tasks">
-							<Route path="/:taskId" component={TaskView} />
-							<Route path="/:taskId/edit" component={TaskEditView} />
+							<Route path="/:taskId" component={TView} />
+							<Route path="/:taskId/edit" component={TEditView} />
 						</Route>
 					</Router>
 				</Suspense>

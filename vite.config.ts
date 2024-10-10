@@ -44,10 +44,10 @@ export default defineConfig({
 	},
 	resolve: {
 		alias: {
-			$root: path.resolve(__dirname, '.'),
-			$routes: path.resolve(__dirname, './src/routes'),
-			$features: path.resolve(__dirname, './src/features'),
-			$components: path.resolve(__dirname, './src/components'),
+			'@root': path.resolve(__dirname, '.'),
+			'@routes': path.resolve(__dirname, './src/routes'),
+			'@features': path.resolve(__dirname, './src/features'),
+			'@components': path.resolve(__dirname, './src/components'),
 		},
 	},
 });

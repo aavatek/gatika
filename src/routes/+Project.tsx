@@ -1,16 +1,15 @@
 import { useNavigate, useParams } from '@solidjs/router';
-import { Button } from '$components/form/Button';
 import { Show } from 'solid-js';
-import { projects } from '$features/project/@.store';
-import { ProjectList } from '$features/project/ProjectList';
-import { TaskList } from '$features/task/TaskList';
-import { CreateTaskForm } from '$features/task/TaskForm';
+import { Button } from '@components/Form';
+import { TaskList, CreateTaskForm } from '@features/Task';
 import {
 	CreateProjectForm,
 	EditProjectForm,
-} from '$features/project/ProjectForm';
+	ProjectList,
+	projects,
+} from '@features/Project';
 
-export const ProjectListView = () => {
+export const PListView = () => {
 	return (
 		<main>
 			<h1>Projektit</h1>
@@ -20,7 +19,7 @@ export const ProjectListView = () => {
 	);
 };
 
-export const ProjectView = () => {
+export const PView = () => {
 	const params = useParams();
 	const navigate = useNavigate();
 	const project = projects.read(params.projectId);
@@ -32,7 +31,7 @@ export const ProjectView = () => {
 		navigate('/projects', { replace: true });
 	};
 	return (
-		<Show when={project()} fallback={<NotFoundView />}>
+		<Show when={project()}>
 			{(project) => (
 				<main>
 					<h1>Projekti: {project().name}</h1>
@@ -47,12 +46,12 @@ export const ProjectView = () => {
 	);
 };
 
-export const ProjectEditView = () => {
+export const PEditView = () => {
 	const params = useParams();
 	const project = projects.read(params.projectId);
 
 	return (
-		<Show when={project()} fallback={<NotFoundView />}>
+		<Show when={project()}>
 			{(project) => (
 				<main>
 					<h1>Projekti: {project().name}</h1>
@@ -60,17 +59,5 @@ export const ProjectEditView = () => {
 				</main>
 			)}
 		</Show>
-	);
-};
-
-const NotFoundView = () => {
-	const navigate = useNavigate();
-	const handleBack = () => navigate(-1);
-
-	return (
-		<main>
-			<h1>Projektia ei löytynyt</h1>
-			<Button label="Takaisin" onclick={handleBack} />
-		</main>
 	);
 };

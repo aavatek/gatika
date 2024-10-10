@@ -1,10 +1,9 @@
 import { useNavigate, useParams } from '@solidjs/router';
 import { Show } from 'solid-js';
-import { Button } from '$components/form/Button';
-import { EditTaskForm } from '$features/task/TaskForm';
-import { tasks } from '$features/task/@.store';
+import { Button } from '@components/Form';
+import { EditTaskForm, tasks } from '@features/Task';
 
-export function TaskView() {
+export function TView() {
 	const params = useParams();
 	const navigate = useNavigate();
 	const task = tasks.read(params.taskId);
@@ -17,7 +16,7 @@ export function TaskView() {
 	};
 
 	return (
-		<Show when={task()} fallback={<NotFoundView />}>
+		<Show when={task()}>
 			{(task) => (
 				<main>
 					<h1>Tehtävä: {task().name}</h1>
@@ -30,12 +29,12 @@ export function TaskView() {
 	);
 }
 
-export function TaskEditView() {
+export function TEditView() {
 	const params = useParams();
 	const task = tasks.read(params.taskId);
 
 	return (
-		<Show when={task()} fallback={<NotFoundView />}>
+		<Show when={task()}>
 			{(task) => (
 				<main>
 					<h1>Tehtävä: {task().name}</h1>
@@ -45,15 +44,3 @@ export function TaskEditView() {
 		</Show>
 	);
 }
-
-const NotFoundView = () => {
-	const navigate = useNavigate();
-	const handleBack = () => navigate(-1);
-
-	return (
-		<main>
-			<h1>Tehtävää ei löytynyt</h1>
-			<Button label="Takaisin" onclick={handleBack} />
-		</main>
-	);
-};
