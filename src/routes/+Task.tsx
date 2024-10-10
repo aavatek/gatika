@@ -1,18 +1,22 @@
 import { useNavigate, useParams } from '@solidjs/router';
 import { Show } from 'solid-js';
 import { Button } from '@components/Form';
-import { EditTaskForm, tasks } from '@features/Task';
+import { type Task, TaskEditForm, tasks } from '@features/Task';
+import type { Project } from '@features/Project';
 
 export function TView() {
 	const params = useParams();
 	const navigate = useNavigate();
-	const task = tasks.read(params.taskId);
+	const projectID = params.projectID as Project['id'];
+	const taskID = params.taskID as Task['id'];
+	const task = tasks.read(taskID);
 
 	const handleBack = () => navigate(-1);
-	const handleEdit = () => navigate(`/tasks/${params.taskId}/edit`);
+	const handleEdit = () =>
+		navigate(`/projects/${projectID}/tasks/${taskID}/edit`);
 	const handleDelete = () => {
-		tasks.delete(params.taskId);
-		navigate(-1);
+		tasks.delete(taskID);
+		navigate(`/projects/${projectID}`, { replace: true });
 	};
 
 	return (
@@ -31,14 +35,15 @@ export function TView() {
 
 export function TEditView() {
 	const params = useParams();
-	const task = tasks.read(params.taskId);
+	const taskID = params.taskID as Task['id'];
+	const task = tasks.read(taskID);
 
 	return (
 		<Show when={task()}>
 			{(task) => (
 				<main>
 					<h1>Tehtävä: {task().name}</h1>
-					<EditTaskForm task={task} />
+					<TaskEditForm task={task} />
 				</main>
 			)}
 		</Show>

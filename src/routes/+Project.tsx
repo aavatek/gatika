@@ -1,19 +1,20 @@
 import { useNavigate, useParams } from '@solidjs/router';
 import { Show } from 'solid-js';
 import { Button } from '@components/Form';
-import { TaskList, CreateTaskForm } from '@features/Task';
+import { TaskList, TaskCreateForm } from '@features/Task';
 import {
-	CreateProjectForm,
-	EditProjectForm,
-	ProjectList,
 	projects,
+	type Project,
+	ProjectCreateForm,
+	ProjectEditForm,
+	ProjectList,
 } from '@features/Project';
 
 export const PListView = () => {
 	return (
 		<main>
 			<h1>Projektit</h1>
-			<CreateProjectForm />
+			<ProjectCreateForm />
 			<ProjectList />
 		</main>
 	);
@@ -22,24 +23,28 @@ export const PListView = () => {
 export const PView = () => {
 	const params = useParams();
 	const navigate = useNavigate();
-	const project = projects.read(params.projectId);
+	const projectID = params.projectID as Project['id'];
+	const project = projects.read(projectID);
 
 	const handleBack = () => navigate(-1);
-	const handleEdit = () => navigate(`/projects/${params.projectId}/edit`);
+	const handleEdit = () => navigate(`/projects/${projectID}/edit`);
 	const handleDelete = () => {
-		projects.delete(params.id);
+		projects.delete(projectID);
 		navigate('/projects', { replace: true });
 	};
+
 	return (
 		<Show when={project()}>
 			{(project) => (
 				<main>
 					<h1>Projekti: {project().name}</h1>
+
 					<Button label="Takaisin" onclick={handleBack} />
 					<Button label="Muokkaa" onclick={handleEdit} />
 					<Button label="Poista" onclick={handleDelete} />
-					<CreateTaskForm projectID={project().id} />
-					<TaskList projectID={project().id} />
+
+					<TaskCreateForm project={projectID} />
+					<TaskList project={projectID} />
 				</main>
 			)}
 		</Show>
@@ -48,14 +53,15 @@ export const PView = () => {
 
 export const PEditView = () => {
 	const params = useParams();
-	const project = projects.read(params.projectId);
+	const projectID = params.projectID as Project['id'];
+	const project = projects.read(projectID);
 
 	return (
 		<Show when={project()}>
 			{(project) => (
 				<main>
 					<h1>Projekti: {project().name}</h1>
-					<EditProjectForm project={project} />
+					<ProjectEditForm project={project} />
 				</main>
 			)}
 		</Show>

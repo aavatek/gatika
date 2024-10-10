@@ -22,12 +22,12 @@ render(
 						<Route path="*" component={NotFound} />
 						<Route path="/projects">
 							<Route path="/" component={PListView} />
-							<Route path="/:projectId" component={PView} />
-							<Route path="/:projectId/edit" component={PEditView} />
-						</Route>
-						<Route path="/tasks">
-							<Route path="/:taskId" component={TView} />
-							<Route path="/:taskId/edit" component={TEditView} />
+							<Route path="/:projectID">
+								<Route path="/" component={PView} />
+								<Route path="/edit" component={PEditView} />
+								<Route path="/tasks/:taskID" component={TView} />
+								<Route path="/tasks/:taskID/edit" component={TEditView} />
+							</Route>
 						</Route>
 					</Router>
 				</Suspense>

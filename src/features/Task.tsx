@@ -1,12 +1,13 @@
-import { type Accessor, For, type JSX, children, createMemo } from 'solid-js';
+import type { Accessor, JSX } from 'solid-js';
+import { For, children, createMemo, splitProps } from 'solid-js';
 import { A, useNavigate } from '@solidjs/router';
 import { formatDate, getTime } from '@solid-primitives/date';
 import * as mf from '@modular-forms/solid';
 import * as v from 'valibot';
 import { Button, InputField, SelectField } from '@components/Form';
-import type { Project } from '@features/Project';
 import { makePersisted, storageSync } from '@solid-primitives/storage';
 import { createStore, produce } from 'solid-js/store';
+import type { Project } from './Project';
 
 // -------------------------------------------------------------------------------------
 
@@ -25,20 +26,27 @@ export const tasks = {
 		);
 	},
 
-	read: (id: string) => createMemo(() => store.find((task) => task.id === id)),
+	read: (id: Task['id']) =>
+		createMemo(() => store.find((task) => task.id === id)),
 
-	update: (id: string, data: Partial<Task>) => {
+	update: (id: Task['id'], data: Partial<Task>) => {
 		setStore(
 			(task) => task.id === id,
 			produce((task) => Object.assign(task, data)),
 		);
 	},
 
-	delete: (id: string) => {
+	delete: (id: Task['id']) => {
 		setStore((store) => store.filter((task) => task.id !== id));
 	},
 
+	deleteByProject: (id: Project['id']) => {
+		setStore((store) => store.filter((task) => task.project !== id));
+	},
+
 	list: () => store,
+	listByProject: (id: Project['id']) =>
+		store.filter((task) => task.project === id),
 };
 
 // -------------------------------------------------------------------------------------
@@ -53,6 +61,8 @@ const err = {
 		tooEarly: 'Vähintään 01.01.1950',
 		tooLate: 'Enintään 31.12.2050',
 		endBeforeStart: 'Tehtävä ei voi päättyä ennen alkamista',
+		dependencyConflict:
+			'Tehtävä ei voi alkaa ennen edeltävien tehtävien päättymistä',
 	},
 };
 
@@ -132,7 +142,7 @@ export const TaskSchema = v.pipe(
 			(input): any => {
 				if (input.startDate && input.dependencies) {
 					const sortedEndDates = input.dependencies
-						.map((id) => tasks.read(id))
+						.map((id) => tasks.read(id as Task['id']))
 						.map((task) => task()?.endDate)
 						.filter((date) => date !== undefined)
 						.sort((a, b) => getTime(b) - getTime(a));
@@ -144,7 +154,7 @@ export const TaskSchema = v.pipe(
 
 				return true;
 			},
-			'Tehtävä ei voi alkaa ennen edeltävien tehtävien päättymistä',
+			err.date.dependencyConflict,
 		),
 		['startDate'],
 	),
@@ -152,23 +162,18 @@ export const TaskSchema = v.pipe(
 	v.transform((input) => ({
 		...input,
 		id: crypto.randomUUID(),
-		created: new Date(),
 	})),
 );
 
-export const TaskEditSchema = v.pipe(
-	v.object({
-		...TaskSchema.entries,
-	}),
-
-	v.transform((input) => ({
-		...input,
-		updated: new Date(),
-	})),
-);
+export const TaskEditSchema = v.object({
+	...TaskSchema.entries,
+});
 
 export type TaskInput = v.InferInput<typeof TaskSchema>;
 export type Task = v.InferOutput<typeof TaskSchema>;
+export const ProjectToInput = (task: Task) => {
+	return splitProps(task, ['id'])[1];
+};
 
 // -------------------------------------------------------------------------------------
 
@@ -257,11 +262,11 @@ export const TaskForm = (props: TaskFormProps) => {
 
 // -------------------------------------------------------------------------------------
 
-type CreateTaskFormProps = {
-	projectID: Project['id'];
+type TaskCreateFormProps = {
+	project: Project['id'];
 };
 
-export const CreateTaskForm = (props: CreateTaskFormProps) => {
+export const TaskCreateForm = (props: TaskCreateFormProps) => {
 	const form = mf.createForm<TaskInput>({
 		validate: mf.valiForm(TaskSchema),
 	});
@@ -271,7 +276,7 @@ export const CreateTaskForm = (props: CreateTaskFormProps) => {
 		if (validate.success) {
 			tasks.create({
 				...validate.output,
-				project: props.projectID,
+				project: props.project,
 			});
 
 			return mf.reset(form[0]);
@@ -292,11 +297,11 @@ export const CreateTaskForm = (props: CreateTaskFormProps) => {
 
 // -------------------------------------------------------------------------------------
 
-type EditTaskFormProps = {
+type TaskEditFormProps = {
 	task: Accessor<Task>;
 };
 
-export const EditTaskForm = (props: EditTaskFormProps) => {
+export const TaskEditForm = (props: TaskEditFormProps) => {
 	const navigate = useNavigate();
 	const form = mf.createForm<TaskInput>({
 		validate: mf.valiForm(TaskSchema),
@@ -331,7 +336,7 @@ export const EditTaskForm = (props: EditTaskFormProps) => {
 // -------------------------------------------------------------------------------------
 
 type TaskListProps = {
-	projectID: Project['id'];
+	project: Project['id'];
 };
 
 export const TaskList = (props: TaskListProps) => {
@@ -339,22 +344,27 @@ export const TaskList = (props: TaskListProps) => {
 		<section>
 			<h2>Kaikki tehtävät</h2>
 			<ol>
-				<For
-					each={tasks.list().filter((t) => t.project === props.projectID)}
-					fallback={<p>Ei tehtäviä</p>}
-				>
-					{(task: Task) => <TaskListItem {...task} />}
+				<For each={tasks.listByProject(props.project)}>
+					{(task: Task) => <TaskListItem task={task} project={props.project} />}
 				</For>
 			</ol>
 		</section>
 	);
 };
 
-const TaskListItem = (props: Task) => {
+type TaskListItemProps = {
+	task: Task;
+	project: Project['id'];
+};
+
+const TaskListItem = (props: TaskListItemProps) => {
 	return (
 		<li>
-			<span>{props.name}</span>
-			<A href={`/tasks/${props.id}`} innerText="Näytä" />
+			<span>{props.task.name}</span>
+			<A
+				href={`/projects/${props.project}/tasks/${props.task.id}`}
+				innerText="Näytä"
+			/>
 		</li>
 	);
 };

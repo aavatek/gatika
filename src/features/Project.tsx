@@ -1,11 +1,12 @@
 import * as v from 'valibot';
 import * as mf from '@modular-forms/solid';
-import { type Accessor, type JSX, For, children, createMemo } from 'solid-js';
+import type { Accessor, JSX } from 'solid-js';
+import { For, children, createMemo, splitProps } from 'solid-js';
 import { createStore, produce } from 'solid-js/store';
 import { A, useNavigate } from '@solidjs/router';
 import { makePersisted, storageSync } from '@solid-primitives/storage';
 import { Button, InputField } from '@components/Form';
-import { TaskSchema } from '@features/Task';
+import { tasks } from './Task';
 
 // -------------------------------------------------------------------------------------
 
@@ -16,26 +17,22 @@ const [store, setStore] = makePersisted(createStore<Project[]>([]), {
 });
 
 export const projects = {
-	create: (project: Project) => {
-		setStore(
-			produce((store) => {
-				store.push(project);
-			}),
-		);
-	},
+	create: (project: Project) =>
+		setStore(produce((store) => store.push(project))),
 
-	read: (id: string) =>
+	read: (id: Project['id']) =>
 		createMemo(() => store.find((project) => project.id === id)),
 
-	update: (id: string, data: Partial<Project>) => {
+	update: (id: Project['id'], data: Partial<Project>) => {
 		setStore(
 			(project) => project.id === id,
 			produce((project) => Object.assign(project, data)),
 		);
 	},
 
-	delete: (id: string) => {
+	delete: (id: Project['id']) => {
 		setStore((store) => store.filter((project) => project.id !== id));
+		tasks.deleteByProject(id);
 	},
 
 	list: () => store,
@@ -46,33 +43,22 @@ export const projects = {
 export const ProjectSchema = v.pipe(
 	v.object({
 		name: v.pipe(v.string(), v.nonEmpty()),
-		tasks: v.optional(v.array(TaskSchema)),
 	}),
 
 	v.transform((input) => ({
 		...input,
 		id: crypto.randomUUID(),
-		created: new Date(),
 	})),
 );
 
-export const ProjectEditSchema = v.pipe(
-	v.object({
-		...ProjectSchema.entries,
-	}),
-
-	v.transform((input) => ({
-		...input,
-		updated: new Date(),
-	})),
-);
+export const ProjectEditSchema = v.object({
+	...ProjectSchema.entries,
+});
 
 export type ProjectInput = v.InferInput<typeof ProjectSchema>;
 export type Project = v.InferOutput<typeof ProjectSchema>;
-
 export const ProjectToInput = (project: Project) => {
-	const { id, created, tasks, ...input } = project;
-	return { ...input };
+	return splitProps(project, ['id'])[1];
 };
 
 // -------------------------------------------------------------------------------------
@@ -110,7 +96,7 @@ export const ProjectForm = (props: ProjectFormProps) => {
 
 // -------------------------------------------------------------------------------------
 
-export const CreateProjectForm = () => {
+export const ProjectCreateForm = () => {
 	const form = mf.createForm<ProjectInput>({
 		validate: mf.valiForm(ProjectSchema),
 	});
@@ -121,8 +107,6 @@ export const CreateProjectForm = () => {
 			projects.create(validate.output);
 			return mf.reset(form[0]);
 		}
-
-		console.error(validate.issues);
 	};
 
 	return (
@@ -137,11 +121,11 @@ export const CreateProjectForm = () => {
 
 // -------------------------------------------------------------------------------------
 
-type EditProjectFormProps = {
+type ProjectEditFormProps = {
 	project: Accessor<Project>;
 };
 
-export const EditProjectForm = (props: EditProjectFormProps) => {
+export const ProjectEditForm = (props: ProjectEditFormProps) => {
 	const navigate = useNavigate();
 	const form = mf.createForm<ProjectInput>({
 		validate: mf.valiForm(ProjectSchema),
@@ -152,8 +136,6 @@ export const EditProjectForm = (props: EditProjectFormProps) => {
 		if (validate.success) {
 			return projects.update(props.project().id, validate.output);
 		}
-
-		console.error(validate.issues);
 	};
 
 	const project = ProjectToInput(props.project());
