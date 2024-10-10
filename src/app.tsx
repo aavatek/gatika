@@ -11,6 +11,7 @@ import { TView, TEditView } from '@routes/+Task';
 
 // styles
 import 'virtual:uno.css';
+import '@unocss/reset/normalize.css';
 
 render(
 	() => (
