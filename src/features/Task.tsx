@@ -89,6 +89,7 @@ export const taskStatus = [
 const DateSchema = v.pipe(
 	v.string(),
 	v.transform((value) => (value ? new Date(value) : undefined)),
+
 	v.optional(
 		v.pipe(
 			v.date(err.date.invalid),
@@ -96,6 +97,8 @@ const DateSchema = v.pipe(
 			v.maxValue(new Date('2050-12-31'), err.date.tooLate),
 		),
 	),
+
+	v.transform((value) => (value ? formatDate(value) : undefined)),
 );
 
 const NameSchema = v.pipe(
@@ -330,14 +333,10 @@ export const TaskEditForm = (props: TaskEditFormProps) => {
 		console.error(validate.issues);
 	};
 
-	const getDate = (date: Date | undefined) => {
-		return date ? formatDate(new Date(date)) : '';
-	};
-
 	mf.setValues(form[0], {
 		...props.task(),
-		startDate: getDate(props.task().startDate),
-		endDate: getDate(props.task().endDate),
+		startDate: props.task().startDate,
+		endDate: props.task().endDate,
 	});
 
 	return (
