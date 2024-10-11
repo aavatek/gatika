@@ -59,16 +59,17 @@ export const tasks = {
 
 const err = {
 	name: {
-		empty: 'Syötä nimi',
-		tooLong: 'Nimi on liian pitkä',
+		invalid: 'nameInvalid',
+		empty: 'nameEmpty',
+		tooLong: 'nameTooLong',
 	},
 	date: {
-		invalid: 'Syötä päivämäärä',
-		tooEarly: 'Vähintään 01.01.1950',
-		tooLate: 'Enintään 31.12.2050',
-		endBeforeStart: 'Tehtävä ei voi päättyä ennen alkamista',
-		dependencyConflict:
-			'Tehtävä ei voi alkaa ennen edeltävien tehtävien päättymistä',
+		invalid: 'dateInvalid',
+		tooEarly: 'dateTooEarly',
+		tooLate: 'dateTooLate',
+		endButNoStart: 'dateEndButNoStart',
+		endBeforeStart: 'dateEndBeforeStart',
+		dependencyConflict: 'dateDependancyConflict',
 	},
 };
 
@@ -131,8 +132,21 @@ export const TaskSchema = v.pipe(
 		type: v.optional(TypeSchema),
 		status: v.optional(StatusSchema),
 		project: v.optional(v.pipe(v.string(), v.uuid())),
-		dependencies: v.optional(v.array(IdSchema)),
+		dependencies: v.optional(v.array(IdSchema), []),
 	}),
+
+	// verify start is given if end is given
+
+	v.forward(
+		v.partialCheck(
+			[['start'], ['end']],
+			({ start, end }) => !(end && !start),
+			err.date.endButNoStart,
+		),
+		['end'],
+	),
+
+	// verify start is before end if both are given
 
 	v.forward(
 		v.partialCheck(
@@ -143,12 +157,13 @@ export const TaskSchema = v.pipe(
 		['end'],
 	),
 
+	// verify task doesnt start before dependencies end
+
 	v.forward(
 		v.partialCheck(
 			[['start'], ['dependencies']],
 
-			// biome-ignore lint: <TODO: figure out a type safe way>
-			(input): any => {
+			(input): boolean => {
 				if (input.start && input.dependencies) {
 					const sortedEndDates = input.dependencies
 						.map((id) => tasks.read(id as Task['id']))
@@ -167,6 +182,8 @@ export const TaskSchema = v.pipe(
 		),
 		['start'],
 	),
+
+	// generate id and calculate duration
 
 	v.transform((input) => ({
 		...input,
