@@ -1,7 +1,13 @@
 import type { Accessor, JSX } from 'solid-js';
-import { For, children, createMemo, splitProps } from 'solid-js';
+import { For, Show, children, createMemo, splitProps } from 'solid-js';
 import { A, useNavigate } from '@solidjs/router';
-import { formatDate, getTime } from '@solid-primitives/date';
+import {
+	getTime,
+	getDate,
+	formatDate,
+	getDateDifference,
+	DAY,
+} from '@solid-primitives/date';
 import * as mf from '@modular-forms/solid';
 import * as v from 'valibot';
 import { Button, InputField, SelectField } from '@components/Form';
@@ -34,6 +40,24 @@ export const tasks = {
 			(task) => task.id === id,
 			produce((task) => Object.assign(task, data)),
 		);
+
+		if (data.end) {
+			const dependants = tasks
+				.list()
+				.filter((task) => task.dependencies.includes(id));
+			for (const dependant of dependants) {
+				if (!dependant.start) return;
+
+				const newStart = getDate(getTime(new Date(data.end)) + DAY);
+				if (getTime(newStart) > getTime(new Date(dependant.start))) {
+					const newEnd = dependant.duration
+						? getDate(getTime(newStart) + dependant.duration * DAY)
+						: undefined;
+
+					tasks.update(dependant.id, { start: newStart, end: newEnd });
+				}
+			}
+		}
 	},
 
 	delete: (id: Task['id']) => {
@@ -53,16 +77,17 @@ export const tasks = {
 
 const err = {
 	name: {
-		empty: 'Syötä nimi',
-		tooLong: 'Nimi on liian pitkä',
+		invalid: 'nameInvalid',
+		empty: 'nameEmpty',
+		tooLong: 'nameTooLong',
 	},
 	date: {
-		invalid: 'Syötä päivämäärä',
-		tooEarly: 'Vähintään 01.01.1950',
-		tooLate: 'Enintään 31.12.2050',
-		endBeforeStart: 'Tehtävä ei voi päättyä ennen alkamista',
-		dependencyConflict:
-			'Tehtävä ei voi alkaa ennen edeltävien tehtävien päättymistä',
+		invalid: 'dateInvalid',
+		tooEarly: 'dateTooEarly',
+		tooLate: 'dateTooLate',
+		endButNoStart: 'dateEndButNoStart',
+		endBeforeStart: 'dateEndBeforeStart',
+		dependencyConflict: 'dateDependancyConflict',
 	},
 };
 
@@ -89,6 +114,7 @@ export const taskStatus = [
 const DateSchema = v.pipe(
 	v.string(),
 	v.transform((value) => (value ? new Date(value) : undefined)),
+
 	v.optional(
 		v.pipe(
 			v.date(err.date.invalid),
@@ -119,40 +145,52 @@ const IdSchema = v.pipe(v.string(), v.uuid());
 export const TaskSchema = v.pipe(
 	v.object({
 		name: NameSchema,
-		startDate: DateSchema,
-		endDate: DateSchema,
+		start: DateSchema,
+		end: DateSchema,
 		type: v.optional(TypeSchema),
 		status: v.optional(StatusSchema),
 		project: v.optional(v.pipe(v.string(), v.uuid())),
-		dependants: v.optional(v.array(IdSchema)),
-		dependencies: v.optional(v.array(IdSchema)),
+		dependencies: v.optional(v.array(IdSchema), []),
 	}),
 
+	// verify start is given if end is given
+
 	v.forward(
 		v.partialCheck(
-			[['startDate'], ['endDate']],
-			({ startDate, endDate }) =>
-				startDate && endDate ? startDate <= endDate : true,
-			err.date.endBeforeStart,
+			[['start'], ['end']],
+			({ start, end }) => !(end && !start),
+			err.date.endButNoStart,
 		),
-		['endDate'],
+		['end'],
 	),
 
+	// verify start is before end if both are given
+
 	v.forward(
 		v.partialCheck(
-			[['startDate'], ['dependencies']],
+			[['start'], ['end']],
+			({ start, end }) => (start && end ? start <= end : true),
+			err.date.endBeforeStart,
+		),
+		['end'],
+	),
 
-			// biome-ignore lint: <TODO: figure out a type safe way>
-			(input): any => {
-				if (input.startDate && input.dependencies) {
+	// verify task doesnt start before dependencies end
+
+	v.forward(
+		v.partialCheck(
+			[['start'], ['dependencies']],
+
+			(input): boolean => {
+				if (input.start && input.dependencies) {
 					const sortedEndDates = input.dependencies
 						.map((id) => tasks.read(id as Task['id']))
-						.map((task) => task()?.endDate)
+						.map((task) => task()?.end)
 						.filter((date) => date !== undefined)
 						.sort((a, b) => getTime(b) - getTime(a));
 
 					return sortedEndDates.length > 0
-						? getTime(input.startDate) > getTime(sortedEndDates[0])
+						? getTime(input.start) > getTime(sortedEndDates[0])
 						: true;
 				}
 
@@ -160,18 +198,34 @@ export const TaskSchema = v.pipe(
 			},
 			err.date.dependencyConflict,
 		),
-		['startDate'],
+		['start'],
 	),
+
+	// generate id and calculate duration
 
 	v.transform((input) => ({
 		...input,
 		id: crypto.randomUUID(),
+		duration:
+			input.start && input.end
+				? getDateDifference(input.start, input.end) / DAY
+				: undefined,
 	})),
 );
 
-export const TaskEditSchema = v.object({
-	...TaskSchema.entries,
-});
+export const TaskEditSchema = v.pipe(
+	v.object({
+		...TaskSchema.entries,
+	}),
+
+	v.transform((input) => ({
+		...input,
+		duration:
+			input.start && input.end
+				? getDateDifference(input.start, input.end) / DAY
+				: undefined,
+	})),
+);
 
 export type TaskInput = v.InferInput<typeof TaskSchema>;
 export type Task = v.InferOutput<typeof TaskSchema>;
@@ -186,11 +240,29 @@ type TaskFormProps = {
 	onCancel?: () => void;
 	onSubmit: mf.SubmitHandler<TaskInput>;
 	children?: JSX.Element;
+	project?: Project['id'];
+	task?: Task['id'];
 };
 
 export const TaskForm = (props: TaskFormProps) => {
 	const [_, { Form, Field }] = props.form;
 	const Buttons = children(() => props.children);
+
+	const typeOptions = taskTypes.map((type) => ({
+		label: type,
+		value: type,
+	}));
+
+	const statusOptions = taskStatus.map((type) => ({
+		label: type,
+		value: type,
+	}));
+
+	const dependencies = createMemo(() =>
+		(props.project ? tasks.listByProject(props.project) : tasks.list()).filter(
+			(task) => task.id !== props.task,
+		),
+	);
 
 	return (
 		<Form onSubmit={props.onSubmit}>
@@ -212,7 +284,7 @@ export const TaskForm = (props: TaskFormProps) => {
 					<SelectField
 						{...props}
 						label="Tehtävätyyppi"
-						options={taskTypes}
+						options={typeOptions}
 						value={field.value}
 						error={field.error}
 						placeholder="Valitse tyyppi"
@@ -225,7 +297,7 @@ export const TaskForm = (props: TaskFormProps) => {
 					<SelectField
 						{...props}
 						label="Tilanne"
-						options={taskStatus}
+						options={statusOptions}
 						value={field.value}
 						error={field.error}
 						placeholder="Valitse tilanne"
@@ -233,7 +305,7 @@ export const TaskForm = (props: TaskFormProps) => {
 				)}
 			</Field>
 
-			<Field name="startDate">
+			<Field name="start">
 				{(field, props) => (
 					<InputField
 						{...props}
@@ -241,12 +313,11 @@ export const TaskForm = (props: TaskFormProps) => {
 						label="Alkaa"
 						value={field.value}
 						error={field.error}
-						required
 					/>
 				)}
 			</Field>
 
-			<Field name="endDate">
+			<Field name="end">
 				{(field, props) => (
 					<InputField
 						{...props}
@@ -254,10 +325,27 @@ export const TaskForm = (props: TaskFormProps) => {
 						label="Päättyy (suunniteltu)"
 						value={field.value}
 						error={field.error}
-						required
 					/>
 				)}
 			</Field>
+
+			<Show when={dependencies()}>
+				<For each={dependencies()}>
+					{(task) => (
+						<Field name="dependencies" type="string[]">
+							{(field, props) => (
+								<InputField
+									{...props}
+									label={task.name}
+									type="checkbox"
+									value={task.id}
+									checked={field.value?.includes(task.id)}
+								/>
+							)}
+						</Field>
+					)}
+				</For>
+			</Show>
 
 			{Buttons()}
 		</Form>
@@ -292,7 +380,7 @@ export const TaskCreateForm = (props: TaskCreateFormProps) => {
 	return (
 		<section>
 			<h2>Luo tehtävä</h2>
-			<TaskForm onSubmit={handleSubmit} form={form}>
+			<TaskForm onSubmit={handleSubmit} form={form} project={props.project}>
 				<Button type="submit" label="Luo tehtävä" />
 			</TaskForm>
 		</section>
@@ -320,20 +408,23 @@ export const TaskEditForm = (props: TaskEditFormProps) => {
 		console.error(validate.issues);
 	};
 
-	const getDate = (date: Date | undefined) => {
-		return date ? formatDate(new Date(date)) : '';
-	};
-
 	mf.setValues(form[0], {
 		...props.task(),
-		startDate: getDate(props.task().startDate),
-		endDate: getDate(props.task().endDate),
+		start: props.task().start
+			? formatDate(getDate(props.task().start as Date))
+			: '',
+		end: props.task().end ? formatDate(getDate(props.task().end as Date)) : '',
 	});
 
 	return (
 		<section>
 			<h2>Muokkaa tehtävää</h2>
-			<TaskForm onSubmit={handleSubmit} form={form}>
+			<TaskForm
+				onSubmit={handleSubmit}
+				form={form}
+				task={props.task().id}
+				project={props.task().project as Project['id']}
+			>
 				<Button type="submit" label="Tallenna" />
 				<Button label="Peruuta" onclick={() => navigate(-1)} />
 			</TaskForm>
