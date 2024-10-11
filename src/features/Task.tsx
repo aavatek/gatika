@@ -40,6 +40,24 @@ export const tasks = {
 			(task) => task.id === id,
 			produce((task) => Object.assign(task, data)),
 		);
+
+		if (data.end) {
+			const dependants = tasks
+				.list()
+				.filter((task) => task.dependencies.includes(id));
+			for (const dependant of dependants) {
+				if (!dependant.start) return;
+
+				const newStart = getDate(getTime(new Date(data.end)) + DAY);
+				if (getTime(newStart) > getTime(new Date(dependant.start))) {
+					const newEnd = dependant.duration
+						? getDate(getTime(newStart) + dependant.duration * DAY)
+						: undefined;
+
+					tasks.update(dependant.id, { start: newStart, end: newEnd });
+				}
+			}
+		}
 	},
 
 	delete: (id: Task['id']) => {
