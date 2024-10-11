@@ -3,7 +3,13 @@ import { formatDate } from '@solid-primitives/date';
 import { describe, expect, it, vi } from 'vitest';
 import { render } from '@solidjs/testing-library';
 import { default as userEvent } from '@testing-library/user-event';
-import { Button, InputField, FieldError } from './Form';
+import {
+	Button,
+	InputField,
+	FieldError,
+	FieldLabel,
+	SelectField,
+} from './Form';
 
 // -------------------------------------------------------------------------------------
 
@@ -180,14 +186,41 @@ describe('FieldError', () => {
 
 // -------------------------------------------------------------------------------------
 
-describe.todo('FieldLabel', () => {
-	// TODO: write tests for FieldLabel
+describe('FieldLabel', () => {
+	it('displays correct text', () => {
+		const { getByText } = render(() => (
+			<FieldLabel id="Test" label="Test label" />
+		));
+
+		const fieldLabel = getByText('Test label');
+		expect(fieldLabel.textContent).toEqual('Test label');
+	});
 });
 
 // -------------------------------------------------------------------------------------
 
-describe.todo('SelectField', () => {
-	// TODO: write tests for SelectField
+describe('SelectField', () => {
+	it('renders the select element with a label', () => {
+		const { getByLabelText } = render(() => (
+			<SelectField label="Choices" options={['One', 'Two', 'Three']} />
+		));
+
+		const selectElement = getByLabelText('Choices');
+		expect(selectElement).toBeDefined();
+	});
+
+	it('selects the correct option based on value prop', () => {
+		const { getByLabelText } = render(() => (
+			<SelectField
+				label="Choices"
+				options={['One', 'Two', 'Three']}
+				value="Two"
+			/>
+		));
+
+		const selectElement = getByLabelText('Choices') as HTMLSelectElement;
+		expect(selectElement.value).toBe('Two');
+	});
 });
 
 // -------------------------------------------------------------------------------------
