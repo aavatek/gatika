@@ -10,7 +10,7 @@
 		"build": "vite build",
 		"serve": "vite preview",
 		"preview": "vite build && vite preview --port 3000",
-		"tunnel": "cloudflared tunnel run demo",
+		"tunnel": "cloudflared tunnel run gatika",
 		"lint": "biome check",
 		"format": "biome check --write",
 		"test:unit": "vitest run",
