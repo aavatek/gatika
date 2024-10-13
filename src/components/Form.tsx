@@ -16,7 +16,7 @@ export function Button(props: ButtonProps) {
 
 type FieldLabelProps = {
 	id: string;
-	label: string;
+	label?: string;
 	required?: boolean;
 };
 
@@ -74,11 +74,16 @@ export function InputField(props: InputFieldProps) {
 
 // -------------------------------------------------------------------------------------
 
-type SelectFieldProps = {
+type Options = {
+	value: string;
 	label: string;
+}[];
+
+type SelectFieldProps = {
+	label?: string;
 	value?: string;
 	error?: string;
-	options: readonly string[];
+	options: Options;
 	placeholder?: string;
 } & ComponentProps<'select'>;
 
@@ -101,11 +106,11 @@ export function SelectField(props: SelectFieldProps) {
 				</Show>
 
 				<For each={props.options}>
-					{(value) => (
+					{(option) => (
 						<option
-							value={value}
-							label={value}
-							selected={value === props.value}
+							value={option.value}
+							label={option.label}
+							selected={option.value === props.value}
 						/>
 					)}
 				</For>
