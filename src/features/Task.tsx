@@ -245,7 +245,7 @@ type TaskFormProps = {
 };
 
 export const TaskForm = (props: TaskFormProps) => {
-	const [_, { Form, Field }] = props.form;
+	const [_, { Form, Field, FieldArray }] = props.form;
 	const Buttons = children(() => props.children);
 
 	const typeOptions = taskTypes.map((type) => ({
@@ -258,7 +258,7 @@ export const TaskForm = (props: TaskFormProps) => {
 		value: type,
 	}));
 
-	const dependencies = createMemo(() =>
+	const availableTasks = createMemo(() =>
 		(props.project ? tasks.listByProject(props.project) : tasks.list()).filter(
 			(task) => task.id !== props.task,
 		),
@@ -329,23 +329,59 @@ export const TaskForm = (props: TaskFormProps) => {
 				)}
 			</Field>
 
-			<Show when={dependencies()}>
-				<For each={dependencies()}>
-					{(task) => (
-						<Field name="dependencies" type="string[]">
-							{(field, props) => (
-								<InputField
-									{...props}
-									label={task.name}
-									type="checkbox"
-									value={task.id}
-									checked={field.value?.includes(task.id)}
-								/>
+			<FieldArray name="dependencies">
+				{(deps) => (
+					<div>
+						<For each={deps.items}>
+							{(_, index) => (
+								<div>
+									<Field name={`${deps.name}.${index()}`}>
+										{(field, props) => (
+											<SelectField
+												{...props}
+												label="Dependent Task"
+												value={field.value}
+												error={field.error}
+												options={availableTasks().map((task) => ({
+													label: task.name,
+													value: task.id,
+												}))}
+											/>
+										)}
+									</Field>
+									<Button
+										label="Remove"
+										onClick={() =>
+											mf.remove(props.form[0], deps.name, {
+												at: index(),
+											})
+										}
+									/>
+								</div>
 							)}
-						</Field>
-					)}
-				</For>
-			</Show>
+						</For>
+						<Button
+							type="button"
+							label="Lisää riippuvuuksia?"
+							onClick={() => {
+								const availableTask = availableTasks().find(
+									(task) =>
+										!deps.items.some(
+											(_, i) =>
+												mf.getValue(props.form[0], `${deps.name}.${i}`) ===
+												task.id,
+										),
+								);
+								if (availableTask) {
+									mf.insert(props.form[0], deps.name, {
+										value: availableTask.id,
+									});
+								}
+							}}
+						/>
+					</div>
+				)}
+			</FieldArray>
 
 			{Buttons()}
 		</Form>
@@ -457,9 +493,34 @@ type TaskListItemProps = {
 };
 
 const TaskListItem = (props: TaskListItemProps) => {
+	const getFormattedDate = (dateString: Date) => {
+		const date = new Date(dateString);
+		const day = date.getDate().toString().padStart(2, '0');
+		const month = (date.getMonth() + 1).toString().padStart(2, '0');
+		const year = date.getFullYear();
+		return `${day}.${month}.${year}`;
+	};
+
+	const start = createMemo(() => {
+		if (!props.task.start) return undefined;
+		return getFormattedDate(new Date(props.task.start));
+	});
+
+	const end = createMemo(() => {
+		if (!props.task.end) return undefined;
+		return getFormattedDate(new Date(props.task.end));
+	});
+
 	return (
 		<li>
-			<span>{props.task.name}</span>
+			<p>{props.task.name}: </p>
+
+			<Show when={start()}>
+				<p>
+					{start()} <Show when={end()}>- {end()} </Show>
+				</p>
+			</Show>
+
 			<A
 				href={`/projects/${props.project}/tasks/${props.task.id}`}
 				innerText="Näytä"
