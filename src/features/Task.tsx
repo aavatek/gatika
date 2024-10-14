@@ -435,16 +435,43 @@ export const TaskEditForm = (props: TaskEditFormProps) => {
 // -------------------------------------------------------------------------------------
 
 type TaskListProps = {
-	project: Project['id'];
+	label: string;
+	project?: Project['id'];
+	sort?: boolean;
 };
 
 export const TaskList = (props: TaskListProps) => {
+	const taskList = createMemo(() => {
+		if (!props.sort)
+			return props.project ? tasks.listByProject(props.project) : tasks.list();
+
+		return props.project
+			? tasks
+					.listByProject(props.project)
+					.filter((task) => task.end)
+					.sort(
+						(a, b) =>
+							getTime(new Date(a.end as Date)) -
+							getTime(new Date(b.end as Date)),
+					)
+			: tasks
+					.list()
+					.filter((task) => task.end)
+					.sort(
+						(a, b) =>
+							getTime(new Date(a.end as Date)) -
+							getTime(new Date(b.end as Date)),
+					);
+	});
+
 	return (
 		<section>
-			<h2>Kaikki tehtävät</h2>
+			<h2>{props.label}</h2>
 			<ol>
-				<For each={tasks.listByProject(props.project)}>
-					{(task: Task) => <TaskListItem task={task} project={props.project} />}
+				<For each={taskList()}>
+					{(task: Task) => (
+						<TaskListItem task={task} project={task.project as Project['id']} />
+					)}
 				</For>
 			</ol>
 		</section>

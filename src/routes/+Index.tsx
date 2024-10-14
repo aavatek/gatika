@@ -1,8 +1,7 @@
 import { createMemo, createSignal, For } from 'solid-js';
 import { A } from '@solidjs/router';
-import { formatDate, getTime } from '@solid-primitives/date';
 import { makePersisted, storageSync } from '@solid-primitives/storage';
-import { tasks } from '@features/Task';
+import { TaskList } from '@features/Task';
 import { projects, type Project } from '@features/Project';
 
 export const [visited, setVisited] = makePersisted(
@@ -23,14 +22,6 @@ export const addToLastVisited = (id: Project['id']) => {
 };
 
 export const Dashboard = () => {
-	const tasksSorted = tasks
-		.list()
-		.filter((task) => task.end)
-		.sort(
-			(a, b) =>
-				getTime(new Date(a.end as Date)) - getTime(new Date(b.end as Date)),
-		);
-
 	const lastVisited = createMemo(() =>
 		visited().map((id) => projects.read(id)),
 	);
@@ -48,16 +39,7 @@ export const Dashboard = () => {
 				)}
 			</For>
 
-			<h3>Seuraavat tehtävät</h3>
-			<For each={tasksSorted}>
-				{(task) => (
-					<A href={`projects/${task.project}/tasks/${task.id}`}>
-						<div>
-							{task.name} | {formatDate(new Date(task.end as Date))}
-						</div>
-					</A>
-				)}
-			</For>
+			<TaskList label="Seuraavat tehtävät" sort />
 		</main>
 	);
 };
