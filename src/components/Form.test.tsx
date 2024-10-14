@@ -202,18 +202,52 @@ describe('FieldLabel', () => {
 describe('SelectField', () => {
 	it('renders the select element with a label', () => {
 		const { getByLabelText } = render(() => (
-			<SelectField label="Choices" options={['One', 'Two', 'Three']} />
+			<SelectField
+				label="Choices"
+				options={[
+					{ value: 'One', label: 'First' },
+					{ value: 'Two', label: 'Second' },
+					{ value: 'Three', label: 'third' },
+				]}
+			/>
 		));
 
 		const selectElement = getByLabelText('Choices');
 		expect(selectElement).toBeDefined();
 	});
 
-	it('selects the correct option based on value prop', () => {
+	it('renders the all options', () => {
+		const { container } = render(() => (
+			<SelectField
+				label="Choices"
+				options={[
+					{ value: 'One', label: 'First' },
+					{ value: 'Two', label: 'Second' },
+					{ value: 'Three', label: 'Third' },
+				]}
+			/>
+		));
+
+		expect(
+			container.querySelector('option[label="First"]'),
+		).toBeInTheDocument();
+		expect(
+			container.querySelector('option[label="Second"]'),
+		).toBeInTheDocument();
+		expect(
+			container.querySelector('option[label="Third"]'),
+		).toBeInTheDocument();
+	});
+
+	it('selects the correct option', () => {
 		const { getByLabelText } = render(() => (
 			<SelectField
 				label="Choices"
-				options={['One', 'Two', 'Three']}
+				options={[
+					{ value: 'One', label: 'First' },
+					{ value: 'Two', label: 'Second' },
+					{ value: 'Three', label: 'third' },
+				]}
 				value="Two"
 			/>
 		));
