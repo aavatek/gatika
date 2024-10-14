@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from '@solidjs/router';
-import { Show } from 'solid-js';
+import { onMount, Show } from 'solid-js';
 import { Button } from '@components/Form';
 import { TaskList, TaskCreateForm } from '@features/Task';
 import {
@@ -9,6 +9,7 @@ import {
 	ProjectEditForm,
 	ProjectList,
 } from '@features/Project';
+import { addToLastVisited } from './+Index';
 
 export const PListView = () => {
 	return (
@@ -32,6 +33,10 @@ export const PView = () => {
 		projects.delete(projectID);
 		navigate('/projects', { replace: true });
 	};
+
+	onMount(() => {
+		addToLastVisited(projectID);
+	});
 
 	return (
 		<Show when={project()}>
