@@ -27,6 +27,7 @@
 				"noReactSpecificProps": "error"
 			},
 			"complexity": {
+				"noForEach": "off",
 				"useArrowFunction": "warn",
 				"noUselessTypeConstraint": "warn"
 			}
