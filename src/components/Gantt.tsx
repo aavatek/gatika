@@ -8,14 +8,33 @@ import {
 } from 'solid-js';
 import { DAY, MONTH, WEEK } from '@solid-primitives/date';
 import { tasks, type Task } from '@features/Task';
+import { formatTime } from '../lib/dates';
 
 export const Gantt = (props: { tasks: Task[] }) => {
 	const [cols] = createSignal(180);
 	const [zoomModifier, setZoomModifier] = createSignal(2);
 
-	const gridAnchorDate = Date.now() - WEEK * 2;
-	const gridStartDate = Date.now() - MONTH;
-	const gridEndDate = createMemo(() => gridStartDate + cols() * DAY);
+	const gridAnchorDate = createMemo(() => {
+		const date = new Date(Date.now() - WEEK * 2);
+		return Date.UTC(
+			date.getUTCFullYear(),
+			date.getUTCMonth(),
+			date.getUTCDate(),
+		);
+	});
+
+	const gridStartDate = createMemo(() => {
+		const date = new Date(Date.now() - MONTH);
+		return Date.UTC(
+			date.getUTCFullYear(),
+			date.getUTCMonth(),
+			date.getUTCDate(),
+		);
+	});
+
+	const gridEndDate = createMemo(() => gridStartDate() + cols() * DAY);
+
+	console.log(formatTime(gridAnchorDate()));
 
 	const [ganttRef, setGanttRef] = createReactiveRef();
 	const [ganttWrapperRef, setGanttWrapperRef] = createReactiveRef();
@@ -54,7 +73,8 @@ export const Gantt = (props: { tasks: Task[] }) => {
 			const gantt = ganttRef();
 			if (gantt) {
 				const cellWidth = gantt.getBoundingClientRect().width / cols();
-				const pos = ((gridAnchorDate - gridStartDate) / DAY) * cellWidth;
+				const daysDiff = (gridAnchorDate() - gridStartDate() - DAY) / DAY;
+				const pos = Math.ceil(daysDiff * cellWidth);
 				ganttWrapper.scrollLeft = pos;
 			}
 		}
@@ -62,7 +82,7 @@ export const Gantt = (props: { tasks: Task[] }) => {
 
 	const tasksWithinRange = createMemo(() =>
 		props.tasks
-			.filter((task) => !task.start || task.start > gridStartDate)
+			.filter((task) => !task.start || task.start > gridStartDate())
 			.filter((task) => !task.end || task.end < gridEndDate()),
 	);
 
@@ -92,15 +112,15 @@ export const Gantt = (props: { tasks: Task[] }) => {
 
 					const current = createMemo(() => ({
 						...task,
-						start: task.start || gridAnchorDate + DAY,
-						end: task.end || gridAnchorDate + WEEK + DAY,
+						start: task.start || gridAnchorDate() + DAY,
+						end: task.end || gridAnchorDate() + DAY + WEEK,
 						floating: !!task.start,
 					}));
 
 					const colStart = createMemo(() => {
 						const time =
-							current().start - gridStartDate + posOffset() + leftOffset();
-						return Math.floor((time + DAY) / DAY);
+							current().start - gridStartDate() + posOffset() + leftOffset();
+						return Math.floor(time / DAY);
 					});
 
 					const colSpan = createMemo(() => {
@@ -125,9 +145,10 @@ export const Gantt = (props: { tasks: Task[] }) => {
 
 								if (side === 'left') {
 									const newStart = current().start + offset;
-									if (minStart() && minStart() > newStart) setValid(false);
+									if (minStart() && (minStart() as number) > newStart)
+										setValid(false);
 									else setValid(true);
-									if (newStart >= gridStartDate && newStart < current().end) {
+									if (newStart >= gridStartDate() && newStart < current().end) {
 										setLeftOffset(offset);
 									}
 								}
@@ -183,10 +204,11 @@ export const Gantt = (props: { tasks: Task[] }) => {
 								const newStart = current().start + offset;
 								const newEnd = current().end + offset;
 
-								if (minStart() && minStart() > newStart) setValid(false);
+								if (minStart() && (minStart() as number) > newStart)
+									setValid(false);
 								else setValid(true);
 
-								if (newStart >= gridStartDate && newEnd <= gridEndDate()) {
+								if (newStart >= gridStartDate() && newEnd <= gridEndDate()) {
 									setPosOffset(offset);
 								}
 							}
@@ -268,7 +290,7 @@ export const Gantt = (props: { tasks: Task[] }) => {
 									onPointerDown={[handleResize, 'left']}
 								/>
 								<div style={ganttItem()} onPointerDown={handleMove}>
-									{task.name}
+									{formatTime(current().start)} - {formatTime(current().end)}
 								</div>
 								<div
 									style={ganttItemHandle}
@@ -295,7 +317,7 @@ const createReactiveRef = <T extends HTMLElement>(): [
 
 			onMount(() => {
 				const updateRef = () => setRef(() => el);
-				updateRef(); // Initial update
+				updateRef();
 
 				const observer = new MutationObserver(updateRef);
 				observer.observe(el, {
