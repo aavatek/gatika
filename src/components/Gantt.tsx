@@ -1,11 +1,4 @@
-import {
-	For,
-	onMount,
-	onCleanup,
-	createMemo,
-	createSignal,
-	type Accessor,
-} from 'solid-js';
+import { For, onMount, createMemo, createSignal } from 'solid-js';
 import { DAY, MONTH, WEEK } from '@solid-primitives/date';
 import { tasks, type Task } from '@features/Task';
 import { formatTime } from '../lib/dates';
@@ -34,9 +27,6 @@ export const Gantt = (props: { tasks: Task[] }) => {
 
 	const gridEndDate = createMemo(() => gridStartDate() + cols() * DAY);
 
-	const [ganttRef, setGanttRef] = createReactiveRef();
-	const [ganttWrapperRef, setGanttWrapperRef] = createReactiveRef();
-
 	const handleZoom = (e: WheelEvent) => {
 		const MIN_ZOOM = 1;
 		const MAX_ZOOM = 12;
@@ -44,7 +34,7 @@ export const Gantt = (props: { tasks: Task[] }) => {
 
 		if (e.ctrlKey) {
 			e.preventDefault();
-			const ganttWrapper = ganttWrapperRef();
+			const ganttWrapper = document.getElementById('ganttWrapper');
 			if (ganttWrapper) {
 				const rect = ganttWrapper.getBoundingClientRect();
 				const mouseX = e.clientX - rect.left + ganttWrapper.scrollLeft;
@@ -66,9 +56,9 @@ export const Gantt = (props: { tasks: Task[] }) => {
 	};
 
 	onMount(() => {
-		const ganttWrapper = ganttWrapperRef();
+		const ganttWrapper = document.getElementById('ganttWrapper');
 		if (ganttWrapper) {
-			const gantt = ganttRef();
+			const gantt = document.getElementById('gantt');
 			if (gantt) {
 				const cellWidth = gantt.getBoundingClientRect().width / cols();
 				const daysDiff = (gridAnchorDate() - gridStartDate() - DAY) / DAY;
@@ -88,7 +78,7 @@ export const Gantt = (props: { tasks: Task[] }) => {
 		<div
 			onWheel={handleZoom}
 			style={{ 'overflow-x': 'auto' }}
-			ref={setGanttWrapperRef}
+			id="ganttWrapper"
 		>
 			<For each={tasksWithinRange()}>
 				{(task) => {
@@ -132,7 +122,7 @@ export const Gantt = (props: { tasks: Task[] }) => {
 						const onMove = (moveEvent: PointerEvent) => {
 							moveEvent.preventDefault();
 							const dx = moveEvent.clientX - x;
-							const gantt = ganttRef();
+							const gantt = document.getElementById('gantt');
 
 							if (gantt) {
 								const cellWidth = gantt.getBoundingClientRect().width / cols();
@@ -183,7 +173,8 @@ export const Gantt = (props: { tasks: Task[] }) => {
 						const handleMove = (moveEvent: PointerEvent) => {
 							moveEvent.preventDefault();
 							const dx = moveEvent.clientX - x;
-							const gantt = ganttRef();
+							// const gantt = ganttRef();
+							const gantt = document.getElementById('gantt');
 
 							if (gantt) {
 								const cellWidth = gantt.getBoundingClientRect().width / cols();
@@ -195,6 +186,11 @@ export const Gantt = (props: { tasks: Task[] }) => {
 								if (minStart() && (minStart() as number) > newStart)
 									setValid(false);
 								else setValid(true);
+
+								console.log('1', formatTime(gridStartDate()));
+								console.log('2', formatTime(newStart));
+								console.log('3', formatTime(startPos));
+								console.log('4', dx, cellWidth);
 
 								if (newStart >= gridStartDate() && newEnd <= gridEndDate()) {
 									tasks.update(task.id, {
@@ -267,7 +263,7 @@ export const Gantt = (props: { tasks: Task[] }) => {
 					});
 
 					return (
-						<div style={gantt()} id="gantt" ref={setGanttRef}>
+						<div style={gantt()} id="gantt">
 							<div style={ganttItemWrapper()}>
 								<div
 									style={ganttItemHandle}
@@ -287,33 +283,4 @@ export const Gantt = (props: { tasks: Task[] }) => {
 			</For>
 		</div>
 	);
-};
-
-const createReactiveRef = <T extends HTMLElement>(): [
-	Accessor<T | undefined>,
-	(el: T) => void,
-] => {
-	const [ref, setRef] = createSignal<T>();
-
-	const refCallback = (el: T | undefined) => {
-		if (el) {
-			setRef(() => el);
-
-			onMount(() => {
-				const updateRef = () => setRef(() => el);
-				updateRef();
-
-				const observer = new MutationObserver(updateRef);
-				observer.observe(el, {
-					attributes: true,
-					childList: true,
-					subtree: true,
-				});
-
-				onCleanup(() => observer.disconnect());
-			});
-		}
-	};
-
-	return [ref, refCallback];
 };
