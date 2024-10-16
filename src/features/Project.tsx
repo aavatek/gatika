@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import * as mf from '@modular-forms/solid';
 import type { Accessor, JSX } from 'solid-js';
-import { For, children, createMemo, splitProps } from 'solid-js';
+import { For, children, createMemo, createSignal, splitProps } from 'solid-js';
 import { createStore, produce } from 'solid-js/store';
 import { A, useNavigate } from '@solidjs/router';
 import { makePersisted, storageSync } from '@solid-primitives/storage';
@@ -36,6 +36,23 @@ export const projects = {
 	},
 
 	list: () => store,
+};
+
+export const [visited, setVisited] = makePersisted(
+	createSignal<Project['id'][]>([]),
+	{
+		name: 'visitedProjects',
+		storage: localStorage,
+		sync: storageSync,
+	},
+);
+
+export const addToLastVisited = (id: Project['id']) => {
+	if (visited().find((curr) => curr === id)) {
+		setVisited(visited().filter((curr) => id !== curr));
+	}
+
+	setVisited((prev) => [id, ...prev]);
 };
 
 // -------------------------------------------------------------------------------------
@@ -156,12 +173,23 @@ export const ProjectEditForm = (props: ProjectEditFormProps) => {
 
 // -------------------------------------------------------------------------------------
 
-export const ProjectList = () => {
+type ProjectListProps = {
+	label: string;
+	filter?: 'lastAccessed';
+};
+
+export const ProjectList = (props: ProjectListProps) => {
+	const projectList = createMemo(() => {
+		return props.filter === 'lastAccessed'
+			? visited().map((id) => projects.read(id)())
+			: projects.list();
+	}) as () => Project[];
+
 	return (
 		<section>
-			<h2>Kaikki projektit</h2>
+			<h2>{props.label}</h2>
 			<ol>
-				<For each={projects.list()}>
+				<For each={projectList()}>
 					{(project: Project) => <ProjectListItem {...project} />}
 				</For>
 			</ol>

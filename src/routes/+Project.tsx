@@ -1,9 +1,10 @@
 import { useNavigate, useParams } from '@solidjs/router';
-import { Show } from 'solid-js';
+import { onMount, Show } from 'solid-js';
 import { Button } from '@components/Form';
 import { TaskList, TaskCreateForm } from '@features/Task';
 import {
 	projects,
+	addToLastVisited,
 	type Project,
 	ProjectCreateForm,
 	ProjectEditForm,
@@ -15,7 +16,7 @@ export const PListView = () => {
 		<main>
 			<h1>Projektit</h1>
 			<ProjectCreateForm />
-			<ProjectList />
+			<ProjectList label="Kaikki projektit" />
 		</main>
 	);
 };
@@ -33,6 +34,10 @@ export const PView = () => {
 		navigate('/projects', { replace: true });
 	};
 
+	onMount(() => {
+		addToLastVisited(projectID);
+	});
+
 	return (
 		<Show when={project()}>
 			{(project) => (
@@ -44,7 +49,7 @@ export const PView = () => {
 					<Button label="Poista" onclick={handleDelete} />
 
 					<TaskCreateForm project={projectID} />
-					<TaskList project={projectID} />
+					<TaskList project={projectID} label="Kaikki tehtävät" />
 				</main>
 			)}
 		</Show>
