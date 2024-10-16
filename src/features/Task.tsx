@@ -1,13 +1,13 @@
 import type { Accessor, JSX } from 'solid-js';
 import { For, Show, children, createMemo, splitProps } from 'solid-js';
 import { A, useNavigate } from '@solidjs/router';
-import { getTime, getDate, formatDate, DAY } from '@solid-primitives/date';
+import { getTime, getDate, formatDate } from '@solid-primitives/date';
 import * as mf from '@modular-forms/solid';
 import * as v from 'valibot';
 import { Button, InputField, SelectField } from '@components/Form';
 import { makePersisted, storageSync } from '@solid-primitives/storage';
 import { createStore, produce } from 'solid-js/store';
-import type { Project } from './Project';
+import type { Project } from '@features/Project';
 
 // -------------------------------------------------------------------------------------
 
@@ -26,15 +26,55 @@ export const tasks = {
 		);
 	},
 
-	read: (id: Task['id']) =>
-		createMemo(() => store.find((task) => task.id === id)),
-
 	update: (id: Task['id'], data: Partial<Task>) => {
+		const currentTask = tasks.list().find((task) => task.id === id);
+		if (!currentTask) return;
+
+		const predecessors = tasks
+			.list()
+			.filter((task) => currentTask.dependencies?.includes(task.id));
+
+		const latestPredecessorEnd = Math.max(
+			0,
+			...predecessors.map((task) => task.end ?? 0),
+		);
+
+		if (data.start != null && data.start < latestPredecessorEnd) {
+			console.log('Update rejected: violates predecessor constraints');
+			return;
+		}
+
 		setStore(
 			(task) => task.id === id,
 			produce((task) => Object.assign(task, data)),
 		);
+
+		const updatedTask = tasks.list().find((task) => task.id === id);
+		if (!updatedTask || updatedTask.end == null) return;
+
+		const successors = tasks
+			.list()
+			.filter((task) => task.dependencies?.includes(id));
+
+		successors.forEach((successor) => {
+			if (
+				successor.start != null &&
+				updatedTask.end != null &&
+				updatedTask.end > successor.start
+			) {
+				const duration =
+					successor.end != null ? successor.end - successor.start : 0;
+				const newStart = updatedTask.end;
+				if (newStart != null) {
+					const newEnd = newStart + duration;
+					tasks.update(successor.id, { start: newStart, end: newEnd });
+				}
+			}
+		});
 	},
+
+	read: (id: Task['id']) =>
+		createMemo(() => store.find((task) => task.id === id)),
 
 	delete: (id: Task['id']) => {
 		setStore((store) => store.filter((task) => task.id !== id));
@@ -44,7 +84,7 @@ export const tasks = {
 		setStore((store) => store.filter((task) => task.project !== id));
 	},
 
-	list: () => store,
+	list: (): Task[] => store,
 	listByProject: (id: Project['id']) =>
 		store.filter((task) => task.project === id),
 };
@@ -160,7 +200,7 @@ export const TaskSchema = v.pipe(
 								.map((task) => task()?.end as number),
 						) || -999999999;
 
-					return input.start > lastEndDate;
+					return input.start >= lastEndDate;
 				}
 
 				return true;
@@ -171,13 +211,11 @@ export const TaskSchema = v.pipe(
 		['start'],
 	),
 
-	// generate id and calculate duration
+	// generate id
 
 	v.transform((input) => ({
 		...input,
 		id: crypto.randomUUID(),
-		duration:
-			input.start && input.end ? (input.end - input.start) / DAY : undefined,
 	})),
 );
 
@@ -188,8 +226,6 @@ export const TaskEditSchema = v.pipe(
 
 	v.transform((input) => ({
 		...input,
-		duration:
-			input.start && input.end ? (input.end - input.start) / DAY : undefined,
 	})),
 );
 
