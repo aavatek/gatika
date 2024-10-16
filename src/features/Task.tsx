@@ -452,20 +452,12 @@ export const TaskList = (props: TaskListProps) => {
 		return props.project
 			? tasks
 					.listByProject(props.project)
-					.filter((task) => task.end)
-					.sort(
-						(a, b) =>
-							getTime(new Date(a.end as Date)) -
-							getTime(new Date(b.end as Date)),
-					)
+					.filter((task) => task.end !== null)
+					.sort((a, b) => (a.end as number) - (b.end as number))
 			: tasks
 					.list()
 					.filter((task) => task.end)
-					.sort(
-						(a, b) =>
-							getTime(new Date(a.end as Date)) -
-							getTime(new Date(b.end as Date)),
-					);
+					.sort((a, b) => (a.end as number) - (b.end as number));
 	});
 
 	return (

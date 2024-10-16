@@ -6,7 +6,7 @@ import { createStore, produce } from 'solid-js/store';
 import { A, useNavigate } from '@solidjs/router';
 import { makePersisted, storageSync } from '@solid-primitives/storage';
 import { Button, InputField } from '@components/Form';
-import { tasks } from './Task';
+import { tasks } from '@features/Task';
 
 // -------------------------------------------------------------------------------------
 

@@ -8,7 +8,7 @@ import { NotFound, Unexpected } from '@root/src/routes/+Error';
 import { Dashboard } from '@routes/+Index';
 import { PListView, PView, PEditView } from '@routes/+Project';
 import { TView, TEditView } from '@routes/+Task';
-import { Page } from './routes/+Gantt';
+import { Page } from '@routes/+Gantt';
 
 // styles
 import 'virtual:uno.css';
