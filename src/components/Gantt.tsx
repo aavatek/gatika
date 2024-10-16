@@ -92,9 +92,13 @@ export const Gantt = (props: { tasks: Task[] }) => {
 		>
 			<For each={tasksWithinRange()}>
 				{(task) => {
-					const [posOffset, setPosOffset] = createSignal(0);
-					const [rightOffset, setRightOffset] = createSignal(0);
-					const [leftOffset, setLeftOffset] = createSignal(0);
+					const current = createMemo(() => ({
+						...task,
+						start: task.start || gridAnchorDate() + DAY,
+						end: task.end || gridAnchorDate() + DAY + WEEK,
+						floating: !task.start,
+					}));
+
 					const [valid, setValid] = createSignal(true);
 
 					const minStart = createMemo(() => {
@@ -108,61 +112,54 @@ export const Gantt = (props: { tasks: Task[] }) => {
 							: undefined;
 					});
 
-					const current = createMemo(() => ({
-						...task,
-						start: task.start || gridAnchorDate() + DAY,
-						end: task.end || gridAnchorDate() + DAY + WEEK,
-						floating: !!task.start,
-					}));
-
-					const currentStart = createMemo(
-						() => current().start + posOffset() + leftOffset(),
-					);
-
-					const currentEnd = createMemo(
-						() => current().end + posOffset() + rightOffset(),
-					);
-
 					const colStart = createMemo(() => {
-						const time =
-							current().start - gridStartDate() + posOffset() + leftOffset();
+						const time = current().start - gridStartDate();
 						return Math.floor(time / DAY);
 					});
 
 					const colSpan = createMemo(() => {
-						const range =
-							current().end - current().start - leftOffset() + rightOffset();
+						const range = current().end - current().start;
 						return Math.floor(range / DAY);
 					});
 
 					const handleResize = (side: 'left' | 'right', e: PointerEvent) => {
 						e.preventDefault();
 						const x = e.clientX;
-						const start = side === 'left' ? leftOffset() : rightOffset();
+						const initialStart = current().start;
+						const initialEnd = current().end;
+						const isFloating = current().floating;
 
 						const onMove = (moveEvent: PointerEvent) => {
 							moveEvent.preventDefault();
 							const dx = moveEvent.clientX - x;
 							const gantt = ganttRef();
+
 							if (gantt) {
 								const cellWidth = gantt.getBoundingClientRect().width / cols();
 								const cellsTraversed = Math.round(dx / cellWidth);
-								const offset = start + cellsTraversed * DAY;
+								const offset = cellsTraversed * DAY;
 
 								if (side === 'left') {
-									const newStart = current().start + offset;
-									if (minStart() && (minStart() as number) > newStart)
+									const newStart = initialStart + offset;
+									if (minStart() && (minStart() as number) > newStart) {
 										setValid(false);
-									else setValid(true);
-									if (newStart >= gridStartDate() && newStart < current().end) {
-										setLeftOffset(offset);
+									} else {
+										setValid(true);
+										if (newStart >= gridStartDate() && newStart < initialEnd) {
+											tasks.update(task.id, { start: newStart });
+										}
 									}
-								}
-
-								if (side === 'right') {
-									const newEnd = current().end + offset;
-									if (newEnd <= gridEndDate() && newEnd > current().start) {
-										setRightOffset(offset);
+								} else {
+									const newEnd = initialEnd + offset;
+									if (newEnd <= gridEndDate() && newEnd > initialStart) {
+										if (isFloating) {
+											tasks.update(task.id, {
+												start: initialStart,
+												end: newEnd,
+											});
+										} else {
+											tasks.update(task.id, { end: newEnd });
+										}
 									}
 								}
 							}
@@ -171,21 +168,6 @@ export const Gantt = (props: { tasks: Task[] }) => {
 						const onUp = () => {
 							document.removeEventListener('pointermove', onMove);
 							document.removeEventListener('pointerup', onUp);
-
-							const newStart =
-								current().start + (side === 'left' ? leftOffset() : 0);
-							const newEnd =
-								current().end + (side === 'right' ? rightOffset() : 0);
-
-							if (newEnd > newStart) {
-								tasks.update(task.id, {
-									start: newStart,
-									end: newEnd,
-								});
-							}
-
-							setLeftOffset(0);
-							setRightOffset(0);
 							setValid(true);
 						};
 
@@ -196,26 +178,29 @@ export const Gantt = (props: { tasks: Task[] }) => {
 					const handleMove = (e: PointerEvent) => {
 						e.preventDefault();
 						const x = e.clientX;
-						const start = posOffset();
+						const startPos = current().start;
 
 						const handleMove = (moveEvent: PointerEvent) => {
 							moveEvent.preventDefault();
-
 							const dx = moveEvent.clientX - x;
 							const gantt = ganttRef();
+
 							if (gantt) {
 								const cellWidth = gantt.getBoundingClientRect().width / cols();
 								const cellsTraversed = Math.round(dx / cellWidth);
-								const offset = start + cellsTraversed * DAY;
-								const newStart = current().start + offset;
-								const newEnd = current().end + offset;
+								const offset = cellsTraversed * DAY;
+								const newStart = startPos + offset;
+								const newEnd = newStart + (current().end - current().start);
 
 								if (minStart() && (minStart() as number) > newStart)
 									setValid(false);
 								else setValid(true);
 
 								if (newStart >= gridStartDate() && newEnd <= gridEndDate()) {
-									setPosOffset(offset);
+									tasks.update(task.id, {
+										start: newStart,
+										end: newEnd,
+									});
 								}
 							}
 						};
@@ -223,13 +208,6 @@ export const Gantt = (props: { tasks: Task[] }) => {
 						const handleRelease = () => {
 							document.removeEventListener('pointermove', handleMove);
 							document.removeEventListener('pointerup', handleRelease);
-
-							tasks.update(task.id, {
-								start: current().start + posOffset(),
-								end: current().end + posOffset(),
-							});
-
-							setPosOffset(0);
 							setValid(true);
 						};
 
@@ -265,7 +243,7 @@ export const Gantt = (props: { tasks: Task[] }) => {
 					} as const;
 
 					const backgroundColor = createMemo(() => {
-						return current().floating
+						return !current().floating
 							? valid()
 								? 'white'
 								: '#F9D2DD'
@@ -273,9 +251,9 @@ export const Gantt = (props: { tasks: Task[] }) => {
 					});
 
 					const ganttItem = createMemo(() => {
-						const isFloating = current().floating;
 						return {
-							border: `.15rem ${isFloating ? 'solid' : 'dashed'} gray`,
+							border: `.15rem ${current().floating ? 'dashed' : 'solid'} gray`,
+							'border-width': current().floating ? '.25rem' : '.15rem',
 							'border-left': 'none',
 							'border-right': 'none',
 							cursor: 'pointer',
@@ -296,7 +274,7 @@ export const Gantt = (props: { tasks: Task[] }) => {
 									onPointerDown={[handleResize, 'left']}
 								/>
 								<div style={ganttItem()} onPointerDown={handleMove}>
-									{formatTime(currentStart())} - {formatTime(currentEnd())}
+									{formatTime(current().start)} - {formatTime(current().end)}
 								</div>
 								<div
 									style={ganttItemHandle}
