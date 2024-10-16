@@ -1,15 +1,8 @@
 import { createMemo, createSignal, For, onMount } from 'solid-js';
-import { DAY, getDate, MONTH, WEEK } from '@solid-primitives/date';
+import { DAY, MONTH, WEEK } from '@solid-primitives/date';
 import { tasks, type Task } from '@features/Task';
 
-export type GanttTask = {
-	id: Task['id'];
-	name: string;
-	start?: number | null;
-	end?: number | null;
-};
-
-export const Gantt = (props: { tasks: GanttTask[] }) => {
+export const Gantt = (props: { tasks: Task[] }) => {
 	const earliestStartDate = createMemo(() => {
 		return Math.min(
 			...props.tasks
@@ -122,13 +115,8 @@ export const Gantt = (props: { tasks: GanttTask[] }) => {
 							const baseStart = task.start || viewStartDate();
 							const baseEnd = task.end || baseStart + WEEK;
 
-							const newStart = getDate(
-								baseStart + (side === 'left' ? leftOffset() : 0),
-							);
-
-							const newEnd = getDate(
-								baseEnd + (side === 'right' ? rightOffset() : 0),
-							);
+							const newStart = baseStart + (side === 'left' ? leftOffset() : 0);
+							const newEnd = baseEnd + (side === 'right' ? rightOffset() : 0);
 
 							tasks.update(task.id, {
 								start: newStart,
@@ -173,12 +161,9 @@ export const Gantt = (props: { tasks: GanttTask[] }) => {
 							const currStart = task.start || viewStartDate();
 							const currEnd = task.end || viewStartDate() + WEEK;
 
-							const newStart = getDate(currStart + posOffset());
-							const newEnd = getDate(currEnd + posOffset());
-
 							tasks.update(task.id, {
-								start: newStart,
-								end: newEnd,
+								start: currStart + posOffset(),
+								end: currEnd + posOffset(),
 							});
 
 							setPosOffset(0);

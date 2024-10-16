@@ -2,8 +2,7 @@ import { createMemo, createSignal } from 'solid-js';
 import { SelectField } from '@components/Form';
 import { projects, type Project } from '@features/Project';
 import { tasks } from '@features/Task';
-import { getTime } from '@solid-primitives/date';
-import { Gantt, type GanttTask } from '@components/Gantt';
+import { Gantt } from '@components/Gantt';
 
 export const Page = () => {
 	const [selected, setSelected] = createSignal('');
@@ -18,12 +17,7 @@ export const Page = () => {
 			...(selected() === ''
 				? tasks.list()
 				: tasks.listByProject(selected() as Project['id'])),
-		].map((task) => ({
-			id: task.id,
-			name: task.name,
-			start: task.start ? getTime(task.start) : null,
-			end: task.end ? getTime(task.end) : null,
-		})) as GanttTask[];
+		];
 	});
 
 	return (

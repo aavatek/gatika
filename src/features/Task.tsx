@@ -1,13 +1,7 @@
 import type { Accessor, JSX } from 'solid-js';
 import { For, Show, children, createMemo, splitProps } from 'solid-js';
 import { A, useNavigate } from '@solidjs/router';
-import {
-	getTime,
-	getDate,
-	formatDate,
-	getDateDifference,
-	DAY,
-} from '@solid-primitives/date';
+import { getTime, getDate, formatDate, DAY } from '@solid-primitives/date';
 import * as mf from '@modular-forms/solid';
 import * as v from 'valibot';
 import { Button, InputField, SelectField } from '@components/Form';
@@ -40,24 +34,6 @@ export const tasks = {
 			(task) => task.id === id,
 			produce((task) => Object.assign(task, data)),
 		);
-
-		if (data.end) {
-			const dependants = tasks
-				.list()
-				.filter((task) => task.dependencies.includes(id));
-			for (const dependant of dependants) {
-				if (!dependant.start) return;
-
-				const newStart = getDate(getTime(new Date(data.end)) + DAY);
-				if (getTime(newStart) > getTime(new Date(dependant.start))) {
-					const newEnd = dependant.duration
-						? getDate(getTime(newStart) + dependant.duration * DAY)
-						: undefined;
-
-					tasks.update(dependant.id, { start: newStart, end: newEnd });
-				}
-			}
-		}
 	},
 
 	delete: (id: Task['id']) => {
@@ -113,15 +89,8 @@ export const taskStatus = [
 
 const DateSchema = v.pipe(
 	v.string(),
-	v.transform((value) => (value ? new Date(value) : undefined)),
-
-	v.optional(
-		v.pipe(
-			v.date(err.date.invalid),
-			v.minValue(new Date('1950-01-01'), err.date.tooEarly),
-			v.maxValue(new Date('2050-12-31'), err.date.tooLate),
-		),
-	),
+	v.transform((value) => (value ? getTime(value) : null)),
+	v.nullable(v.number(err.date.invalid)),
 );
 
 const NameSchema = v.pipe(
@@ -183,19 +152,20 @@ export const TaskSchema = v.pipe(
 
 			(input): boolean => {
 				if (input.start && input.dependencies) {
-					const sortedEndDates = input.dependencies
-						.map((id) => tasks.read(id as Task['id']))
-						.map((task) => task()?.end)
-						.filter((date) => date !== undefined)
-						.sort((a, b) => getTime(b) - getTime(a));
+					const lastEndDate =
+						Math.max(
+							...input.dependencies
+								.map((id) => tasks.read(id as Task['id']))
+								.filter((task) => task()?.end !== undefined)
+								.map((task) => task()?.end as number),
+						) || -999999999;
 
-					return sortedEndDates.length > 0
-						? getTime(input.start) > getTime(sortedEndDates[0])
-						: true;
+					return input.start > lastEndDate;
 				}
 
 				return true;
 			},
+
 			err.date.dependencyConflict,
 		),
 		['start'],
@@ -207,9 +177,7 @@ export const TaskSchema = v.pipe(
 		...input,
 		id: crypto.randomUUID(),
 		duration:
-			input.start && input.end
-				? getDateDifference(input.start, input.end) / DAY
-				: undefined,
+			input.start && input.end ? (input.end - input.start) / DAY : undefined,
 	})),
 );
 
@@ -221,9 +189,7 @@ export const TaskEditSchema = v.pipe(
 	v.transform((input) => ({
 		...input,
 		duration:
-			input.start && input.end
-				? getDateDifference(input.start, input.end) / DAY
-				: undefined,
+			input.start && input.end ? (input.end - input.start) / DAY : undefined,
 	})),
 );
 
@@ -447,9 +413,11 @@ export const TaskEditForm = (props: TaskEditFormProps) => {
 	mf.setValues(form[0], {
 		...props.task(),
 		start: props.task().start
-			? formatDate(getDate(props.task().start as Date))
+			? formatDate(getDate(props.task().start as number))
 			: '',
-		end: props.task().end ? formatDate(getDate(props.task().end as Date)) : '',
+		end: props.task().end
+			? formatDate(getDate(props.task().end as number))
+			: '',
 	});
 
 	return (
