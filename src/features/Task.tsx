@@ -8,6 +8,7 @@ import { Button, InputField, SelectField } from '@components/Form';
 import { makePersisted, storageSync } from '@solid-primitives/storage';
 import { createStore, produce } from 'solid-js/store';
 import type { Project } from '@features/Project';
+import { logger } from '@lib/logger';
 
 // -------------------------------------------------------------------------------------
 
@@ -27,48 +28,42 @@ export const tasks = {
 	},
 
 	update: (id: Task['id'], data: Partial<Task>) => {
-		const currentTask = tasks.list().find((task) => task.id === id);
-		if (!currentTask) return;
+		const current = tasks.list().find((task) => task.id === id);
+		if (!current) {
+			logger.error('task does not exist');
+		}
 
 		const predecessors = tasks
 			.list()
-			.filter((task) => currentTask.dependencies?.includes(task.id));
+			.filter((task) => current?.dependencies.includes(task.id));
 
-		const latestPredecessorEnd = Math.max(
+		const lastPredecessorEnd = Math.max(
 			0,
 			...predecessors.map((task) => task.end ?? 0),
 		);
 
-		if (data.start != null && data.start < latestPredecessorEnd) {
-			console.log('Update rejected: violates predecessor constraints');
-			return;
-		}
+		if (data.start != null && data.start < lastPredecessorEnd) return;
 
 		setStore(
 			(task) => task.id === id,
 			produce((task) => Object.assign(task, data)),
 		);
 
-		const updatedTask = tasks.list().find((task) => task.id === id);
-		if (!updatedTask || updatedTask.end == null) return;
-
 		const successors = tasks
 			.list()
 			.filter((task) => task.dependencies?.includes(id));
 
 		successors.forEach((successor) => {
-			if (
-				successor.start != null &&
-				updatedTask.end != null &&
-				updatedTask.end > successor.start
-			) {
+			if (successor.start != null && data.end != null) {
+				// if (data.end > successor.start) {
 				const duration =
 					successor.end != null ? successor.end - successor.start : 0;
-				const newStart = updatedTask.end;
+				const newStart = data.end;
 				if (newStart != null) {
 					const newEnd = newStart + duration;
 					tasks.update(successor.id, { start: newStart, end: newEnd });
 				}
+				// }
 			}
 		});
 	},
@@ -411,8 +406,6 @@ export const TaskCreateForm = (props: TaskCreateFormProps) => {
 
 			return mf.reset(form[0]);
 		}
-
-		console.error(validate.issues);
 	};
 
 	return (
@@ -442,8 +435,6 @@ export const TaskEditForm = (props: TaskEditFormProps) => {
 		if (validate.success) {
 			return tasks.update(props.task().id, validate.output);
 		}
-
-		console.error(validate.issues);
 	};
 
 	mf.setValues(form[0], {

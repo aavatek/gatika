@@ -4,7 +4,7 @@ import { tasks, type Task } from '@features/Task';
 import { formatTime } from '../lib/dates';
 
 export const Gantt = (props: { tasks: Task[] }) => {
-	const [cols] = createSignal(180);
+	const [cols] = createSignal(210);
 	const [zoomModifier, setZoomModifier] = createSignal(2);
 
 	const gridAnchorDate = createMemo(() => {
@@ -17,7 +17,7 @@ export const Gantt = (props: { tasks: Task[] }) => {
 	});
 
 	const gridStartDate = createMemo(() => {
-		const date = new Date(Date.now() - MONTH);
+		const date = new Date(Date.now() - 3 * MONTH);
 		return Date.UTC(
 			date.getUTCFullYear(),
 			date.getUTCMonth(),
@@ -186,11 +186,6 @@ export const Gantt = (props: { tasks: Task[] }) => {
 								if (minStart() && (minStart() as number) > newStart)
 									setValid(false);
 								else setValid(true);
-
-								console.log('1', formatTime(gridStartDate()));
-								console.log('2', formatTime(newStart));
-								console.log('3', formatTime(startPos));
-								console.log('4', dx, cellWidth);
 
 								if (newStart >= gridStartDate() && newEnd <= gridEndDate()) {
 									tasks.update(task.id, {
