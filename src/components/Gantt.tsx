@@ -34,8 +34,6 @@ export const Gantt = (props: { tasks: Task[] }) => {
 
 	const gridEndDate = createMemo(() => gridStartDate() + cols() * DAY);
 
-	console.log(formatTime(gridAnchorDate()));
-
 	const [ganttRef, setGanttRef] = createReactiveRef();
 	const [ganttWrapperRef, setGanttWrapperRef] = createReactiveRef();
 
@@ -116,6 +114,14 @@ export const Gantt = (props: { tasks: Task[] }) => {
 						end: task.end || gridAnchorDate() + DAY + WEEK,
 						floating: !!task.start,
 					}));
+
+					const currentStart = createMemo(
+						() => current().start + posOffset() + leftOffset(),
+					);
+
+					const currentEnd = createMemo(
+						() => current().end + posOffset() + rightOffset(),
+					);
 
 					const colStart = createMemo(() => {
 						const time =
@@ -290,7 +296,7 @@ export const Gantt = (props: { tasks: Task[] }) => {
 									onPointerDown={[handleResize, 'left']}
 								/>
 								<div style={ganttItem()} onPointerDown={handleMove}>
-									{formatTime(current().start)} - {formatTime(current().end)}
+									{formatTime(currentStart())} - {formatTime(currentEnd())}
 								</div>
 								<div
 									style={ganttItemHandle}
