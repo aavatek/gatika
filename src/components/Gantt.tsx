@@ -77,6 +77,18 @@ export const Gantt = (props: { tasks: Task[] }) => {
 					const [posOffset, setPosOffset] = createSignal(0);
 					const [rightOffset, setRightOffset] = createSignal(0);
 					const [leftOffset, setLeftOffset] = createSignal(0);
+					const [valid, setValid] = createSignal(true);
+
+					const minStart = createMemo(() => {
+						const dependencyEnds = task.dependencies
+							.map((dep) => tasks.read(dep as Task['id'])())
+							.filter((dep) => dep?.end)
+							.map((dep) => dep?.end as number);
+
+						return dependencyEnds.length > 0
+							? Math.max(...dependencyEnds)
+							: undefined;
+					});
 
 					const current = createMemo(() => ({
 						...task,
@@ -113,6 +125,8 @@ export const Gantt = (props: { tasks: Task[] }) => {
 
 								if (side === 'left') {
 									const newStart = current().start + offset;
+									if (minStart() && minStart() > newStart) setValid(false);
+									else setValid(true);
 									if (newStart >= gridStartDate && newStart < current().end) {
 										setLeftOffset(offset);
 									}
@@ -145,6 +159,7 @@ export const Gantt = (props: { tasks: Task[] }) => {
 
 							setLeftOffset(0);
 							setRightOffset(0);
+							setValid(true);
 						};
 
 						document.addEventListener('pointermove', onMove);
@@ -168,6 +183,9 @@ export const Gantt = (props: { tasks: Task[] }) => {
 								const newStart = current().start + offset;
 								const newEnd = current().end + offset;
 
+								if (minStart() && minStart() > newStart) setValid(false);
+								else setValid(true);
+
 								if (newStart >= gridStartDate && newEnd <= gridEndDate()) {
 									setPosOffset(offset);
 								}
@@ -184,6 +202,7 @@ export const Gantt = (props: { tasks: Task[] }) => {
 							});
 
 							setPosOffset(0);
+							setValid(true);
 						};
 
 						document.addEventListener('pointermove', handleMove);
@@ -217,6 +236,14 @@ export const Gantt = (props: { tasks: Task[] }) => {
 						'align-self': 'stretch',
 					} as const;
 
+					const backgroundColor = createMemo(() => {
+						return current().floating
+							? valid()
+								? 'white'
+								: '#F9D2DD'
+							: 'lightGray';
+					});
+
 					const ganttItem = createMemo(() => {
 						const isFloating = current().floating;
 						return {
@@ -225,7 +252,7 @@ export const Gantt = (props: { tasks: Task[] }) => {
 							'border-right': 'none',
 							cursor: 'pointer',
 							overflow: 'hidden',
-							background: isFloating ? 'white' : 'lightgray',
+							background: backgroundColor(),
 							display: 'flex',
 							'align-items': 'center',
 							'justify-content': 'center',
