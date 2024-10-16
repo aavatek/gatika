@@ -13,9 +13,9 @@ export const Gantt = (props: { tasks: Task[] }) => {
 	const [cols] = createSignal(180);
 	const [zoomModifier, setZoomModifier] = createSignal(2);
 
+	const gridAnchorDate = Date.now() - WEEK * 2;
 	const gridStartDate = Date.now() - MONTH;
 	const gridEndDate = createMemo(() => gridStartDate + cols() * DAY);
-	const gridAnchorDate = Date.now() - WEEK * 2;
 
 	const [ganttRef, setGanttRef] = createReactiveRef();
 	const [ganttWrapperRef, setGanttWrapperRef] = createReactiveRef();
@@ -60,13 +60,19 @@ export const Gantt = (props: { tasks: Task[] }) => {
 		}
 	});
 
+	const tasksWithinRange = createMemo(() =>
+		props.tasks
+			.filter((task) => !task.start || task.start > gridStartDate)
+			.filter((task) => !task.end || task.end < gridEndDate()),
+	);
+
 	return (
 		<div
 			onWheel={handleZoom}
 			style={{ 'overflow-x': 'auto' }}
 			ref={setGanttWrapperRef}
 		>
-			<For each={props.tasks}>
+			<For each={tasksWithinRange()}>
 				{(task) => {
 					const [posOffset, setPosOffset] = createSignal(0);
 					const [rightOffset, setRightOffset] = createSignal(0);
