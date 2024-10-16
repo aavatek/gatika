@@ -3,24 +3,17 @@ import { DAY, MONTH, WEEK } from '@solid-primitives/date';
 import { tasks, type Task } from '@features/Task';
 
 export const Gantt = (props: { tasks: Task[] }) => {
-	const earliestStartDate = createMemo(() => {
-		return Math.min(
-			...props.tasks
-				.filter((task) => task.start)
-				.map((task) => task.start as number),
-		);
-	});
-
 	const [cols] = createSignal(180);
-	const gridStartDate = earliestStartDate() - MONTH;
-	const gridEndDate = createMemo(() => gridStartDate + cols() * DAY);
-	const [viewStartDate] = createSignal(Date.now() - WEEK * 2);
 	const [zoomModifier, setZoomModifier] = createSignal(2);
+
+	const gridStartDate = Date.now() - MONTH;
+	const gridEndDate = createMemo(() => gridStartDate + cols() * DAY);
+	const gridAnchorDate = Date.now() - WEEK * 2;
 
 	const handleZoom = (e: WheelEvent) => {
 		const MIN_ZOOM = 1;
 		const MAX_ZOOM = 12;
-		const ZOOM_SENSITIVITY = 0.001;
+		const SENSITIVITY = 0.001;
 
 		if (e.ctrlKey) {
 			e.preventDefault();
@@ -30,7 +23,7 @@ export const Gantt = (props: { tasks: Task[] }) => {
 			const rect = ganttWrapper.getBoundingClientRect();
 			const mouseX = e.clientX - rect.left + ganttWrapper.scrollLeft;
 
-			const zoomFactor = Math.exp(-e.deltaY * ZOOM_SENSITIVITY);
+			const zoomFactor = Math.exp(-e.deltaY * SENSITIVITY);
 			const newZoomLevel = Math.max(
 				MIN_ZOOM,
 				Math.min(MAX_ZOOM, zoomModifier() * zoomFactor),
@@ -47,10 +40,9 @@ export const Gantt = (props: { tasks: Task[] }) => {
 
 	onMount(() => {
 		const ganttElement = document.getElementById('gantt') as HTMLElement;
-		const cellWidth = ganttElement.getBoundingClientRect().width / cols();
-		const viewAnchor = viewStartDate();
-		const scrollPosition = ((viewAnchor - gridStartDate) / DAY) * cellWidth;
 		const ganttWrapper = ganttElement.parentElement as HTMLElement;
+		const cellWidth = ganttElement.getBoundingClientRect().width / cols();
+		const scrollPosition = ((gridAnchorDate - gridStartDate) / DAY) * cellWidth;
 		ganttWrapper.scrollLeft = scrollPosition;
 	});
 
@@ -62,18 +54,23 @@ export const Gantt = (props: { tasks: Task[] }) => {
 					const [rightOffset, setRightOffset] = createSignal(0);
 					const [leftOffset, setLeftOffset] = createSignal(0);
 
+					const current = createMemo(() => ({
+						id: task.id,
+						name: task.name,
+						start: task.start || gridAnchorDate,
+						end: task.end || gridAnchorDate + WEEK,
+						floating: !!task.start,
+					}));
+
 					const colStart = createMemo(() => {
-						const time = task.start
-							? task.start - gridStartDate + posOffset() + leftOffset()
-							: viewStartDate() - gridStartDate + posOffset() + leftOffset();
-						return Math.ceil((time + DAY) / DAY);
+						const time =
+							current().start - gridStartDate + posOffset() + leftOffset();
+						return Math.floor((time + DAY) / DAY);
 					});
 
 					const colSpan = createMemo(() => {
 						const range =
-							task.start && task.end
-								? task.end - task.start - leftOffset() + rightOffset()
-								: WEEK - leftOffset() + rightOffset();
+							current().end - current().start - leftOffset() + rightOffset();
 						return Math.floor(range / DAY);
 					});
 
@@ -90,19 +87,19 @@ export const Gantt = (props: { tasks: Task[] }) => {
 							const cellsTraversed = Math.round(dx / cellWidth);
 							const offset = start + cellsTraversed * DAY;
 
-							const baseStart = task.start || viewStartDate();
-							const baseEnd = task.end || baseStart + WEEK;
-
 							if (side === 'left') {
-								const newStart = baseStart + offset;
-								if (newStart >= gridStartDate && newStart < baseEnd - DAY) {
+								const newStart = current().start + offset;
+								if (
+									newStart >= gridStartDate &&
+									newStart < current().end - DAY
+								) {
 									setLeftOffset(offset);
 								}
 							}
 
 							if (side === 'right') {
-								const newEnd = baseEnd + offset;
-								if (newEnd <= gridEndDate() && newEnd > baseStart + DAY) {
+								const newEnd = current().end + offset;
+								if (newEnd <= gridEndDate() && newEnd > current().start + DAY) {
 									setRightOffset(offset);
 								}
 							}
@@ -112,11 +109,10 @@ export const Gantt = (props: { tasks: Task[] }) => {
 							document.removeEventListener('pointermove', onMove);
 							document.removeEventListener('pointerup', onUp);
 
-							const baseStart = task.start || viewStartDate();
-							const baseEnd = task.end || baseStart + WEEK;
-
-							const newStart = baseStart + (side === 'left' ? leftOffset() : 0);
-							const newEnd = baseEnd + (side === 'right' ? rightOffset() : 0);
+							const newStart =
+								current().start + (side === 'left' ? leftOffset() : 0);
+							const newEnd =
+								current().end + (side === 'right' ? rightOffset() : 0);
 
 							tasks.update(task.id, {
 								start: newStart,
@@ -144,10 +140,8 @@ export const Gantt = (props: { tasks: Task[] }) => {
 							const dx = moveEvent.clientX - x;
 							const cellsTraversed = Math.round(dx / cellWidth);
 							const offset = start + cellsTraversed * DAY;
-							const currStart = task.start || viewStartDate();
-							const currEnd = task.end || viewStartDate() + WEEK;
-							const newStart = currStart + offset;
-							const newEnd = currEnd + offset;
+							const newStart = current().start + offset;
+							const newEnd = current().end + offset;
 
 							if (newStart >= gridStartDate && newEnd <= gridEndDate()) {
 								setPosOffset(offset);
@@ -158,12 +152,9 @@ export const Gantt = (props: { tasks: Task[] }) => {
 							document.removeEventListener('pointermove', handleMove);
 							document.removeEventListener('pointerup', handleRelease);
 
-							const currStart = task.start || viewStartDate();
-							const currEnd = task.end || viewStartDate() + WEEK;
-
 							tasks.update(task.id, {
-								start: currStart + posOffset(),
-								end: currEnd + posOffset(),
+								start: current().start + posOffset(),
+								end: current().end + posOffset(),
 							});
 
 							setPosOffset(0);
