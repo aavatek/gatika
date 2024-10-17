@@ -43,7 +43,7 @@ const Timeline = (props: TimelineProps) => {
 	const weeks = createMemo(() => {
 		const totalDays = props.cols();
 		const weeks = [];
-		let currentDate = new Date(props.gridStartDate + DAY * 2);
+		let currentDate = new Date(props.gridStartDate + DAY);
 
 		for (let i = 0; i < totalDays; i += 7) {
 			weeks.push(getWeekNumber(currentDate));
@@ -62,8 +62,8 @@ const Timeline = (props: TimelineProps) => {
 
 	const months = createMemo(() => {
 		const months = [];
-		let currentDate = new Date(props.gridStartDate + DAY);
-		const endDate = new Date(props.gridEndDate + DAY);
+		let currentDate = new Date(props.gridStartDate);
+		const endDate = new Date(props.gridEndDate);
 		let totalDays = 0;
 
 		while (currentDate < endDate) {
@@ -212,8 +212,8 @@ export const Gantt = (props: { tasks: Task[] }) => {
 		'grid-template-rows': `repeat(${rows()}, 1fr)`,
 		'background-size': `${100 / cols()}% ${100 / rows()}%`,
 		'background-image': `
-      linear-gradient(to right, #f0f0f0 1px, transparent 1px),
-      linear-gradient(to bottom, #f0f0f0 1px, transparent 1px)
+      linear-gradient(to right, #e0e0e0 1px, transparent 1px),
+      linear-gradient(to bottom, #fff 1px, transparent 1px)
     `,
 	}));
 
