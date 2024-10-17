@@ -333,10 +333,7 @@ const styles = stylex.create({
 		gridTemplateColumns: `repeat(${cols()}, 1fr)`,
 		gridTemplateRows: `repeat(${rows()}, 1fr)`,
 		backgroundSize: `${100 / cols()}% ${100 / rows()}%`,
-		backgroundImage: `
-      linear-gradient(to right, #e0e0e0 1px, transparent 1px),
-      linear-gradient(to bottom, #fff 1px, transparent 1px)
-    `,
+		backgroundImage: 'linear-gradient(to right, #e0e0e0 1px, transparent 1px)',
 	}),
 
 	taskWrapper: (row, colStart, colSpan) => ({
