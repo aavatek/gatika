@@ -18,11 +18,18 @@ export const formatTime = (epoch: number) => {
 	return `${day}.${month}.${year}`;
 };
 
-export const getStartOfWeek = (date: number): number => {
+export const getWeekStart = (date: number): number => {
 	const daysSinceEpoch = Math.floor(date / DAY);
 	const weekday = (daysSinceEpoch + 4) % 7;
 	const daysToSubtract = weekday;
 	return date - daysToSubtract * DAY;
+};
+
+export const getWeekNumber = (d: Date): number => {
+	const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+	date.setUTCDate(date.getUTCDate() + 4 - (date.getUTCDay() || 7));
+	const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+	return Math.ceil(((date.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
 };
 
 export enum Weekdays {

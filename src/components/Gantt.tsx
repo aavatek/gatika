@@ -1,17 +1,23 @@
 import type { Accessor } from 'solid-js';
 import { onMount, createMemo, createSignal, Show, For } from 'solid-js';
 import { tasks, type Task } from '@features/Task';
-import { getStartOfWeek, Weekdays, Months, DAY, WEEK } from '@lib/dates';
+import { DAY, WEEK } from '@lib/dates';
+import { getWeekNumber, getWeekStart, Weekdays, Months } from '@lib/dates';
 import * as stylex from '@stylexjs/stylex';
 
 export const Gantt = (props: { tasks: Task[] }) => {
-	const gridAnchorDate = getStartOfWeek(Date.now() - WEEK * 2);
-	const gridStartDate = getStartOfWeek(Date.now() - WEEK * 20);
-	const gridEndDate = getStartOfWeek(Date.now() + WEEK * 20);
+	const gridAnchorDate = getWeekStart(Date.now() - WEEK * 2);
+	const gridStartDate = getWeekStart(Date.now() - WEEK * 20);
+	const gridEndDate = getWeekStart(Date.now() + WEEK * 20);
 
 	const [zoomModifier, setZoomModifier] = createSignal(24);
+	const tasksWithinRange = createMemo(() =>
+		props.tasks
+			.filter((task) => !task.start || task.start > gridStartDate)
+			.filter((task) => !task.end || task.end < gridEndDate),
+	);
 
-	const rows = createMemo(() => props.tasks.length);
+	const rows = createMemo(() => tasksWithinRange().length);
 	const cols = createMemo(() => (gridEndDate - gridStartDate) / DAY);
 	const colWidth = createMemo(() => (cols() * zoomModifier()) / cols());
 
@@ -51,20 +57,14 @@ export const Gantt = (props: { tasks: Task[] }) => {
 		}
 	});
 
-	const tasksWithinRange = createMemo(() =>
-		props.tasks
-			.filter((task) => !task.start || task.start > gridStartDate)
-			.filter((task) => !task.end || task.end < gridEndDate),
-	);
-
 	return (
 		<div id="wrapper" onWheel={handleZoom} {...stylex.props(styles.wrapper)}>
 			<Timeline
-				gridStartDate={gridStartDate}
-				gridEndDate={gridEndDate}
 				cols={cols}
 				colWidth={colWidth}
 				zoomModifier={zoomModifier}
+				gridStartDate={gridStartDate}
+				gridEndDate={gridEndDate}
 			/>
 
 			<div {...stylex.props(styles.gantt(cols, rows, zoomModifier))}>
@@ -95,14 +95,12 @@ type GanttTaskProps = {
 };
 
 const GanttTask = (props: GanttTaskProps) => {
-	const task = createMemo(() => {
-		return {
-			...props.task,
-			start: props.task.start ?? props.gridAnchorDate,
-			end: props.task.end ?? props.gridAnchorDate + WEEK,
-			floating: !props.task.start,
-		};
-	});
+	const task = createMemo(() => ({
+		...props.task,
+		start: props.task.start ?? props.gridAnchorDate,
+		end: props.task.end ?? props.gridAnchorDate + WEEK,
+		floating: !props.task.start,
+	}));
 
 	const colStart = createMemo(() => {
 		const taskStartDay = Math.floor(task().start / DAY);
@@ -171,9 +169,8 @@ const GanttTask = (props: GanttTaskProps) => {
 			<span
 				{...stylex.props(styles.task(task))}
 				onPointerDown={handleDrag('move')}
-			>
-				{task().name}
-			</span>
+				innerText={task().name}
+			/>
 			<span
 				{...stylex.props(styles.taskHandle('right'))}
 				onPointerDown={handleDrag('right')}
@@ -225,13 +222,6 @@ const Timeline = (props: TimelineProps) => {
 
 		return weeks;
 	});
-
-	function getWeekNumber(dd: Date): number {
-		const d = new Date(Date.UTC(dd.getFullYear(), dd.getMonth(), dd.getDate()));
-		d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
-		const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-		return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
-	}
 
 	const months = createMemo(() => {
 		const months = [];
