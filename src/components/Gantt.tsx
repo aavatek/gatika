@@ -1,13 +1,7 @@
-import {
-	For,
-	onMount,
-	createMemo,
-	createSignal,
-	Show,
-	type Accessor,
-} from 'solid-js';
+import type { Accessor } from 'solid-js';
+import { onMount, createMemo, createSignal, Show, For } from 'solid-js';
 import { tasks, type Task } from '@features/Task';
-import { Weekdays, DAY, WEEK, Months, getStartOfWeek } from '@lib/dates';
+import { getStartOfWeek, Weekdays, Months, DAY, WEEK } from '@lib/dates';
 
 export const Gantt = (props: { tasks: Task[] }) => {
 	const gridAnchorDate = getStartOfWeek(Date.now() - WEEK * 2);
