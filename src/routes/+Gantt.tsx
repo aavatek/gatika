@@ -24,7 +24,7 @@ export const Page = () => {
 		<main>
 			<h1>Gantt</h1>
 			<SelectField
-				label="Valitse tehtävät"
+				label="Näytä projekti"
 				placeholder="Kaikki"
 				options={projectSelectOptions}
 				value={selected()}
