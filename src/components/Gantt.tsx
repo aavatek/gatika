@@ -237,192 +237,202 @@ export const Gantt = (props: { tasks: Task[] }) => {
 
 			<div style={gantt()}>
 				<For each={tasksWithinRange()}>
-					{(task, row) => {
-						const current = createMemo(() => {
-							return {
-								...task,
-								start: task.start ?? gridAnchorDate,
-								end: task.end ?? gridAnchorDate + WEEK,
-								floating: !task.start,
-							};
-						});
-
-						const [valid, setValid] = createSignal(true);
-
-						const minStart = createMemo(() => {
-							const dependencyEnds = task.dependencies
-								.map((dep) => tasks.read(dep as Task['id'])())
-								.filter((dep) => dep?.end)
-								.map((dep) => dep?.end as number);
-
-							return dependencyEnds.length > 0
-								? Math.max(...dependencyEnds)
-								: undefined;
-						});
-
-						const colStart = createMemo(() => {
-							const taskStartDay = Math.floor(current().start / DAY);
-							const gridStartDay = Math.floor(gridStartDate / DAY);
-							return taskStartDay - gridStartDay;
-						});
-
-						const colSpan = createMemo(() => {
-							const range = current().end - current().start;
-							return Math.floor(range / DAY);
-						});
-
-						const handleResize = (side: 'left' | 'right', e: PointerEvent) => {
-							e.preventDefault();
-							const x = e.clientX;
-							const initialStart = current().start;
-							const initialEnd = current().end;
-							const isFloating = current().floating;
-
-							const onMove = (moveEvent: PointerEvent) => {
-								moveEvent.preventDefault();
-								const dx = moveEvent.clientX - x;
-								const cellsTraversed = Math.round(dx / colWidth());
-								const offset = cellsTraversed * DAY;
-
-								if (side === 'left') {
-									const newStart = initialStart + offset;
-									if (minStart() && (minStart() as number) > newStart) {
-										setValid(false);
-									} else {
-										setValid(true);
-										if (newStart >= gridStartDate && newStart < initialEnd) {
-											tasks.update(task.id, { start: newStart });
-										}
-									}
-								} else {
-									const newEnd = initialEnd + offset;
-									if (newEnd <= gridEndDate && newEnd > initialStart) {
-										if (isFloating) {
-											tasks.update(task.id, {
-												start: initialStart,
-												end: newEnd,
-											});
-										} else {
-											tasks.update(task.id, { end: newEnd });
-										}
-									}
-								}
-							};
-
-							const onUp = () => {
-								document.removeEventListener('pointermove', onMove);
-								document.removeEventListener('pointerup', onUp);
-								setValid(true);
-							};
-
-							document.addEventListener('pointermove', onMove);
-							document.addEventListener('pointerup', onUp);
-						};
-
-						const handleMove = (e: PointerEvent) => {
-							e.preventDefault();
-							const x = e.clientX;
-							const startPos = current().start;
-
-							const handleMove = (moveEvent: PointerEvent) => {
-								moveEvent.preventDefault();
-								const dx = moveEvent.clientX - x;
-								const cellsTraversed = Math.round(dx / colWidth());
-								const offset = cellsTraversed * DAY;
-								const newStart = startPos + offset;
-								const newEnd = newStart + (current().end - current().start);
-
-								if (minStart() && (minStart() as number) > newStart)
-									setValid(false);
-								else setValid(true);
-
-								if (newStart >= gridStartDate && newEnd <= gridEndDate) {
-									tasks.update(task.id, {
-										start: newStart,
-										end: newEnd,
-									});
-								}
-							};
-
-							const handleRelease = () => {
-								document.removeEventListener('pointermove', handleMove);
-								document.removeEventListener('pointerup', handleRelease);
-								setValid(true);
-							};
-
-							document.addEventListener('pointermove', handleMove);
-							document.addEventListener('pointerup', handleRelease);
-						};
-
-						const ganttItemWrapper = createMemo(() => ({
-							height: '2rem',
-							margin: '.4rem 0 .4rem 0',
-							display: 'grid',
-							'grid-row': row() + 1,
-							'grid-column': `${colStart()} / span ${colSpan()}`,
-							'grid-template-areas': '"left-handle main right-handle"',
-							'grid-template-columns': 'auto 1fr auto',
-							'align-items': 'center',
-						}));
-
-						const ganttItemHandleLeft = {
-							width: '.5rem',
-							cursor: 'ew-resize',
-							'background-color': '#666',
-							'align-self': 'stretch',
-							'border-radius': '4px 0 0 4px',
-						} as const;
-
-						const ganttItemHandleRight = {
-							width: '.5rem',
-							cursor: 'ew-resize',
-							'background-color': '#666',
-							'align-self': 'stretch',
-							'border-radius': '0 4px 4px 0',
-						} as const;
-
-						const backgroundColor = createMemo(() => {
-							return !current().floating
-								? valid()
-									? 'white'
-									: '#F9D2DD'
-								: 'lightGray';
-						});
-
-						const ganttItem = createMemo(() => {
-							return {
-								border: `.15rem ${current().floating ? 'dashed' : 'solid'} gray`,
-								'border-width': current().floating ? '.25rem' : '.15rem',
-								'border-left': 'none',
-								'border-right': 'none',
-								cursor: 'pointer',
-								overflow: 'hidden',
-								background: backgroundColor(),
-								display: 'flex',
-								'align-items': 'center',
-								'justify-content': 'center',
-								'align-self': 'stretch',
-							};
-						});
-
-						return (
-							<div style={ganttItemWrapper()}>
-								<div
-									style={ganttItemHandleLeft}
-									onPointerDown={[handleResize, 'left']}
-								/>
-								<div style={ganttItem()} onPointerDown={handleMove}>
-									{current().name}
-								</div>
-								<div
-									style={ganttItemHandleRight}
-									onPointerDown={[handleResize, 'right']}
-								/>
-							</div>
-						);
-					}}
+					{(task, row) => (
+						<GanttTask
+							task={task}
+							row={row}
+							colWidth={colWidth}
+							gridAnchorDate={gridAnchorDate}
+							gridStartDate={gridStartDate}
+							gridEndDate={gridEndDate}
+						/>
+					)}
 				</For>
 			</div>
+		</div>
+	);
+};
+
+type GanttTaskProps = {
+	task: Task;
+	row: Accessor<number>;
+	colWidth: Accessor<number>;
+	gridAnchorDate: number;
+	gridStartDate: number;
+	gridEndDate: number;
+};
+
+const GanttTask = (props: GanttTaskProps) => {
+	const current = createMemo(() => {
+		return {
+			...props.task,
+			start: props.task.start ?? props.gridAnchorDate,
+			end: props.task.end ?? props.gridAnchorDate + WEEK,
+			floating: !props.task.start,
+		};
+	});
+
+	const [valid, setValid] = createSignal(true);
+
+	const minStart = createMemo(() => {
+		const dependencyEnds = props.task.dependencies
+			.map((dep) => tasks.read(dep as Task['id'])())
+			.filter((dep) => dep?.end)
+			.map((dep) => dep?.end as number);
+
+		return dependencyEnds.length > 0 ? Math.max(...dependencyEnds) : undefined;
+	});
+
+	const colStart = createMemo(() => {
+		const taskStartDay = Math.floor(current().start / DAY);
+		const gridStartDay = Math.floor(props.gridStartDate / DAY);
+		return taskStartDay - gridStartDay;
+	});
+
+	const colSpan = createMemo(() => {
+		const range = current().end - current().start;
+		return Math.floor(range / DAY);
+	});
+
+	const handleResize = (side: 'left' | 'right', e: PointerEvent) => {
+		e.preventDefault();
+		const x = e.clientX;
+		const initialStart = current().start;
+		const initialEnd = current().end;
+		const isFloating = current().floating;
+
+		const onMove = (moveEvent: PointerEvent) => {
+			moveEvent.preventDefault();
+			const dx = moveEvent.clientX - x;
+			const cellsTraversed = Math.round(dx / props.colWidth());
+			const offset = cellsTraversed * DAY;
+
+			if (side === 'left') {
+				const newStart = initialStart + offset;
+				if (minStart() && (minStart() as number) > newStart) {
+					setValid(false);
+				} else {
+					setValid(true);
+					if (newStart >= props.gridStartDate && newStart < initialEnd) {
+						tasks.update(props.task.id, { start: newStart });
+					}
+				}
+			} else {
+				const newEnd = initialEnd + offset;
+				if (newEnd <= props.gridEndDate && newEnd > initialStart) {
+					if (isFloating) {
+						tasks.update(props.task.id, {
+							start: initialStart,
+							end: newEnd,
+						});
+					} else {
+						tasks.update(props.task.id, { end: newEnd });
+					}
+				}
+			}
+		};
+
+		const onUp = () => {
+			document.removeEventListener('pointermove', onMove);
+			document.removeEventListener('pointerup', onUp);
+			setValid(true);
+		};
+
+		document.addEventListener('pointermove', onMove);
+		document.addEventListener('pointerup', onUp);
+	};
+
+	const handleMove = (e: PointerEvent) => {
+		e.preventDefault();
+		const x = e.clientX;
+		const startPos = current().start;
+
+		const handleMove = (moveEvent: PointerEvent) => {
+			moveEvent.preventDefault();
+			const dx = moveEvent.clientX - x;
+			const cellsTraversed = Math.round(dx / props.colWidth());
+			const offset = cellsTraversed * DAY;
+			const newStart = startPos + offset;
+			const newEnd = newStart + (current().end - current().start);
+
+			if (minStart() && (minStart() as number) > newStart) setValid(false);
+			else setValid(true);
+
+			if (newStart >= props.gridStartDate && newEnd <= props.gridEndDate) {
+				tasks.update(props.task.id, {
+					start: newStart,
+					end: newEnd,
+				});
+			}
+		};
+
+		const handleRelease = () => {
+			document.removeEventListener('pointermove', handleMove);
+			document.removeEventListener('pointerup', handleRelease);
+			setValid(true);
+		};
+
+		document.addEventListener('pointermove', handleMove);
+		document.addEventListener('pointerup', handleRelease);
+	};
+
+	const ganttItemWrapper = createMemo(() => ({
+		height: '2rem',
+		margin: '.4rem 0 .4rem 0',
+		display: 'grid',
+		'grid-row': props.row() + 1,
+		'grid-column': `${colStart()} / span ${colSpan()}`,
+		'grid-template-areas': '"left-handle main right-handle"',
+		'grid-template-columns': 'auto 1fr auto',
+		'align-items': 'center',
+	}));
+
+	const ganttItemHandleLeft = {
+		width: '.5rem',
+		cursor: 'ew-resize',
+		'background-color': '#666',
+		'align-self': 'stretch',
+		'border-radius': '4px 0 0 4px',
+	} as const;
+
+	const ganttItemHandleRight = {
+		width: '.5rem',
+		cursor: 'ew-resize',
+		'background-color': '#666',
+		'align-self': 'stretch',
+		'border-radius': '0 4px 4px 0',
+	} as const;
+
+	const backgroundColor = createMemo(() => {
+		return !current().floating ? (valid() ? 'white' : '#F9D2DD') : 'lightGray';
+	});
+
+	const ganttItem = createMemo(() => {
+		return {
+			border: `.15rem ${current().floating ? 'dashed' : 'solid'} gray`,
+			'border-width': current().floating ? '.25rem' : '.15rem',
+			'border-left': 'none',
+			'border-right': 'none',
+			cursor: 'pointer',
+			overflow: 'hidden',
+			background: backgroundColor(),
+			display: 'flex',
+			'align-items': 'center',
+			'justify-content': 'center',
+			'align-self': 'stretch',
+		};
+	});
+
+	return (
+		<div style={ganttItemWrapper()}>
+			<div style={ganttItemHandleLeft} onPointerDown={[handleResize, 'left']} />
+			<div style={ganttItem()} onPointerDown={handleMove}>
+				{current().name}
+			</div>
+			<div
+				style={ganttItemHandleRight}
+				onPointerDown={[handleResize, 'right']}
+			/>
 		</div>
 	);
 };
