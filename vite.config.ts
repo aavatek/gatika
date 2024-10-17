@@ -2,13 +2,14 @@
 
 import { browserslistToTargets } from 'lightningcss';
 import { defineConfig } from 'vite';
+import { default as stylex } from '@stylexjs/rollup-plugin';
 import { default as uno } from 'unocss/vite';
 import { default as solid } from 'vite-plugin-solid';
 import { default as path } from 'node:path';
 import { default as browserslist } from 'browserslist';
 
 export default defineConfig({
-	plugins: [uno(), solid()],
+	plugins: [stylex({ dev: true }), uno(), solid()],
 
 	server: {
 		port: 3000,
