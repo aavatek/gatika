@@ -2,6 +2,7 @@ import type { Accessor } from 'solid-js';
 import { onMount, createMemo, createSignal, Show, For } from 'solid-js';
 import { tasks, type Task } from '@features/Task';
 import { getStartOfWeek, Weekdays, Months, DAY, WEEK } from '@lib/dates';
+import * as stylex from '@stylexjs/stylex';
 
 export const Gantt = (props: { tasks: Task[] }) => {
 	const gridAnchorDate = getStartOfWeek(Date.now() - WEEK * 2);
@@ -21,10 +22,10 @@ export const Gantt = (props: { tasks: Task[] }) => {
 
 		if (e.ctrlKey) {
 			e.preventDefault();
-			const ganttWrapper = document.getElementById('ganttWrapper');
-			if (ganttWrapper) {
-				const rect = ganttWrapper.getBoundingClientRect();
-				const mouseX = e.clientX - rect.left + ganttWrapper.scrollLeft;
+			const wrapper = document.getElementById('wrapper');
+			if (wrapper) {
+				const rect = wrapper.getBoundingClientRect();
+				const mouseX = e.clientX - rect.left + wrapper.scrollLeft;
 
 				const zoomFactor = Math.exp(-e.deltaY * SENSITIVITY);
 				const newZoomLevel = Math.max(
@@ -37,15 +38,15 @@ export const Gantt = (props: { tasks: Task[] }) => {
 				const newScrollLeft = ratio * newWidth - (e.clientX - rect.left);
 
 				setZoomModifier(newZoomLevel);
-				ganttWrapper.scrollLeft = newScrollLeft;
+				wrapper.scrollLeft = newScrollLeft;
 			}
 		}
 	};
 
 	onMount(() => {
-		const gantt = document.getElementById('ganttWrapper');
-		if (gantt) {
-			gantt.scrollLeft =
+		const wrapper = document.getElementById('wrapper');
+		if (wrapper) {
+			wrapper.scrollLeft =
 				((gridAnchorDate - gridStartDate - DAY * 2) / DAY) * colWidth();
 		}
 	});
@@ -56,28 +57,8 @@ export const Gantt = (props: { tasks: Task[] }) => {
 			.filter((task) => !task.end || task.end < gridEndDate),
 	);
 
-	const gantt = createMemo(() => ({
-		width: `${cols() * zoomModifier()}px`,
-		display: 'grid',
-		'grid-template-columns': `repeat(${cols()}, 1fr)`,
-		'grid-template-rows': `repeat(${rows()}, 1fr)`,
-		'background-size': `${100 / cols()}% ${100 / rows()}%`,
-		'background-image': `
-      linear-gradient(to right, #e0e0e0 1px, transparent 1px),
-      linear-gradient(to bottom, #fff 1px, transparent 1px)
-    `,
-	}));
-
 	return (
-		<div
-			onWheel={handleZoom}
-			style={{
-				'overflow-x': 'auto',
-				border: '2px solid black',
-				margin: '1rem',
-			}}
-			id="ganttWrapper"
-		>
+		<div id="wrapper" onWheel={handleZoom} {...stylex.props(styles.wrapper)}>
 			<Timeline
 				gridStartDate={gridStartDate}
 				gridEndDate={gridEndDate}
@@ -86,7 +67,7 @@ export const Gantt = (props: { tasks: Task[] }) => {
 				zoomModifier={zoomModifier}
 			/>
 
-			<div style={gantt()}>
+			<div {...stylex.props(styles.gantt(cols, rows, zoomModifier))}>
 				<For each={tasksWithinRange()}>
 					{(task, row) => (
 						<GanttTask
@@ -114,7 +95,7 @@ type GanttTaskProps = {
 };
 
 const GanttTask = (props: GanttTaskProps) => {
-	const current = createMemo(() => {
+	const task = createMemo(() => {
 		return {
 			...props.task,
 			start: props.task.start ?? props.gridAnchorDate,
@@ -124,20 +105,20 @@ const GanttTask = (props: GanttTaskProps) => {
 	});
 
 	const colStart = createMemo(() => {
-		const taskStartDay = Math.floor(current().start / DAY);
+		const taskStartDay = Math.floor(task().start / DAY);
 		const gridStartDay = Math.floor(props.gridStartDate / DAY);
 		return taskStartDay - gridStartDay;
 	});
 
 	const colSpan = createMemo(() => {
-		const range = current().end - current().start;
+		const range = task().end - task().start;
 		return Math.floor(range / DAY);
 	});
 
 	const handleDrag = (mode: 'move' | 'left' | 'right') => (e: PointerEvent) => {
 		e.preventDefault();
 		const x = e.clientX;
-		const { start, end } = current();
+		const { start, end } = task();
 
 		const handleMove = (moveEvent: PointerEvent) => {
 			moveEvent.preventDefault();
@@ -165,7 +146,7 @@ const GanttTask = (props: GanttTaskProps) => {
 				newEnd > newStart;
 
 			if (valid) {
-				tasks.update(current().id, {
+				tasks.update(task().id, {
 					start: newStart,
 					end: newEnd,
 				});
@@ -181,56 +162,22 @@ const GanttTask = (props: GanttTaskProps) => {
 		document.addEventListener('pointerup', handleRelease);
 	};
 
-	const ganttItemWrapper = createMemo(() => ({
-		height: '2rem',
-		margin: '.4rem 0 .4rem 0',
-		display: 'grid',
-		'grid-row': props.row() + 1,
-		'grid-column': `${colStart()} / span ${colSpan()}`,
-		'grid-template-areas': '"left-handle main right-handle"',
-		'grid-template-columns': 'auto 1fr auto',
-		'align-items': 'center',
-	}));
-
-	const ganttItemHandleLeft = {
-		width: '.5rem',
-		cursor: 'ew-resize',
-		'background-color': '#666',
-		'align-self': 'stretch',
-		'border-radius': '4px 0 0 4px',
-	} as const;
-
-	const ganttItemHandleRight = {
-		width: '.5rem',
-		cursor: 'ew-resize',
-		'background-color': '#666',
-		'align-self': 'stretch',
-		'border-radius': '0 4px 4px 0',
-	} as const;
-
-	const ganttItem = createMemo(() => {
-		return {
-			border: `.15rem ${current().floating ? 'dashed' : 'solid'} gray`,
-			'border-width': current().floating ? '.25rem' : '.15rem',
-			'border-left': 'none',
-			'border-right': 'none',
-			cursor: 'pointer',
-			overflow: 'hidden',
-			background: 'white',
-			display: 'flex',
-			'align-items': 'center',
-			'justify-content': 'center',
-			'align-self': 'stretch',
-		};
-	});
-
 	return (
-		<div style={ganttItemWrapper()}>
-			<span style={ganttItemHandleLeft} onPointerDown={handleDrag('left')} />
-			<span style={ganttItem()} onPointerDown={handleDrag('move')}>
-				{current().name}
+		<div {...stylex.props(styles.taskWrapper(props.row, colStart, colSpan))}>
+			<span
+				{...stylex.props(styles.taskHandle('left'))}
+				onPointerDown={handleDrag('left')}
+			/>
+			<span
+				{...stylex.props(styles.task(task))}
+				onPointerDown={handleDrag('move')}
+			>
+				{task().name}
 			</span>
-			<span style={ganttItemHandleRight} onPointerDown={handleDrag('right')} />
+			<span
+				{...stylex.props(styles.taskHandle('right'))}
+				onPointerDown={handleDrag('right')}
+			/>
 		</div>
 	);
 };
@@ -320,60 +267,118 @@ const Timeline = (props: TimelineProps) => {
 	return (
 		<div style={timelineWrapper()}>
 			<For each={months()}>
-				{(month) => {
-					const style = createMemo(() => ({
-						height: '3rem',
-						'grid-column': `${month.startColumn} / span ${month.days}`,
-						border: '1px solid gray',
-						display: 'flex',
-						'justify-content': 'center',
-						'align-items': 'center',
-						background: 'white',
-					}));
-
-					return <div style={style()}>{Months[month.num]}</div>;
-				}}
+				{(month) => (
+					<div {...stylex.props(styles.months(month))}>{Months[month.num]}</div>
+				)}
 			</For>
 			<Show when={props.zoomModifier() >= 45}>
 				<For each={days()}>
-					{(day, index) => {
-						const style = createMemo(() => ({
-							height: '3rem',
-							'grid-column': `${index} / span 1`,
-							border: '1px solid gray',
-							display: 'flex',
-							'flex-direction': 'column',
-							'justify-content': 'center',
-							'align-items': 'center',
-							background: 'white',
-						}));
-
-						return (
-							<div style={style()}>
-								<span>{day.num}</span>
-								<span>{day.day}</span>
-							</div>
-						);
-					}}
+					{(day, index) => (
+						<div {...stylex.props(styles.days(index))}>
+							<span>{day.num}</span>
+							<span>{day.day}</span>
+						</div>
+					)}
 				</For>
 			</Show>
 			<Show when={props.zoomModifier() < 45}>
 				<For each={weeks()}>
-					{(week, index) => {
-						const style = createMemo(() => ({
-							height: '3rem',
-							'grid-column': `${index() * 7 + 1} / span 7`,
-							border: '1px solid gray',
-							display: 'flex',
-							'justify-content': 'center',
-							'align-items': 'center',
-							background: 'white',
-						}));
-
-						return <div style={style()}>Week {week}</div>;
-					}}
+					{(week, index) => (
+						<div {...stylex.props(styles.weeks(index))}>Week {week}</div>
+					)}
 				</For>
 			</Show>
 		</div>
 	);
 };
+
+const styles = stylex.create({
+	timeLine: (cols, zoomModifier) => ({
+		width: `${cols() * zoomModifier()}px`,
+		display: 'grid',
+		gridTemplateColumns: `repeat(${cols()}, 1fr)`,
+		borderBottom: '1px solid #ccc',
+	}),
+
+	days: (index) => ({
+		height: '3rem',
+		gridColumn: `${index} / span 1`,
+		border: '1px solid gray',
+		display: 'flex',
+		justifyContent: 'center',
+		flexDirection: 'column',
+		alignItems: 'center',
+		background: 'white',
+	}),
+
+	weeks: (index) => ({
+		height: '3rem',
+		gridColumn: `${index() * 7 + 1} / span 7`,
+		border: '1px solid gray',
+		display: 'flex',
+		justifyContent: 'center',
+		alignItems: 'center',
+		background: 'white',
+	}),
+
+	months: (month) => ({
+		height: '3rem',
+		gridColumn: `${month.startColumn} / span ${month.days}`,
+		border: '1px solid gray',
+		display: 'flex',
+		justifyContent: 'center',
+		alignItems: 'center',
+		background: 'white',
+	}),
+
+	wrapper: {
+		overflowX: 'auto',
+		border: '2px solid black',
+		margin: '1rem',
+	},
+
+	gantt: (cols, rows, zoomModifier) => ({
+		width: `${cols() * zoomModifier()}px`,
+		display: 'grid',
+		gridTemplateColumns: `repeat(${cols()}, 1fr)`,
+		gridTemplateRows: `repeat(${rows()}, 1fr)`,
+		backgroundSize: `${100 / cols()}% ${100 / rows()}%`,
+		backgroundImage: `
+      linear-gradient(to right, #e0e0e0 1px, transparent 1px),
+      linear-gradient(to bottom, #fff 1px, transparent 1px)
+    `,
+	}),
+
+	taskWrapper: (row, colStart, colSpan) => ({
+		height: '2rem',
+		margin: '.4rem 0 .4rem 0',
+		display: 'grid',
+		gridRow: row() + 1,
+		gridColumn: `${colStart()} / span ${colSpan()}`,
+		gridTemplateAreas: '"left-handle main right-handle"',
+		gridTemplateColumns: 'auto 1fr auto',
+		alignItems: 'center',
+	}),
+
+	task: (current) => ({
+		border: `.15rem ${current().floating ? 'dashed' : 'solid'} gray`,
+		borderWidth: current().floating ? '.25rem' : '.15rem',
+		borderLeft: 'none',
+		borderRight: 'none',
+		cursor: 'pointer',
+		overflow: 'hidden',
+		background: 'white',
+		display: 'flex',
+		alignItems: 'center',
+		justifyContent: 'center',
+		alignSelf: 'stretch',
+	}),
+
+	taskHandle: (side) => ({
+		width: '.5rem',
+		cursor: 'ew-resize',
+		backgroundColor: '#666',
+		alignSelf: 'stretch',
+		borderRadius: side === 'left' ? '4px 0 0 4px' : '0 4px 4px 0',
+	}),
+});
