@@ -10,26 +10,27 @@ import {
 } from 'solid-js';
 import { tasks, type Task } from '@features/Task';
 import { DAY, formatTime, WEEK } from '@lib/dates';
-import { getWeekNumber, getWeekStart, Weekdays, Months } from '@lib/dates';
+import { getWeekNumber, Weekdays, Months } from '@lib/dates';
 import * as stylex from '@stylexjs/stylex';
 import { Portal } from 'solid-js/web';
 import { Button } from './Form';
+import { formatDate } from '@solid-primitives/date';
 
 export const Gantt = (props: { tasks: Task[] }) => {
-	const gridAnchorDate = getWeekStart(Date.now() - WEEK * 2);
-	const gridStartDate = getWeekStart(Date.now() - WEEK * 20);
-	const gridEndDate = getWeekStart(Date.now() + WEEK * 20);
+	const gridStartDate = createMemo(() => Date.now() - WEEK * 20);
+	const gridEndDate = createMemo(() => Date.now() + WEEK * 20);
+	const gridAnchorDate = createMemo(() => Date.now() - DAY * 10);
 
-	const [zoomModifier, setZoomModifier] = createSignal(24);
+	const [zoom, setZoom] = createSignal(45);
 	const tasksWithinRange = createMemo(() =>
 		props.tasks
-			.filter((task) => !task.start || task.start > gridStartDate)
-			.filter((task) => !task.end || task.end < gridEndDate + DAY),
+			.filter((task) => !task.start || task.start > gridStartDate())
+			.filter((task) => !task.end || task.end < gridEndDate() + DAY),
 	);
 
-	const rows = createMemo(() => Math.max(tasksWithinRange().length, 10));
-	const cols = createMemo(() => (gridEndDate - gridStartDate) / DAY);
-	const colWidth = createMemo(() => (cols() * zoomModifier()) / cols());
+	const gridRows = createMemo(() => Math.max(tasksWithinRange().length, 15));
+	const gridCols = createMemo(() => (gridEndDate() - gridStartDate()) / DAY);
+	const gridColWidth = createMemo(() => (gridCols() * zoom()) / gridCols());
 
 	const handleZoom = (e: WheelEvent) => {
 		const MIN_ZOOM = 16;
@@ -46,14 +47,14 @@ export const Gantt = (props: { tasks: Task[] }) => {
 				const zoomFactor = Math.exp(-e.deltaY * SENSITIVITY);
 				const newZoomLevel = Math.max(
 					MIN_ZOOM,
-					Math.min(MAX_ZOOM, zoomModifier() * zoomFactor),
+					Math.min(MAX_ZOOM, zoom() * zoomFactor),
 				);
 
-				const newWidth = cols() * newZoomLevel;
-				const ratio = mouseX / (cols() * zoomModifier());
+				const newWidth = gridCols() * newZoomLevel;
+				const ratio = mouseX / (gridCols() * zoom());
 				const newScrollLeft = ratio * newWidth - (e.clientX - rect.left);
 
-				setZoomModifier(newZoomLevel);
+				setZoom(newZoomLevel);
 				wrapper.scrollLeft = newScrollLeft;
 			}
 		}
@@ -63,21 +64,21 @@ export const Gantt = (props: { tasks: Task[] }) => {
 		const wrapper = document.getElementById('wrapper');
 		if (wrapper) {
 			wrapper.scrollLeft =
-				((gridAnchorDate - gridStartDate - DAY * 2) / DAY) * colWidth();
+				((gridAnchorDate() - gridStartDate() - DAY * 2) / DAY) * gridColWidth();
 		}
 	});
 
 	return (
 		<div id="wrapper" onWheel={handleZoom} {...stylex.props(styles.wrapper)}>
 			<Timeline
-				cols={cols}
-				colWidth={colWidth}
-				zoomModifier={zoomModifier}
+				cols={gridCols}
+				colWidth={gridColWidth}
+				zoomModifier={zoom}
 				gridStartDate={gridStartDate}
 				gridEndDate={gridEndDate}
 			/>
 
-			<div {...stylex.props(styles.gantt(cols, rows, zoomModifier))}>
+			<div {...stylex.props(styles.gantt(gridCols, gridRows, zoom))}>
 				<For
 					each={tasksWithinRange()}
 					fallback={<div {...stylex.props(styles.emptyRow)} />}
@@ -86,7 +87,7 @@ export const Gantt = (props: { tasks: Task[] }) => {
 						<GanttTask
 							task={task}
 							row={row}
-							colWidth={colWidth}
+							colWidth={gridColWidth}
 							gridAnchorDate={gridAnchorDate}
 							gridStartDate={gridStartDate}
 							gridEndDate={gridEndDate}
@@ -102,28 +103,25 @@ type GanttTaskProps = {
 	task: Task;
 	row: Accessor<number>;
 	colWidth: Accessor<number>;
-	gridAnchorDate: number;
-	gridStartDate: number;
-	gridEndDate: number;
+	gridAnchorDate: Accessor<number>;
+	gridStartDate: Accessor<number>;
+	gridEndDate: Accessor<number>;
 };
 
 const GanttTask = (props: GanttTaskProps) => {
 	const task = createMemo(() => ({
 		...props.task,
-		start: props.task.start ?? props.gridAnchorDate,
-		end: props.task.end ?? props.gridAnchorDate + WEEK,
+		start: props.task.start ?? props.gridAnchorDate(),
+		end: props.task.end ?? props.gridAnchorDate() + WEEK,
 		floating: !props.task.start,
 	}));
 
 	const colStart = createMemo(() => {
-		const taskStartDay = Math.floor(task().start / DAY);
-		const gridStartDay = Math.floor(props.gridStartDate / DAY);
-		return taskStartDay - gridStartDay;
+		return Math.ceil((task().start - props.gridStartDate()) / DAY);
 	});
 
 	const colSpan = createMemo(() => {
-		const range = task().end - task().start;
-		return Math.floor(range / DAY);
+		return Math.ceil((task().end - task().start) / DAY);
 	});
 
 	const [isEditing, setIsEditing] = createSignal(false);
@@ -154,8 +152,8 @@ const GanttTask = (props: GanttTaskProps) => {
 			}
 
 			const valid =
-				newStart >= props.gridStartDate &&
-				newEnd <= props.gridEndDate + DAY &&
+				newStart >= props.gridStartDate() &&
+				newEnd <= props.gridEndDate() + DAY &&
 				newEnd > newStart;
 
 			if (valid) {
@@ -224,8 +222,8 @@ const TaskEditModal = (props: TaskEditModalProps) => {
 };
 
 type TimelineProps = {
-	gridStartDate: number;
-	gridEndDate: number;
+	gridStartDate: Accessor<number>;
+	gridEndDate: Accessor<number>;
 	zoomModifier: Accessor<number>;
 	cols: Accessor<number>;
 	colWidth: Accessor<number>;
@@ -240,7 +238,12 @@ const Timeline = (props: TimelineProps) => {
 	}));
 
 	const tl = createMemo(() => {
-		type Day = { dayOfWeek: number; dayOfMonth: number; colStart: number };
+		type Day = {
+			dayOfWeek: number;
+			dayOfMonth: number;
+			colStart: number;
+			date: Date;
+		};
 		type Week = { label: number; startColumn: number; days: number };
 		type Month = { num: number; days: number; startColumn: number };
 
@@ -248,18 +251,18 @@ const Timeline = (props: TimelineProps) => {
 		const weeks: Week[] = [];
 		const months: Month[] = [];
 
-		let currentDate = new Date(props.gridStartDate + DAY);
+		let currentDate = new Date(props.gridStartDate() + DAY);
 		let currentWeek = getWeekNumber(currentDate);
 		let colStart = 1;
 		let monthStart = colStart;
 		let currentMonth = currentDate.getMonth();
 
-		while (currentDate.getTime() < props.gridEndDate + DAY) {
+		while (currentDate.getTime() < props.gridEndDate() + DAY) {
 			const dayOfWeek = currentDate.getDay();
 			const dayOfMonth = currentDate.getDate();
 			const month = currentDate.getMonth();
 
-			days.push({ dayOfWeek, dayOfMonth, colStart });
+			days.push({ dayOfWeek, dayOfMonth, colStart, date: currentDate });
 
 			if (dayOfWeek === 1 || colStart === 1) {
 				weeks.push({ label: currentWeek, startColumn: colStart, days: 0 });
@@ -308,7 +311,7 @@ const Timeline = (props: TimelineProps) => {
 				<Match when={props.zoomModifier() >= 45}>
 					<For each={tl().days}>
 						{(day, index) => (
-							<div {...stylex.props(styles.days(index))}>
+							<div {...stylex.props(styles.days(index, day.date))}>
 								<span>{day.dayOfMonth}</span>
 								<span>{Weekdays[day.dayOfWeek]}</span>
 							</div>
@@ -335,7 +338,7 @@ const styles = stylex.create({
 		borderBottom: '1px solid #ccc',
 	}),
 
-	days: (index) => ({
+	days: (index, date) => ({
 		height: '3rem',
 		gridColumn: `${index() + 1} / span 1`,
 		border: '1px solid gray',
@@ -343,7 +346,7 @@ const styles = stylex.create({
 		justifyContent: 'center',
 		flexDirection: 'column',
 		alignItems: 'center',
-		background: 'white',
+		background: formatDate(date) === formatDate(new Date()) ? '#ccc' : 'white',
 		overflow: 'hidden',
 	}),
 
@@ -376,28 +379,23 @@ const styles = stylex.create({
 	},
 
 	gantt: (cols, rows, zoomModifier) => ({
-		width: `${cols() * zoomModifier()}px`,
 		display: 'grid',
+		rowGap: '1rem',
 		gridTemplateColumns: `repeat(${cols()}, 1fr)`,
 		gridTemplateRows: `repeat(${rows()}, 1fr)`,
-		backgroundSize: `${100 / cols()}% ${100 / rows()}%`,
+		width: `${cols() * zoomModifier()}px`,
+		height: `${rows() * 3}rem`,
+		backgroundSize: `${100 / cols()}%`,
 		backgroundImage: 'linear-gradient(to right, #e0e0e0 1px, transparent 1px)',
 	}),
 
-	emptyRow: {
-		height: '2rem',
-		margin: '.4rem 0 .4rem 0',
-	},
-
 	taskWrapper: (row, colStart, colSpan) => ({
-		height: '2rem',
-		margin: '.4rem 0 .4rem 0',
-		display: 'grid',
 		gridRow: row() + 1,
 		gridColumn: `${colStart()} / span ${colSpan()}`,
-		gridTemplateAreas: '"left-handle main right-handle"',
+		display: 'grid',
 		gridTemplateColumns: 'auto 1fr auto',
-		alignItems: 'center',
+		alignContent: 'stretch',
+		justifyItems: 'stretch',
 	}),
 
 	task: (current) => ({
@@ -411,14 +409,12 @@ const styles = stylex.create({
 		display: 'flex',
 		alignItems: 'center',
 		justifyContent: 'center',
-		alignSelf: 'stretch',
 	}),
 
 	taskHandle: (side) => ({
 		width: '.5rem',
 		cursor: 'ew-resize',
 		backgroundColor: '#666',
-		alignSelf: 'stretch',
 		borderRadius: side === 'left' ? '4px 0 0 4px' : '0 4px 4px 0',
 	}),
 
