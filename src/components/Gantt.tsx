@@ -27,7 +27,7 @@ export const Gantt = (props: { tasks: Task[] }) => {
 			.filter((task) => !task.end || task.end < gridEndDate + DAY),
 	);
 
-	const rows = createMemo(() => tasksWithinRange().length);
+	const rows = createMemo(() => Math.max(tasksWithinRange().length, 10));
 	const cols = createMemo(() => (gridEndDate - gridStartDate) / DAY);
 	const colWidth = createMemo(() => (cols() * zoomModifier()) / cols());
 
@@ -78,7 +78,10 @@ export const Gantt = (props: { tasks: Task[] }) => {
 			/>
 
 			<div {...stylex.props(styles.gantt(cols, rows, zoomModifier))}>
-				<For each={tasksWithinRange()}>
+				<For
+					each={tasksWithinRange()}
+					fallback={<div {...stylex.props(styles.emptyRow)} />}
+				>
 					{(task, row) => (
 						<GanttTask
 							task={task}
@@ -380,6 +383,11 @@ const styles = stylex.create({
 		backgroundSize: `${100 / cols()}% ${100 / rows()}%`,
 		backgroundImage: 'linear-gradient(to right, #e0e0e0 1px, transparent 1px)',
 	}),
+
+	emptyRow: {
+		height: '2rem',
+		margin: '.4rem 0 .4rem 0',
+	},
 
 	taskWrapper: (row, colStart, colSpan) => ({
 		height: '2rem',
