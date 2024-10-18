@@ -6,11 +6,14 @@ import {
 	For,
 	Switch,
 	Match,
+	Show,
 } from 'solid-js';
 import { tasks, type Task } from '@features/Task';
 import { DAY, formatTime, WEEK } from '@lib/dates';
 import { getWeekNumber, getWeekStart, Weekdays, Months } from '@lib/dates';
 import * as stylex from '@stylexjs/stylex';
+import { Portal } from 'solid-js/web';
+import { Button } from './Form';
 
 export const Gantt = (props: { tasks: Task[] }) => {
 	const gridAnchorDate = getWeekStart(Date.now() - WEEK * 2);
@@ -120,6 +123,8 @@ const GanttTask = (props: GanttTaskProps) => {
 		return Math.floor(range / DAY);
 	});
 
+	const [isEditing, setIsEditing] = createSignal(false);
+
 	const handleDrag = (mode: 'move' | 'left' | 'right') => (e: PointerEvent) => {
 		e.preventDefault();
 		const x = e.clientX;
@@ -167,6 +172,11 @@ const GanttTask = (props: GanttTaskProps) => {
 		document.addEventListener('pointerup', handleRelease);
 	};
 
+	const handleDoubleClick = (e: MouseEvent) => {
+		e.preventDefault();
+		setIsEditing(true);
+	};
+
 	return (
 		<div {...stylex.props(styles.taskWrapper(props.row, colStart, colSpan))}>
 			<span
@@ -176,13 +186,37 @@ const GanttTask = (props: GanttTaskProps) => {
 			<span
 				{...stylex.props(styles.task(task))}
 				onPointerDown={handleDrag('move')}
+				onDblClick={handleDoubleClick}
 				innerText={formatTime(task().start)}
 			/>
 			<span
 				{...stylex.props(styles.taskHandle('right'))}
 				onPointerDown={handleDrag('right')}
 			/>
+			<Show when={isEditing()}>
+				<TaskEditModal id={task().id} handleClose={() => setIsEditing(false)} />
+			</Show>
 		</div>
+	);
+};
+
+type TaskEditModalProps = {
+	id: Task['id'];
+	handleClose: () => void;
+};
+
+const TaskEditModal = (props: TaskEditModalProps) => {
+	const task = tasks.read(props.id);
+	console.log(task());
+
+	return (
+		<Portal mount={document.querySelector('main') as HTMLElement}>
+			<div {...stylex.props(styles.modalOverlay)} onClick={props.handleClose}>
+				<div {...stylex.props(styles.taskEditModal)}>
+					<Button type="button" label="close" onClick={props.handleClose} />
+				</div>
+			</div>
+		</Portal>
 	);
 };
 
@@ -379,4 +413,29 @@ const styles = stylex.create({
 		alignSelf: 'stretch',
 		borderRadius: side === 'left' ? '4px 0 0 4px' : '0 4px 4px 0',
 	}),
+
+	modalOverlay: {
+		position: 'fixed',
+		top: 0,
+		left: 0,
+		right: 0,
+		bottom: 0,
+		backgroundColor: 'rgba(0, 0, 0, 0.5)',
+		backdropFilter: 'blur(.1rem)',
+		display: 'flex',
+		justifyContent: 'center',
+		alignItems: 'center',
+		zIndex: 1000,
+	},
+
+	taskEditModal: {
+		width: 'calc(clamp(18.75rem, 33.019vw + 12.146rem, 62.5rem))',
+		height: '20em',
+		background: 'white',
+		position: 'relative',
+		padding: '1em',
+		zIndex: 1001,
+		boxShadow:
+			'rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px',
+	},
 });
