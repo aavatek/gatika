@@ -1,7 +1,14 @@
 import type { Accessor } from 'solid-js';
-import { onMount, createMemo, createSignal, Show, For } from 'solid-js';
+import {
+	onMount,
+	createMemo,
+	createSignal,
+	For,
+	Switch,
+	Match,
+} from 'solid-js';
 import { tasks, type Task } from '@features/Task';
-import { DAY, WEEK } from '@lib/dates';
+import { DAY, formatTime, WEEK } from '@lib/dates';
 import { getWeekNumber, getWeekStart, Weekdays, Months } from '@lib/dates';
 import * as stylex from '@stylexjs/stylex';
 
@@ -14,7 +21,7 @@ export const Gantt = (props: { tasks: Task[] }) => {
 	const tasksWithinRange = createMemo(() =>
 		props.tasks
 			.filter((task) => !task.start || task.start > gridStartDate)
-			.filter((task) => !task.end || task.end < gridEndDate),
+			.filter((task) => !task.end || task.end < gridEndDate + DAY),
 	);
 
 	const rows = createMemo(() => tasksWithinRange().length);
@@ -169,7 +176,7 @@ const GanttTask = (props: GanttTaskProps) => {
 			<span
 				{...stylex.props(styles.task(task))}
 				onPointerDown={handleDrag('move')}
-				innerText={task().name}
+				innerText={formatTime(task().start)}
 			/>
 			<span
 				{...stylex.props(styles.taskHandle('right'))}
@@ -195,89 +202,90 @@ const Timeline = (props: TimelineProps) => {
 		'border-bottom': '1px solid #ccc',
 	}));
 
-	const days = createMemo(() => {
-		const totalDays = props.cols();
-		const days = [];
+	const tl = createMemo(() => {
+		type Day = { dayOfWeek: number; dayOfMonth: number; colStart: number };
+		type Week = { label: number; startColumn: number; days: number };
+		type Month = { num: number; days: number; startColumn: number };
+
+		const days: Day[] = [];
+		const weeks: Week[] = [];
+		const months: Month[] = [];
+
 		let currentDate = new Date(props.gridStartDate + DAY);
+		let currentWeek = getWeekNumber(currentDate);
+		let colStart = 1;
+		let monthStart = colStart;
+		let currentMonth = currentDate.getMonth();
 
-		for (let i = 0; i < totalDays; i++) {
-			const day = currentDate.getDay();
-			const dayNumber = currentDate.getDate();
-			days.push({ day: Weekdays[day], num: dayNumber });
-			currentDate = new Date(currentDate.getTime() + DAY);
-		}
-
-		return days;
-	});
-
-	const weeks = createMemo(() => {
-		const totalDays = props.cols();
-		const weeks = [];
-		let currentDate = new Date(props.gridStartDate + DAY);
-
-		for (let i = 0; i < totalDays; i += 7) {
-			weeks.push(getWeekNumber(currentDate));
-			currentDate = new Date(currentDate.getTime() + 7 * DAY);
-		}
-
-		return weeks;
-	});
-
-	const months = createMemo(() => {
-		const months = [];
-		let currentDate = new Date(props.gridStartDate);
-		const endDate = new Date(props.gridEndDate);
-		let totalDays = 0;
-
-		while (currentDate < endDate) {
+		while (currentDate.getTime() < props.gridEndDate + DAY) {
+			const dayOfWeek = currentDate.getDay();
+			const dayOfMonth = currentDate.getDate();
 			const month = currentDate.getMonth();
-			const year = currentDate.getFullYear();
-			const nextMonth = new Date(year, month + 1, 1);
 
-			const monthEndDate = new Date(
-				Math.min(nextMonth.getTime(), endDate.getTime()),
-			);
+			days.push({ dayOfWeek, dayOfMonth, colStart });
 
-			const daysInThisMonth =
-				(monthEndDate.getTime() - currentDate.getTime()) / DAY;
+			if (dayOfWeek === 1 || colStart === 1) {
+				weeks.push({ label: currentWeek, startColumn: colStart, days: 0 });
+			}
 
-			months.push({
-				num: month,
-				days: Math.round(daysInThisMonth),
-				startColumn: totalDays + 1,
-			});
+			if (month !== currentMonth || colStart === 1) {
+				if (colStart > 1) {
+					months.push({
+						num: currentMonth,
+						days: colStart - monthStart,
+						startColumn: monthStart,
+					});
+				}
 
-			totalDays += Math.round(daysInThisMonth);
-			currentDate = nextMonth;
+				currentMonth = month;
+				monthStart = colStart;
+			}
+
+			weeks[weeks.length - 1].days++;
+
+			if (dayOfWeek === 0) {
+				currentWeek = getWeekNumber(new Date(currentDate.getTime() + DAY));
+			}
+
+			currentDate = new Date(currentDate.getTime() + DAY);
+			colStart++;
 		}
 
-		return months;
+		months.push({
+			num: currentMonth,
+			days: colStart - monthStart,
+			startColumn: monthStart,
+		});
+
+		return { days, weeks, months };
 	});
 
 	return (
 		<div style={timelineWrapper()}>
-			<For each={months()}>
+			<For each={tl().months}>
 				{(month) => (
 					<div {...stylex.props(styles.months(month))}>{Months[month.num]}</div>
 				)}
 			</For>
-			<Show when={props.zoomModifier() >= 45}>
-				<For each={days()}>
-					{(day, index) => (
-						<div {...stylex.props(styles.days(index))}>
-							<span>{day.num}</span>
-							<span>{day.day}</span>
-						</div>
-					)}
-				</For>
-			</Show>
-			<Show when={props.zoomModifier() < 45}>
-				<For each={weeks()}>
-					{(week, index) => (
-						<div {...stylex.props(styles.weeks(index))}>Week {week}</div>
-					)}
-				</For>
-			</Show>
+			<Switch>
+				<Match when={props.zoomModifier() >= 45}>
+					<For each={tl().days}>
+						{(day, index) => (
+							<div {...stylex.props(styles.days(index))}>
+								<span>{day.dayOfMonth}</span>
+								<span>{Weekdays[day.dayOfWeek]}</span>
+							</div>
+						)}
+					</For>
+				</Match>
+				<Match when={props.zoomModifier() < 45}>
+					<For each={tl().weeks}>
+						{(week) => (
+							<div {...stylex.props(styles.weeks(week))}>Week {week.label}</div>
+						)}
+					</For>
+				</Match>
+			</Switch>
 		</div>
 	);
 };
@@ -292,23 +300,25 @@ const styles = stylex.create({
 
 	days: (index) => ({
 		height: '3rem',
-		gridColumn: `${index} / span 1`,
+		gridColumn: `${index() + 1} / span 1`,
 		border: '1px solid gray',
 		display: 'flex',
 		justifyContent: 'center',
 		flexDirection: 'column',
 		alignItems: 'center',
 		background: 'white',
+		overflow: 'hidden',
 	}),
 
-	weeks: (index) => ({
+	weeks: (week) => ({
 		height: '3rem',
-		gridColumn: `${index() * 7 + 1} / span 7`,
+		gridColumn: `${week.startColumn} / span ${week.days}`,
 		border: '1px solid gray',
 		display: 'flex',
 		justifyContent: 'center',
 		alignItems: 'center',
 		background: 'white',
+		overflow: 'hidden',
 	}),
 
 	months: (month) => ({
@@ -319,6 +329,7 @@ const styles = stylex.create({
 		justifyContent: 'center',
 		alignItems: 'center',
 		background: 'white',
+		overflow: 'hidden',
 	}),
 
 	wrapper: {
