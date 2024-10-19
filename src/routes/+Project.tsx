@@ -1,6 +1,5 @@
-import { useNavigate, useParams } from '@solidjs/router';
-import { onMount, Show } from 'solid-js';
-import { Button } from '@components/Form';
+import { A, useParams } from '@solidjs/router';
+import { createMemo, onMount, Show } from 'solid-js';
 import { TaskList, TaskCreateForm } from '@features/Task';
 import {
 	projects,
@@ -11,29 +10,28 @@ import {
 	ProjectList,
 } from '@features/Project';
 import { Main } from '@components/Layout';
+import * as sx from '@stylexjs/stylex';
 
 export const PListView = () => {
 	return (
 		<Main>
 			<h1>Projektit</h1>
-			<ProjectCreateForm />
-			<ProjectList label="Kaikki projektit" />
+			<section {...sx.props(style.contentSection)}>
+				<ProjectList label="Kaikki projektit" />
+				<ProjectCreateForm />
+			</section>
 		</Main>
 	);
 };
 
 export const PView = () => {
 	const params = useParams();
-	const navigate = useNavigate();
 	const projectID = params.projectID as Project['id'];
 	const project = projects.read(projectID);
-
-	const handleBack = () => navigate(-1);
-	const handleEdit = () => navigate(`/projects/${projectID}/edit`);
-	const handleDelete = () => {
-		projects.delete(projectID);
-		navigate('/projects', { replace: true });
-	};
+	const previousPath = createMemo(() => {
+		const state = history.state as { prev?: string } | null;
+		return state?.prev || '/projects';
+	});
 
 	onMount(() => {
 		addToLastVisited(projectID);
@@ -43,14 +41,19 @@ export const PView = () => {
 		<Show when={project()}>
 			{(project) => (
 				<Main>
-					<h1>Projekti: {project().name}</h1>
+					<header {...sx.props(style.header)}>
+						<h1>{project().name}</h1>
+						<A
+							href={previousPath()}
+							textContent="Takaisin"
+							{...sx.props(style.link)}
+						/>
+					</header>
 
-					<Button label="Takaisin" onclick={handleBack} />
-					<Button label="Muokkaa" onclick={handleEdit} />
-					<Button label="Poista" onclick={handleDelete} />
-
-					<TaskCreateForm project={projectID} />
-					<TaskList project={projectID} label="Kaikki tehtävät" />
+					<div {...sx.props(style.contentSection)}>
+						<TaskList project={projectID} label="Kaikki tehtävät" />
+						<TaskCreateForm project={projectID} />
+					</div>
 				</Main>
 			)}
 		</Show>
@@ -73,3 +76,23 @@ export const PEditView = () => {
 		</Show>
 	);
 };
+
+const style = sx.create({
+	header: {
+		display: 'flex',
+		gap: '1rem',
+	},
+
+	link: {
+		color: 'inherit',
+	},
+
+	contentSection: {
+		display: 'grid',
+		gap: '2rem',
+		gridTemplateColumns: {
+			default: '1fr 1fr',
+			'@media (max-width: 800px)': '1fr',
+		},
+	},
+});

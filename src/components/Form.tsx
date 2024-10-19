@@ -1,5 +1,6 @@
 import type { ComponentProps } from 'solid-js';
 import { For, Show, createMemo, createUniqueId, splitProps } from 'solid-js';
+import * as sx from '@stylexjs/stylex';
 
 // -------------------------------------------------------------------------------------
 
@@ -9,7 +10,11 @@ type ButtonProps = {
 
 export function Button(props: ButtonProps) {
 	const [_, buttonProps] = splitProps(props, ['label']);
-	return <button {...buttonProps}>{props.label}</button>;
+	return (
+		<button {...buttonProps} {...sx.props(style.button)}>
+			{props.label}
+		</button>
+	);
 }
 
 // -------------------------------------------------------------------------------------
@@ -56,7 +61,7 @@ export function InputField(props: InputFieldProps) {
 	});
 
 	return (
-		<div>
+		<div {...sx.props(style.field)}>
 			<FieldLabel id={id} label={props.label} />
 
 			<input
@@ -65,6 +70,7 @@ export function InputField(props: InputFieldProps) {
 				value={value()}
 				aria-invalid={props.error ? 'true' : undefined}
 				aria-errormessage={errorID()}
+				{...sx.props(style.input)}
 			/>
 
 			<FieldError id={errorID()} error={props.error} />
@@ -97,10 +103,10 @@ export function SelectField(props: SelectFieldProps) {
 	]);
 
 	return (
-		<div>
+		<div {...sx.props(style.field)}>
 			<FieldLabel id={id} label={props.label} />
 
-			<select {...selectProps} id={id}>
+			<select {...selectProps} id={id} {...sx.props(style.select)}>
 				<Show when={props.placeholder}>
 					<option value="" label={props.placeholder} />
 				</Show>
@@ -120,3 +126,30 @@ export function SelectField(props: SelectFieldProps) {
 }
 
 // -------------------------------------------------------------------------------------
+
+const style = sx.create({
+	field: {
+		display: 'flex',
+		flexDirection: 'column',
+	},
+
+	input: {
+		padding: '1rem',
+	},
+
+	select: {
+		padding: '1rem',
+	},
+
+	button: {
+		padding: '1rem',
+		outline: 'none',
+		boxSizing: 'border-box',
+		border: '2px solid black',
+		background: {
+			default: '#f0f0f0',
+			':hover': '#ccc',
+			':focus': '#ccc',
+		},
+	},
+});

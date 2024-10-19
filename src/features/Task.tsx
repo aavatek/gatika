@@ -4,10 +4,11 @@ import { A, useNavigate } from '@solidjs/router';
 import { getTime, getDate, formatDate } from '@solid-primitives/date';
 import * as mf from '@modular-forms/solid';
 import * as v from 'valibot';
+import * as sx from '@stylexjs/stylex';
 import { Button, InputField, SelectField } from '@components/Form';
 import { makePersisted, storageSync } from '@solid-primitives/storage';
 import { createStore, produce } from 'solid-js/store';
-import type { Project } from '@features/Project';
+import { projects, type Project } from '@features/Project';
 import { logger } from '@lib/logger';
 
 // -------------------------------------------------------------------------------------
@@ -262,7 +263,7 @@ export const TaskForm = (props: TaskFormProps) => {
 	);
 
 	return (
-		<Form onSubmit={props.onSubmit}>
+		<Form onSubmit={props.onSubmit} {...sx.props(style.form)}>
 			<Field name="name">
 				{(field, props) => (
 					<InputField
@@ -326,59 +327,61 @@ export const TaskForm = (props: TaskFormProps) => {
 				)}
 			</Field>
 
-			<FieldArray name="dependencies">
-				{(deps) => (
-					<div>
-						<For each={deps.items}>
-							{(_, index) => (
-								<div>
-									<Field name={`${deps.name}.${index()}`}>
-										{(field, props) => (
-											<SelectField
-												{...props}
-												label="Dependent Task"
-												value={field.value}
-												error={field.error}
-												options={availableTasks().map((task) => ({
-													label: task.name,
-													value: task.id,
-												}))}
-											/>
-										)}
-									</Field>
-									<Button
-										label="Remove"
-										onClick={() =>
-											mf.remove(props.form[0], deps.name, {
-												at: index(),
-											})
-										}
-									/>
-								</div>
-							)}
-						</For>
-						<Button
-							type="button"
-							label="Lisää riippuvuuksia?"
-							onClick={() => {
-								const availableTask = availableTasks().find(
-									(task) =>
-										!deps.items.some(
-											(_, i) =>
-												mf.getValue(props.form[0], `${deps.name}.${i}`) ===
-												task.id,
-										),
-								);
-								if (availableTask) {
-									mf.insert(props.form[0], deps.name, {
-										value: availableTask.id,
-									});
-								}
-							}}
-						/>
-					</div>
-				)}
-			</FieldArray>
+			<Show when={availableTasks().length > 0}>
+				<FieldArray name="dependencies">
+					{(deps) => (
+						<div {...sx.props(style.formDependencyField)}>
+							<Button
+								type="button"
+								label="Lisää riippuvuuksia?"
+								onClick={() => {
+									const availableTask = availableTasks().find(
+										(task) =>
+											!deps.items.some(
+												(_, i) =>
+													mf.getValue(props.form[0], `${deps.name}.${i}`) ===
+													task.id,
+											),
+									);
+									if (availableTask) {
+										mf.insert(props.form[0], deps.name, {
+											value: availableTask.id,
+										});
+									}
+								}}
+							/>
+							<For each={deps.items}>
+								{(_, index) => (
+									<div {...sx.props(style.formDependency)}>
+										<Field name={`${deps.name}.${index()}`}>
+											{(field, props) => (
+												<SelectField
+													{...props}
+													label="Dependent Task"
+													value={field.value}
+													error={field.error}
+													options={availableTasks().map((task) => ({
+														label: task.name,
+														value: task.id,
+													}))}
+												/>
+											)}
+										</Field>
+										<Button
+											label="Remove"
+											onClick={() =>
+												mf.remove(props.form[0], deps.name, {
+													at: index(),
+												})
+											}
+										/>
+									</div>
+								)}
+							</For>
+						</div>
+					)}
+				</FieldArray>
+			</Show>
 
 			{Buttons()}
 		</Form>
@@ -472,7 +475,7 @@ type TaskListProps = {
 };
 
 export const TaskList = (props: TaskListProps) => {
-	const taskList = createMemo(() => {
+	const list = createMemo(() => {
 		if (!props.sort)
 			return props.project ? tasks.listByProject(props.project) : tasks.list();
 
@@ -488,12 +491,12 @@ export const TaskList = (props: TaskListProps) => {
 	});
 
 	return (
-		<section>
+		<section {...sx.props(style.wrapper)}>
 			<h2>{props.label}</h2>
-			<ol>
-				<For each={taskList()}>
+			<ol {...sx.props(style.list)}>
+				<For each={list()} fallback={<div>Ei tulevia tehtäviä</div>}>
 					{(task: Task) => (
-						<TaskListItem task={task} project={task.project as Project['id']} />
+						<TaskListItem task={task} showProject={!props.project} />
 					)}
 				</For>
 			</ol>
@@ -503,7 +506,7 @@ export const TaskList = (props: TaskListProps) => {
 
 type TaskListItemProps = {
 	task: Task;
-	project: Project['id'];
+	showProject?: boolean;
 };
 
 const TaskListItem = (props: TaskListItemProps) => {
@@ -525,22 +528,78 @@ const TaskListItem = (props: TaskListItemProps) => {
 		return getFormattedDate(new Date(props.task.end));
 	});
 
+	const project = projects.read(props.task.project as Project['id']);
+
 	return (
-		<li>
-			<p>{props.task.name}: </p>
+		<A
+			{...sx.props(style.link)}
+			href={`/projects/${props.task.project}/tasks/${props.task.id}`}
+		>
+			<li {...sx.props(style.item)}>
+				<span>{props.task.name}</span>
 
-			<Show when={start()}>
-				<p>
-					{start()} <Show when={end()}>- {end()} </Show>
-				</p>
-			</Show>
+				<Show when={props.showProject}>{project()?.name}</Show>
 
-			<A
-				href={`/projects/${props.project}/tasks/${props.task.id}`}
-				innerText="Näytä"
-			/>
-		</li>
+				<Show when={start()}>
+					<span>
+						{start()} <Show when={end()}>- {end()} </Show>
+					</span>
+				</Show>
+			</li>
+		</A>
 	);
 };
+
+const style = sx.create({
+	wrapper: {
+		display: 'flex',
+		flexDirection: 'column',
+		gap: '1rem',
+	},
+
+	list: {
+		display: 'flex',
+		flexDirection: 'column',
+		gap: '1rem',
+	},
+
+	item: {
+		border: '2px solid black',
+		padding: '1rem',
+		display: 'grid',
+		gap: '1rem',
+		gridTemplateColumns: 'auto auto 1fr',
+		justifyItems: 'end',
+		alignContent: 'center',
+		background: {
+			default: '#f0f0f0',
+			':hover': '#ccc',
+		},
+	},
+
+	link: {
+		textDecoration: 'none',
+		color: 'black',
+	},
+
+	form: {
+		display: 'flex',
+		gap: '1rem',
+		flexDirection: 'column',
+	},
+
+	formDependencyField: {
+		display: 'flex',
+		gap: '.5rem',
+		flexDirection: 'column',
+	},
+
+	formDependency: {
+		display: 'grid',
+		gap: '1rem',
+		gridTemplateColumns: '1fr auto',
+		alignItems: 'end',
+	},
+});
 
 // -------------------------------------------------------------------------------------

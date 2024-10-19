@@ -11,7 +11,7 @@ import {
 import { TaskEditForm, tasks, type Task } from '@features/Task';
 import { DAY, WEEK } from '@lib/dates';
 import { getWeekNumber, Weekdays, Months } from '@lib/dates';
-import * as stylex from '@stylexjs/stylex';
+import * as sx from '@stylexjs/stylex';
 import { Portal } from 'solid-js/web';
 import { Button } from './Form';
 import { formatDate } from '@solid-primitives/date';
@@ -69,7 +69,7 @@ export const Gantt = (props: { tasks: Task[] }) => {
 	});
 
 	return (
-		<div id="wrapper" onWheel={handleZoom} {...stylex.props(styles.wrapper)}>
+		<div id="wrapper" onWheel={handleZoom} {...sx.props(styles.wrapper)}>
 			<Timeline
 				cols={gridCols}
 				colWidth={gridColWidth}
@@ -78,7 +78,7 @@ export const Gantt = (props: { tasks: Task[] }) => {
 				gridEndDate={gridEndDate}
 			/>
 
-			<div {...stylex.props(styles.gantt(gridCols, gridRows, zoom))}>
+			<div {...sx.props(styles.gantt(gridCols, gridRows, zoom))}>
 				<For each={tasksWithinRange()} fallback={<div />}>
 					{(task, row) => (
 						<GanttTask
@@ -175,20 +175,20 @@ const GanttTask = (props: GanttTaskProps) => {
 	};
 
 	return (
-		<div {...stylex.props(styles.taskWrapper(props.row, colStart, colSpan))}>
+		<div {...sx.props(styles.taskWrapper(props.row, colStart, colSpan))}>
 			<span
-				{...stylex.props(styles.taskHandle('left'))}
+				{...sx.props(styles.taskHandle('left'))}
 				onPointerDown={handleDrag('left')}
 			/>
 			<span
-				{...stylex.props(styles.task(task))}
+				{...sx.props(styles.task(task))}
 				onPointerDown={handleDrag('move')}
 				onDblClick={handleDoubleClick}
 			>
 				{props.task.name}
 			</span>
 			<span
-				{...stylex.props(styles.taskHandle('right'))}
+				{...sx.props(styles.taskHandle('right'))}
 				onPointerDown={handleDrag('right')}
 			/>
 			<Show when={modalVisible()}>
@@ -221,11 +221,8 @@ const TaskModal = (props: TaskModalProps) => {
 		<Show when={task()}>
 			{(task) => (
 				<Portal mount={document.querySelector('main') as HTMLElement}>
-					<div
-						{...stylex.props(styles.modalOverlay)}
-						onClick={handleOverlayClick}
-					>
-						<div {...stylex.props(styles.taskModal)}>
+					<div {...sx.props(styles.modalOverlay)} onClick={handleOverlayClick}>
+						<div {...sx.props(styles.taskModal)}>
 							<TaskEditForm task={task} />
 							<Button type="button" label="Close" onClick={props.handleClose} />
 							<Button type="button" label="Delete" onClick={handleDelete} />
@@ -337,14 +334,14 @@ const Timeline = (props: TimelineProps) => {
 		<div style={timelineWrapper()}>
 			<For each={tl().months}>
 				{(month) => (
-					<div {...stylex.props(styles.months(month))}>{Months[month.num]}</div>
+					<div {...sx.props(styles.months(month))}>{Months[month.num]}</div>
 				)}
 			</For>
 			<Switch>
 				<Match when={props.zoomModifier() >= 45}>
 					<For each={tl().days}>
 						{(day, index) => (
-							<div {...stylex.props(styles.days(index, day.isToday))}>
+							<div {...sx.props(styles.days(index, day.isToday))}>
 								<span>{day.dayOfMonth}</span>
 								<span>{Weekdays[day.dayOfWeek]}</span>
 							</div>
@@ -354,7 +351,7 @@ const Timeline = (props: TimelineProps) => {
 				<Match when={props.zoomModifier() < 45}>
 					<For each={tl().weeks}>
 						{(week) => (
-							<div {...stylex.props(styles.weeks(week))}>Week {week.label}</div>
+							<div {...sx.props(styles.weeks(week))}>Week {week.label}</div>
 						)}
 					</For>
 				</Match>
@@ -363,7 +360,7 @@ const Timeline = (props: TimelineProps) => {
 	);
 };
 
-const styles = stylex.create({
+const styles = sx.create({
 	timeLine: (cols, zoomModifier) => ({
 		width: `${cols() * zoomModifier()}px`,
 		display: 'grid',
@@ -433,13 +430,12 @@ const styles = stylex.create({
 	}),
 
 	task: (current) => ({
-		border: `.15rem ${current().floating ? 'dashed' : 'solid'} gray`,
-		borderWidth: current().floating ? '.25rem' : '.15rem',
+		background: current().floating ? '#f0f0f0' : 'white',
+		border: `2px ${current().floating ? 'dashed' : 'solid'} #666`,
 		borderLeft: 'none',
 		borderRight: 'none',
 		cursor: 'pointer',
 		overflow: 'hidden',
-		background: 'white',
 		display: 'flex',
 		alignItems: 'center',
 		justifyContent: 'center',
@@ -468,7 +464,6 @@ const styles = stylex.create({
 
 	taskModal: {
 		width: 'calc(clamp(18.75rem, 33.019vw + 12.146rem, 62.5rem))',
-		height: '20em',
 		background: 'white',
 		position: 'relative',
 		padding: '1em',

@@ -1,6 +1,6 @@
 import { splitProps, type ComponentProps, type JSXElement } from 'solid-js';
 import { Meta, Title } from '@solidjs/meta';
-import * as stylex from '@stylexjs/stylex';
+import * as sx from '@stylexjs/stylex';
 import { Nav } from '@components/Nav';
 
 // -------------------------------------------------------------------------------------
@@ -51,12 +51,13 @@ const Header = () => {
 
 type MainProps = {
 	children?: JSXElement;
+	extraStyles?: sx.StyleXStyles;
 } & ComponentProps<'main'>;
 
 export const Main = (props: MainProps) => {
-	const [_, mainProps] = splitProps(props, ['children']);
+	const [_, mainProps] = splitProps(props, ['children', 'extraStyles']);
 	return (
-		<main {...mainProps} {...stylex.props(styles.main)}>
+		<main {...mainProps} {...sx.props(styles.main, props.extraStyles)}>
 			{props.children}
 		</main>
 	);
@@ -64,7 +65,7 @@ export const Main = (props: MainProps) => {
 
 // -------------------------------------------------------------------------------------
 
-const styles = stylex.create({
+const styles = sx.create({
 	main: {
 		padding: '1.5rem 1rem',
 	},

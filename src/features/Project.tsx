@@ -1,5 +1,6 @@
 import * as v from 'valibot';
 import * as mf from '@modular-forms/solid';
+import * as sx from '@stylexjs/stylex';
 import type { Accessor, JSX } from 'solid-js';
 import { For, children, createMemo, createSignal, splitProps } from 'solid-js';
 import { createStore, produce } from 'solid-js/store';
@@ -32,6 +33,7 @@ export const projects = {
 
 	delete: (id: Project['id']) => {
 		setStore((store) => store.filter((project) => project.id !== id));
+		setVisited((visited) => visited.filter((project) => project !== id));
 		tasks.deleteByProject(id);
 	},
 
@@ -92,7 +94,7 @@ export const ProjectForm = (props: ProjectFormProps) => {
 	const Buttons = children(() => props.children);
 
 	return (
-		<Form onSubmit={props.onSubmit}>
+		<Form onSubmit={props.onSubmit} {...sx.props(style.form)}>
 			<Field name="name">
 				{(field, props) => (
 					<InputField
@@ -179,17 +181,17 @@ type ProjectListProps = {
 };
 
 export const ProjectList = (props: ProjectListProps) => {
-	const projectList = createMemo(() => {
+	const listItem = createMemo(() => {
 		return props.filter === 'lastAccessed'
 			? visited().map((id) => projects.read(id)())
 			: projects.list();
 	}) as () => Project[];
 
 	return (
-		<section>
+		<section {...sx.props(style.listWrapper)}>
 			<h2>{props.label}</h2>
-			<ol>
-				<For each={projectList()}>
+			<ol {...sx.props(style.list)}>
+				<For each={listItem()} fallback={<div>Ei viimeksi katsottuja</div>}>
 					{(project: Project) => <ProjectListItem {...project} />}
 				</For>
 			</ol>
@@ -199,11 +201,49 @@ export const ProjectList = (props: ProjectListProps) => {
 
 const ProjectListItem = (props: Project) => {
 	return (
-		<li>
-			<span>{props.name}</span>
-			<A href={`/projects/${props.id}`} innerText="Näytä" />
-		</li>
+		<A {...sx.props(style.listItemLink)} href={`/projects/${props.id}`}>
+			<li {...sx.props(style.listItem)}>
+				<span>{props.name}</span>
+			</li>
+		</A>
 	);
 };
 
 // -------------------------------------------------------------------------------------
+
+const style = sx.create({
+	listWrapper: {
+		display: 'flex',
+		flexDirection: 'column',
+		gap: '1rem',
+	},
+
+	list: {
+		display: 'flex',
+		flexDirection: 'column',
+		gap: '.5rem',
+	},
+
+	listItem: {
+		border: '2px solid black',
+		padding: '1rem',
+		display: 'flex',
+		alignItems: 'center',
+		justifyContent: 'space-between',
+		background: {
+			default: '#f0f0f0',
+			':hover': '#ccc',
+		},
+	},
+
+	listItemLink: {
+		textDecoration: 'none',
+		color: 'black',
+	},
+
+	form: {
+		display: 'flex',
+		gap: '1rem',
+		flexDirection: 'column',
+	},
+});
