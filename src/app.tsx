@@ -12,7 +12,7 @@ import { Page } from '@routes/+Gantt';
 
 // styles
 import 'virtual:uno.css';
-import '@unocss/reset/normalize.css';
+import '@unocss/reset/eric-meyer.css';
 
 render(
 	() => (

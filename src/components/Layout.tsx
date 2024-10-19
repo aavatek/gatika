@@ -1,6 +1,7 @@
-import type { JSXElement } from 'solid-js';
+import { splitProps, type ComponentProps, type JSXElement } from 'solid-js';
 import { Meta, Title } from '@solidjs/meta';
-import { Nav } from '@root/src/components/Nav';
+import * as stylex from '@stylexjs/stylex';
+import { Nav } from '@components/Nav';
 
 // -------------------------------------------------------------------------------------
 
@@ -47,3 +48,24 @@ const Header = () => {
 };
 
 // -------------------------------------------------------------------------------------
+
+type MainProps = {
+	children?: JSXElement;
+} & ComponentProps<'main'>;
+
+export const Main = (props: MainProps) => {
+	const [_, mainProps] = splitProps(props, ['children']);
+	return (
+		<main {...mainProps} {...stylex.props(styles.main)}>
+			{props.children}
+		</main>
+	);
+};
+
+// -------------------------------------------------------------------------------------
+
+const styles = stylex.create({
+	main: {
+		padding: '1.5rem 1rem',
+	},
+});

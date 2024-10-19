@@ -10,14 +10,15 @@ import {
 	ProjectEditForm,
 	ProjectList,
 } from '@features/Project';
+import { Main } from '@components/Layout';
 
 export const PListView = () => {
 	return (
-		<main>
+		<Main>
 			<h1>Projektit</h1>
 			<ProjectCreateForm />
 			<ProjectList label="Kaikki projektit" />
-		</main>
+		</Main>
 	);
 };
 
@@ -41,7 +42,7 @@ export const PView = () => {
 	return (
 		<Show when={project()}>
 			{(project) => (
-				<main>
+				<Main>
 					<h1>Projekti: {project().name}</h1>
 
 					<Button label="Takaisin" onclick={handleBack} />
@@ -50,7 +51,7 @@ export const PView = () => {
 
 					<TaskCreateForm project={projectID} />
 					<TaskList project={projectID} label="Kaikki tehtävät" />
-				</main>
+				</Main>
 			)}
 		</Show>
 	);
@@ -64,10 +65,10 @@ export const PEditView = () => {
 	return (
 		<Show when={project()}>
 			{(project) => (
-				<main>
+				<Main>
 					<h1>Projekti: {project().name}</h1>
 					<ProjectEditForm project={project} />
-				</main>
+				</Main>
 			)}
 		</Show>
 	);

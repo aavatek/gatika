@@ -408,7 +408,6 @@ const styles = stylex.create({
 	wrapper: {
 		overflowX: 'auto',
 		border: '2px solid black',
-		margin: '1rem',
 	},
 
 	gantt: (cols, rows, zoomModifier) => ({

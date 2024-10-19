@@ -1,5 +1,6 @@
 import { A, type AnchorProps } from '@solidjs/router';
 import { For, Switch, Match, Show } from 'solid-js';
+import * as stylex from '@stylexjs/stylex';
 
 type NavProps = {
 	items: AnchorProps[];
@@ -10,13 +11,13 @@ export function Nav(props: NavProps) {
 
 	return (
 		<Show when={navListItems.length > 0}>
-			<nav>
+			<nav {...stylex.props(styles.nav)}>
 				<Switch>
 					<Match when={navListItems.length > 1}>
-						<ul>
+						<ul {...stylex.props(styles.navList)}>
 							<For each={navListItems}>
 								{(item) => (
-									<li>
+									<li {...stylex.props(styles.navListItem)}>
 										<A {...item} />
 									</li>
 								)}
@@ -32,3 +33,17 @@ export function Nav(props: NavProps) {
 		</Show>
 	);
 }
+
+const styles = stylex.create({
+	nav: {
+		borderBottom: '2px solid black',
+	},
+
+	navList: {
+		display: 'flex',
+		gap: '1rem',
+		padding: '1.5rem 1rem',
+	},
+
+	navListItem: {},
+});

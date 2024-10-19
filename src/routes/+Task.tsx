@@ -3,6 +3,7 @@ import { Show } from 'solid-js';
 import { Button } from '@components/Form';
 import { type Task, TaskEditForm, tasks } from '@features/Task';
 import type { Project } from '@features/Project';
+import { Main } from '@components/Layout';
 
 export function TView() {
 	const params = useParams();
@@ -22,12 +23,12 @@ export function TView() {
 	return (
 		<Show when={task()}>
 			{(task) => (
-				<main>
+				<Main>
 					<h1>Tehtävä: {task().name}</h1>
 					<Button label="Takaisin" onclick={handleBack} />
 					<Button label="Muokkaa" onclick={handleEdit} />
 					<Button label="Poista" onclick={handleDelete} />
-				</main>
+				</Main>
 			)}
 		</Show>
 	);
@@ -41,10 +42,10 @@ export function TEditView() {
 	return (
 		<Show when={task()}>
 			{(task) => (
-				<main>
+				<Main>
 					<h1>Tehtävä: {task().name}</h1>
 					<TaskEditForm task={task} />
-				</main>
+				</Main>
 			)}
 		</Show>
 	);

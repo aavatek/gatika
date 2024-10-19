@@ -2,6 +2,7 @@ import { createMemo, createSignal } from 'solid-js';
 import { SelectField } from '@components/Form';
 import { projects, type Project } from '@features/Project';
 import { tasks } from '@features/Task';
+import { Main } from '@components/Layout';
 import { Gantt } from '@components/Gantt';
 
 export const Page = () => {
@@ -21,7 +22,7 @@ export const Page = () => {
 	});
 
 	return (
-		<main>
+		<Main>
 			<h1>Gantt</h1>
 			<SelectField
 				label="Näytä projekti"
@@ -32,6 +33,6 @@ export const Page = () => {
 			/>
 
 			<Gantt tasks={ganttTasks()} />
-		</main>
+		</Main>
 	);
 };
