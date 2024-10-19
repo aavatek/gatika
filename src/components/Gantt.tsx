@@ -258,9 +258,14 @@ const Timeline = (props: TimelineProps) => {
 			dayOfWeek: number;
 			dayOfMonth: number;
 			colStart: number;
-			date: Date;
+			isToday: boolean;
 		};
-		type Week = { label: number; startColumn: number; days: number };
+		type Week = {
+			label: number;
+			startColumn: number;
+			days: number;
+			isThisWeek: boolean;
+		};
 		type Month = { num: number; days: number; startColumn: number };
 
 		const days: Day[] = [];
@@ -277,11 +282,23 @@ const Timeline = (props: TimelineProps) => {
 			const dayOfWeek = currentDate.getDay();
 			const dayOfMonth = currentDate.getDate();
 			const month = currentDate.getMonth();
+			const isToday = formatDate(currentDate) === formatDate(new Date());
+			const isThisWeek = currentWeek === getWeekNumber(new Date());
 
-			days.push({ dayOfWeek, dayOfMonth, colStart, date: currentDate });
+			days.push({
+				dayOfWeek,
+				dayOfMonth,
+				colStart,
+				isToday,
+			});
 
 			if (dayOfWeek === 1 || colStart === 1) {
-				weeks.push({ label: currentWeek, startColumn: colStart, days: 0 });
+				weeks.push({
+					label: currentWeek,
+					startColumn: colStart,
+					days: 0,
+					isThisWeek,
+				});
 			}
 
 			if (month !== currentMonth || colStart === 1) {
@@ -327,7 +344,7 @@ const Timeline = (props: TimelineProps) => {
 				<Match when={props.zoomModifier() >= 45}>
 					<For each={tl().days}>
 						{(day, index) => (
-							<div {...stylex.props(styles.days(index, day.date))}>
+							<div {...stylex.props(styles.days(index, day.isToday))}>
 								<span>{day.dayOfMonth}</span>
 								<span>{Weekdays[day.dayOfWeek]}</span>
 							</div>
@@ -354,7 +371,7 @@ const styles = stylex.create({
 		borderBottom: '1px solid #ccc',
 	}),
 
-	days: (index, date) => ({
+	days: (index, isToday) => ({
 		height: '3rem',
 		gridColumn: `${index() + 1} / span 1`,
 		border: '1px solid gray',
@@ -362,7 +379,7 @@ const styles = stylex.create({
 		justifyContent: 'center',
 		flexDirection: 'column',
 		alignItems: 'center',
-		background: formatDate(date) === formatDate(new Date()) ? '#ccc' : 'white',
+		background: isToday ? '#ccc' : 'white',
 		overflow: 'hidden',
 	}),
 
@@ -373,8 +390,8 @@ const styles = stylex.create({
 		display: 'flex',
 		justifyContent: 'center',
 		alignItems: 'center',
-		background: 'white',
 		overflow: 'hidden',
+		background: week.isThisWeek ? '#ccc' : 'white',
 	}),
 
 	months: (month) => ({
@@ -401,7 +418,8 @@ const styles = stylex.create({
 		gridTemplateRows: `repeat(${rows()}, 1fr)`,
 		width: `${cols() * zoomModifier()}px`,
 		height: `${rows() * 3}rem`,
-		padding: '1rem',
+		paddingTop: '1rem',
+		paddingBottom: '1rem',
 		backgroundSize: `${100 / cols()}%`,
 		backgroundImage: 'linear-gradient(to right, #e0e0e0 1px, transparent 1px)',
 	}),
