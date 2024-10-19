@@ -79,10 +79,7 @@ export const Gantt = (props: { tasks: Task[] }) => {
 			/>
 
 			<div {...stylex.props(styles.gantt(gridCols, gridRows, zoom))}>
-				<For
-					each={tasksWithinRange()}
-					fallback={<div {...stylex.props(styles.emptyRow)} />}
-				>
+				<For each={tasksWithinRange()} fallback={<div />}>
 					{(task, row) => (
 						<GanttTask
 							task={task}
@@ -208,16 +205,23 @@ type TaskEditModalProps = {
 
 const TaskEditModal = (props: TaskEditModalProps) => {
 	const task = tasks.read(props.id);
-	console.log(task());
+
+	const handleDelete = () => {
+		tasks.delete(props.id);
+		props.handleClose();
+	};
 
 	return (
-		<Portal mount={document.querySelector('main') as HTMLElement}>
-			<div {...stylex.props(styles.modalOverlay)} onClick={props.handleClose}>
-				<div {...stylex.props(styles.taskEditModal)}>
-					<Button type="button" label="close" onClick={props.handleClose} />
+		<Show when={task()}>
+			<Portal mount={document.querySelector('main') as HTMLElement}>
+				<div {...stylex.props(styles.modalOverlay)} onClick={props.handleClose}>
+					<div {...stylex.props(styles.taskEditModal)}>
+						<Button type="button" label="Close" onClick={props.handleClose} />
+						<Button type="button" label="Delete" onClick={handleDelete} />
+					</div>
 				</div>
-			</div>
-		</Portal>
+			</Portal>
+		</Show>
 	);
 };
 
