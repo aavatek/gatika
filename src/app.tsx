@@ -13,6 +13,99 @@ import { Page } from '@routes/+Gantt';
 // styles
 import 'virtual:uno.css';
 import '@unocss/reset/eric-meyer.css';
+import { WEEK } from '@lib/dates';
+import { setProjectStore, setVisited, type Project } from '@features/Project';
+import { setTaskStore, tasks, type Task } from './features/Task';
+
+const populate = () => {
+	if (!tasks.list().find((task) => task.name === 'Tehtävä C3')) {
+		setProjectStore(() => []);
+		setVisited(() => []);
+		setTaskStore(() => []);
+
+		const mockProjects: Project[] = [
+			{
+				id: crypto.randomUUID(),
+				name: 'Projekti A',
+			},
+			{
+				id: crypto.randomUUID(),
+				name: 'Projekti B',
+			},
+			{
+				id: crypto.randomUUID(),
+				name: 'Projekti C',
+			},
+		];
+
+		const mockTasksForA: Task[] = [
+			{
+				id: crypto.randomUUID(),
+				name: 'Tehtävä A1',
+				start: Date.now() - WEEK,
+				end: Date.now(),
+				project: mockProjects[0].id,
+				dependencies: [],
+			},
+			{
+				id: crypto.randomUUID(),
+				name: 'Tehtävä A2',
+				start: Date.now(),
+				end: Date.now() + WEEK,
+				project: mockProjects[0].id,
+				dependencies: [],
+			},
+			{
+				id: crypto.randomUUID(),
+				name: 'Tehtävä A3',
+				start: Date.now() + WEEK,
+				end: Date.now() + WEEK * 2,
+				project: mockProjects[0].id,
+				dependencies: [],
+			},
+			{
+				id: crypto.randomUUID(),
+				name: 'Tehtävä A3',
+				start: Date.now() - WEEK * 3,
+				end: Date.now() + WEEK,
+				project: mockProjects[0].id,
+				dependencies: [],
+			},
+		];
+
+		const mockTasksForC: Task[] = [
+			{
+				id: crypto.randomUUID(),
+				name: 'Tehtävä C1',
+				start: null,
+				end: null,
+				project: mockProjects[2].id,
+				dependencies: [],
+			},
+			{
+				id: crypto.randomUUID(),
+				name: 'Tehtävä C2',
+				start: null,
+				end: null,
+				project: mockProjects[2].id,
+				dependencies: [],
+			},
+			{
+				id: crypto.randomUUID(),
+				name: 'Tehtävä C3',
+				start: null,
+				end: null,
+				project: mockProjects[2].id,
+				dependencies: [],
+			},
+		];
+
+		setProjectStore(mockProjects);
+		setTaskStore([...mockTasksForA, ...mockTasksForC]);
+	}
+};
+
+populate();
 
 render(
 	() => (

@@ -12,15 +12,18 @@ import { projects, type Project } from '@features/Project';
 
 // -------------------------------------------------------------------------------------
 
-const [store, setStore] = makePersisted(createStore<Task[]>([]), {
-	name: 'tasks',
-	storage: localStorage,
-	sync: storageSync,
-});
+export const [taskStore, setTaskStore] = makePersisted(
+	createStore<Task[]>([]),
+	{
+		name: 'tasks',
+		storage: localStorage,
+		sync: storageSync,
+	},
+);
 
 export const tasks = {
 	create: (task: Task) => {
-		setStore(
+		setTaskStore(
 			produce((store) => {
 				store.push(task);
 			}),
@@ -28,26 +31,26 @@ export const tasks = {
 	},
 
 	update: (id: Task['id'], data: Partial<Task>) => {
-		setStore(
+		setTaskStore(
 			(task) => task.id === id,
 			produce((task) => Object.assign(task, data)),
 		);
 	},
 
 	read: (id: Task['id']) =>
-		createMemo(() => store.find((task) => task.id === id)),
+		createMemo(() => taskStore.find((task) => task.id === id)),
 
 	delete: (id: Task['id']) => {
-		setStore((store) => store.filter((task) => task.id !== id));
+		setTaskStore((store) => store.filter((task) => task.id !== id));
 	},
 
 	deleteByProject: (id: Project['id']) => {
-		setStore((store) => store.filter((task) => task.project !== id));
+		setTaskStore((store) => store.filter((task) => task.project !== id));
 	},
 
-	list: (): Task[] => store,
+	list: (): Task[] => taskStore,
 	listByProject: (id: Project['id']) =>
-		store.filter((task) => task.project === id),
+		taskStore.filter((task) => task.project === id),
 };
 
 // -------------------------------------------------------------------------------------

@@ -11,33 +11,36 @@ import { tasks } from '@features/Task';
 
 // -------------------------------------------------------------------------------------
 
-const [store, setStore] = makePersisted(createStore<Project[]>([]), {
-	name: 'projects',
-	storage: localStorage,
-	sync: storageSync,
-});
+export const [projectStore, setProjectStore] = makePersisted(
+	createStore<Project[]>([]),
+	{
+		name: 'projects',
+		storage: localStorage,
+		sync: storageSync,
+	},
+);
 
 export const projects = {
 	create: (project: Project) =>
-		setStore(produce((store) => store.push(project))),
+		setProjectStore(produce((store) => store.push(project))),
 
 	read: (id: Project['id']) =>
-		createMemo(() => store.find((project) => project.id === id)),
+		createMemo(() => projectStore.find((project) => project.id === id)),
 
 	update: (id: Project['id'], data: Partial<Project>) => {
-		setStore(
+		setProjectStore(
 			(project) => project.id === id,
 			produce((project) => Object.assign(project, data)),
 		);
 	},
 
 	delete: (id: Project['id']) => {
-		setStore((store) => store.filter((project) => project.id !== id));
+		setProjectStore((store) => store.filter((project) => project.id !== id));
 		setVisited((visited) => visited.filter((project) => project !== id));
 		tasks.deleteByProject(id);
 	},
 
-	list: () => store,
+	list: () => projectStore,
 };
 
 export const [visited, setVisited] = makePersisted(
