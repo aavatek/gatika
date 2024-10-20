@@ -6,12 +6,13 @@ import * as sx from '@stylexjs/stylex';
 
 type ButtonProps = {
 	label: string;
+	extraStyle?: sx.StyleXStyles;
 } & ComponentProps<'button'>;
 
 export function Button(props: ButtonProps) {
-	const [_, buttonProps] = splitProps(props, ['label']);
+	const [_, buttonProps] = splitProps(props, ['label', 'extraStyle']);
 	return (
-		<button {...buttonProps} {...sx.props(style.button)}>
+		<button {...buttonProps} {...sx.props(style.button, props.extraStyle)}>
 			{props.label}
 		</button>
 	);
@@ -91,6 +92,7 @@ type SelectFieldProps = {
 	error?: string;
 	options: Options;
 	placeholder?: string;
+	extraStyle?: sx.StyleXStyles;
 } & ComponentProps<'select'>;
 
 export function SelectField(props: SelectFieldProps) {
@@ -100,13 +102,18 @@ export function SelectField(props: SelectFieldProps) {
 		'label',
 		'error',
 		'placeholder',
+		'extraStyle',
 	]);
 
 	return (
 		<div {...sx.props(style.field)}>
 			<FieldLabel id={id} label={props.label} />
 
-			<select {...selectProps} id={id} {...sx.props(style.select)}>
+			<select
+				{...selectProps}
+				id={id}
+				{...sx.props(style.select, props.extraStyle)}
+			>
 				<Show when={props.placeholder}>
 					<option value="" label={props.placeholder} />
 				</Show>
@@ -131,6 +138,7 @@ const style = sx.create({
 	field: {
 		display: 'flex',
 		flexDirection: 'column',
+		gap: '.25rem',
 	},
 
 	input: {

@@ -1,6 +1,6 @@
 import type { Accessor, JSX } from 'solid-js';
 import { For, Show, children, createMemo, splitProps } from 'solid-js';
-import { A, useNavigate } from '@solidjs/router';
+import { A } from '@solidjs/router';
 import { getTime, getDate, formatDate } from '@solid-primitives/date';
 import * as mf from '@modular-forms/solid';
 import * as v from 'valibot';
@@ -9,7 +9,6 @@ import { Button, InputField, SelectField } from '@components/Form';
 import { makePersisted, storageSync } from '@solid-primitives/storage';
 import { createStore, produce } from 'solid-js/store';
 import { projects, type Project } from '@features/Project';
-import { logger } from '@lib/logger';
 
 // -------------------------------------------------------------------------------------
 
@@ -29,44 +28,10 @@ export const tasks = {
 	},
 
 	update: (id: Task['id'], data: Partial<Task>) => {
-		const current = tasks.list().find((task) => task.id === id);
-		if (!current) {
-			logger.error('task does not exist');
-		}
-
-		const predecessors = tasks
-			.list()
-			.filter((task) => current?.dependencies.includes(task.id));
-
-		const lastPredecessorEnd = Math.max(
-			0,
-			...predecessors.map((task) => task.end ?? 0),
-		);
-
-		if (data.start != null && data.start < lastPredecessorEnd) return;
-
 		setStore(
 			(task) => task.id === id,
 			produce((task) => Object.assign(task, data)),
 		);
-
-		const successors = tasks
-			.list()
-			.filter((task) => task.dependencies?.includes(id));
-
-		successors.forEach((successor) => {
-			if (successor.start != null && data.end != null) {
-				// if (data.end > successor.start) {
-				const duration =
-					successor.end != null ? successor.end - successor.start : 0;
-				const newStart = data.end;
-				if (newStart != null) {
-					const newEnd = newStart + duration;
-					tasks.update(successor.id, { start: newStart, end: newEnd });
-				}
-				// }
-			}
-		});
 	},
 
 	read: (id: Task['id']) =>
@@ -413,7 +378,7 @@ export const TaskCreateForm = (props: TaskCreateFormProps) => {
 
 	return (
 		<section>
-			<h2>Luo tehtävä</h2>
+			<h2 {...sx.props(style.h2)}>Luo tehtävä</h2>
 			<TaskForm onSubmit={handleSubmit} form={form} project={props.project}>
 				<Button type="submit" label="Luo tehtävä" />
 			</TaskForm>
@@ -428,7 +393,6 @@ type TaskEditFormProps = {
 };
 
 export const TaskEditForm = (props: TaskEditFormProps) => {
-	const navigate = useNavigate();
 	const form = mf.createForm<TaskInput>({
 		validate: mf.valiForm(TaskSchema),
 	});
@@ -454,7 +418,7 @@ export const TaskEditForm = (props: TaskEditFormProps) => {
 
 	return (
 		<section>
-			<h2>Muokkaa tehtävää</h2>
+			<h2 {...sx.props(style.h2)}>Muokkaa tehtävää</h2>
 			<TaskForm
 				onSubmit={handleSubmit}
 				form={form}
@@ -462,7 +426,12 @@ export const TaskEditForm = (props: TaskEditFormProps) => {
 				project={props.task().project as Project['id']}
 			>
 				<Button type="submit" label="Tallenna" />
-				<Button type="button" label="Poista" onClick={handleDelete} />
+				<Button
+					type="button"
+					label="Poista"
+					onClick={handleDelete}
+					extraStyle={style.buttonWarn}
+				/>
 			</TaskForm>
 		</section>
 	);
@@ -494,7 +463,7 @@ export const TaskList = (props: TaskListProps) => {
 
 	return (
 		<section {...sx.props(style.wrapper)}>
-			<h2>{props.label}</h2>
+			<h2 {...sx.props(style.h2)}>{props.label}</h2>
 			<ol {...sx.props(style.list)}>
 				<For each={list()} fallback={<div>Ei tulevia tehtäviä</div>}>
 					{(task: Task) => (
@@ -562,7 +531,7 @@ const style = sx.create({
 	list: {
 		display: 'flex',
 		flexDirection: 'column',
-		gap: '1rem',
+		gap: '.5rem',
 	},
 
 	item: {
@@ -586,7 +555,7 @@ const style = sx.create({
 
 	form: {
 		display: 'flex',
-		gap: '1rem',
+		gap: '.5rem',
 		flexDirection: 'column',
 	},
 
@@ -601,6 +570,21 @@ const style = sx.create({
 		gap: '1rem',
 		gridTemplateColumns: '1fr auto',
 		alignItems: 'end',
+	},
+
+	h2: {
+		fontSize: '1.5rem',
+		marginBottom: '.5rem',
+	},
+
+	buttonWarn: {
+		background: {
+			default: '#FFEBEE',
+			':hover': '#FFCDD2',
+		},
+		color: '#B71C1C',
+		fontWeight: 'bold',
+		border: '2px solid #B71C1C',
 	},
 });
 

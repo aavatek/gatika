@@ -130,7 +130,7 @@ export const ProjectCreateForm = () => {
 
 	return (
 		<section>
-			<h2>Luo projekti</h2>
+			<h2 {...sx.props(style.h2)}>Luo projekti</h2>
 			<ProjectForm onSubmit={handleSubmit} form={form}>
 				<Button type="submit" label="Luo" />
 			</ProjectForm>
@@ -157,6 +157,11 @@ export const ProjectEditForm = (props: ProjectEditFormProps) => {
 		}
 	};
 
+	const handleDelete = () => {
+		projects.delete(props.project().id);
+		navigate('/projects', { replace: true });
+	};
+
 	const project = ProjectToInput(props.project());
 	mf.setValues(form[0], {
 		...project,
@@ -164,10 +169,15 @@ export const ProjectEditForm = (props: ProjectEditFormProps) => {
 
 	return (
 		<section>
-			<h2>Muokkaa tehtävää</h2>
+			<h2 {...sx.props(style.h2)}>Muokkaa projektia</h2>
 			<ProjectForm onSubmit={handleSubmit} form={form}>
 				<Button type="submit" label="Tallenna" />
-				<Button label="Peruuta" onclick={() => navigate(-1)} />
+				<Button
+					type="button"
+					label="Poista"
+					onClick={handleDelete}
+					extraStyle={style.buttonWarn}
+				/>
 			</ProjectForm>
 		</section>
 	);
@@ -189,7 +199,7 @@ export const ProjectList = (props: ProjectListProps) => {
 
 	return (
 		<section {...sx.props(style.listWrapper)}>
-			<h2>{props.label}</h2>
+			<h2 {...sx.props(style.h2)}>{props.label}</h2>
 			<ol {...sx.props(style.list)}>
 				<For each={listItem()} fallback={<div>Ei viimeksi katsottuja</div>}>
 					{(project: Project) => <ProjectListItem {...project} />}
@@ -243,7 +253,22 @@ const style = sx.create({
 
 	form: {
 		display: 'flex',
-		gap: '1rem',
+		gap: '.5rem',
 		flexDirection: 'column',
+	},
+
+	h2: {
+		fontSize: '1.5rem',
+		marginBottom: '.5rem',
+	},
+
+	buttonWarn: {
+		background: {
+			default: '#FFEBEE',
+			':hover': '#FFCDD2',
+		},
+		color: '#B71C1C',
+		fontWeight: 'bold',
+		border: '2px solid #B71C1C',
 	},
 });

@@ -15,7 +15,9 @@ import * as sx from '@stylexjs/stylex';
 export const PListView = () => {
 	return (
 		<Main>
-			<h1>Projektit</h1>
+			<header {...sx.props(style.header)}>
+				<h1 {...sx.props(style.h1)}>Projektit</h1>
+			</header>
 			<section {...sx.props(style.contentSection)}>
 				<ProjectList label="Kaikki projektit" />
 				<ProjectCreateForm />
@@ -42,10 +44,15 @@ export const PView = () => {
 			{(project) => (
 				<Main>
 					<header {...sx.props(style.header)}>
-						<h1>{project().name}</h1>
+						<h1 {...sx.props(style.h1)}>{project().name}</h1>
 						<A
 							href={previousPath()}
 							textContent="Takaisin"
+							{...sx.props(style.link)}
+						/>
+						<A
+							href={`/projects/${project().id}/edit`}
+							textContent="Hallitse"
 							{...sx.props(style.link)}
 						/>
 					</header>
@@ -69,7 +76,15 @@ export const PEditView = () => {
 		<Show when={project()}>
 			{(project) => (
 				<Main>
-					<h1>Projekti: {project().name}</h1>
+					<header {...sx.props(style.header)}>
+						<h1 {...sx.props(style.h1)}>{project().name}</h1>
+						<A
+							href={`/projects/${projectID}`}
+							textContent="Takaisin"
+							{...sx.props(style.link)}
+						/>
+					</header>
+
 					<ProjectEditForm project={project} />
 				</Main>
 			)}
@@ -80,11 +95,14 @@ export const PEditView = () => {
 const style = sx.create({
 	header: {
 		display: 'flex',
+		alignItems: 'end',
 		gap: '1rem',
+		marginBottom: '1rem',
 	},
 
 	link: {
 		color: 'inherit',
+		fontSize: '1.25rem',
 	},
 
 	contentSection: {
@@ -94,5 +112,10 @@ const style = sx.create({
 			default: '1fr 1fr',
 			'@media (max-width: 800px)': '1fr',
 		},
+	},
+
+	h1: {
+		fontSize: '2rem',
+		lineHeight: '1.5rem',
 	},
 });

@@ -69,7 +69,7 @@ export const Gantt = (props: { tasks: Task[] }) => {
 	});
 
 	return (
-		<div id="wrapper" onWheel={handleZoom} {...sx.props(styles.wrapper)}>
+		<div id="wrapper" onWheel={handleZoom} {...sx.props(style.wrapper)}>
 			<Timeline
 				cols={gridCols}
 				colWidth={gridColWidth}
@@ -78,7 +78,7 @@ export const Gantt = (props: { tasks: Task[] }) => {
 				gridEndDate={gridEndDate}
 			/>
 
-			<div {...sx.props(styles.gantt(gridCols, gridRows, zoom))}>
+			<div {...sx.props(style.gantt(gridCols, gridRows, zoom))}>
 				<For each={tasksWithinRange()} fallback={<div />}>
 					{(task, row) => (
 						<GanttTask
@@ -175,20 +175,20 @@ const GanttTask = (props: GanttTaskProps) => {
 	};
 
 	return (
-		<div {...sx.props(styles.taskWrapper(props.row, colStart, colSpan))}>
+		<div {...sx.props(style.taskWrapper(props.row, colStart, colSpan))}>
 			<span
-				{...sx.props(styles.taskHandle('left'))}
+				{...sx.props(style.taskHandle('left'))}
 				onPointerDown={handleDrag('left')}
 			/>
 			<span
-				{...sx.props(styles.task(task))}
+				{...sx.props(style.task(task))}
 				onPointerDown={handleDrag('move')}
 				onDblClick={handleDoubleClick}
 			>
 				{props.task.name}
 			</span>
 			<span
-				{...sx.props(styles.taskHandle('right'))}
+				{...sx.props(style.taskHandle('right'))}
 				onPointerDown={handleDrag('right')}
 			/>
 			<Show when={modalVisible()}>
@@ -216,11 +216,19 @@ const TaskModal = (props: TaskModalProps) => {
 		<Show when={task()}>
 			{(task) => (
 				<Portal mount={document.querySelector('main') as HTMLElement}>
-					<div {...sx.props(styles.modalOverlay)} onClick={handleOverlayClick}>
-						<div {...sx.props(styles.taskModal)}>
-							<Button type="button" label="Close" onClick={props.handleClose} />
+					<div {...sx.props(style.modalOverlay)} onClick={handleOverlayClick}>
+						<section {...sx.props(style.taskModal)}>
+							<header {...sx.props(style.modalHeader)}>
+								<h1 {...sx.props(style.modalHeading)}>{task().name}</h1>
+								<Button
+									type="button"
+									label="Sulje"
+									onClick={props.handleClose}
+									extraStyle={style.modalCloseButton}
+								/>
+							</header>
 							<TaskEditForm task={task} />
-						</div>
+						</section>
 					</div>
 				</Portal>
 			)}
@@ -328,14 +336,14 @@ const Timeline = (props: TimelineProps) => {
 		<div style={timelineWrapper()}>
 			<For each={tl().months}>
 				{(month) => (
-					<div {...sx.props(styles.months(month))}>{Months[month.num]}</div>
+					<div {...sx.props(style.months(month))}>{Months[month.num]}</div>
 				)}
 			</For>
 			<Switch>
 				<Match when={props.zoomModifier() >= 45}>
 					<For each={tl().days}>
 						{(day, index) => (
-							<div {...sx.props(styles.days(index, day.isToday))}>
+							<div {...sx.props(style.days(index, day.isToday))}>
 								<span>{day.dayOfMonth}</span>
 								<span>{Weekdays[day.dayOfWeek]}</span>
 							</div>
@@ -345,7 +353,7 @@ const Timeline = (props: TimelineProps) => {
 				<Match when={props.zoomModifier() < 45}>
 					<For each={tl().weeks}>
 						{(week) => (
-							<div {...sx.props(styles.weeks(week))}>Week {week.label}</div>
+							<div {...sx.props(style.weeks(week))}>Week {week.label}</div>
 						)}
 					</For>
 				</Match>
@@ -354,7 +362,7 @@ const Timeline = (props: TimelineProps) => {
 	);
 };
 
-const styles = sx.create({
+const style = sx.create({
 	timeLine: (cols, zoomModifier) => ({
 		width: `${cols() * zoomModifier()}px`,
 		display: 'grid',
@@ -464,5 +472,26 @@ const styles = sx.create({
 		zIndex: 1001,
 		boxShadow:
 			'rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px',
+	},
+
+	modalHeader: {
+		display: 'flex',
+		gap: '1rem',
+		alignItems: 'end',
+		justifyContent: 'space-between',
+		marginBottom: '1rem',
+	},
+
+	modalHeading: {
+		fontSize: '2rem',
+		lineHeight: '1.5rem',
+	},
+
+	modalCloseButton: {
+		padding: 0,
+		background: 'none',
+		border: 'none',
+		cursor: 'pointer',
+		fontSize: '1.25rem',
 	},
 });
