@@ -7,7 +7,7 @@ import { Layout } from '@components/Layout';
 import { NotFound, Unexpected } from '@root/src/routes/+Error';
 import { Dashboard } from '@routes/+Index';
 import { PListView, PView, PEditView } from '@routes/+Project';
-import { TView, TEditView } from '@routes/+Task';
+import { TView } from '@routes/+Task';
 import { Page } from '@routes/+Gantt';
 
 // styles
@@ -29,7 +29,6 @@ render(
 								<Route path="/" component={PView} />
 								<Route path="/edit" component={PEditView} />
 								<Route path="/tasks/:taskID" component={TView} />
-								<Route path="/tasks/:taskID/edit" component={TEditView} />
 							</Route>
 						</Route>
 					</Router>

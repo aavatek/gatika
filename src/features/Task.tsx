@@ -440,6 +440,8 @@ export const TaskEditForm = (props: TaskEditFormProps) => {
 		}
 	};
 
+	const handleDelete = () => tasks.delete(props.task().id);
+
 	mf.setValues(form[0], {
 		...props.task(),
 		start: props.task().start
@@ -460,7 +462,7 @@ export const TaskEditForm = (props: TaskEditFormProps) => {
 				project={props.task().project as Project['id']}
 			>
 				<Button type="submit" label="Tallenna" />
-				<Button label="Peruuta" onclick={() => navigate(-1)} />
+				<Button type="button" label="Poista" onClick={handleDelete} />
 			</TaskForm>
 		</section>
 	);

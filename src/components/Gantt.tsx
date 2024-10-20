@@ -206,11 +206,6 @@ type TaskModalProps = {
 const TaskModal = (props: TaskModalProps) => {
 	const task = tasks.read(props.id);
 
-	const handleDelete = () => {
-		tasks.delete(props.id);
-		props.handleClose();
-	};
-
 	const handleOverlayClick = (e: MouseEvent) => {
 		if (e.target === e.currentTarget) {
 			props.handleClose();
@@ -223,9 +218,8 @@ const TaskModal = (props: TaskModalProps) => {
 				<Portal mount={document.querySelector('main') as HTMLElement}>
 					<div {...sx.props(styles.modalOverlay)} onClick={handleOverlayClick}>
 						<div {...sx.props(styles.taskModal)}>
-							<TaskEditForm task={task} />
 							<Button type="button" label="Close" onClick={props.handleClose} />
-							<Button type="button" label="Delete" onClick={handleDelete} />
+							<TaskEditForm task={task} />
 						</div>
 					</div>
 				</Portal>
