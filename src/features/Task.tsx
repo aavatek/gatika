@@ -301,7 +301,7 @@ export const TaskForm = (props: TaskFormProps) => {
 						<div {...sx.props(style.formDependencyField)}>
 							<Button
 								type="button"
-								label="Lisää riippuvuuksia?"
+								label="Lisää riippuvuus"
 								onClick={() => {
 									const availableTask = availableTasks().find(
 										(task) =>
@@ -325,7 +325,6 @@ export const TaskForm = (props: TaskFormProps) => {
 											{(field, props) => (
 												<SelectField
 													{...props}
-													label="Dependent Task"
 													value={field.value}
 													error={field.error}
 													options={availableTasks().map((task) => ({
@@ -336,7 +335,7 @@ export const TaskForm = (props: TaskFormProps) => {
 											)}
 										</Field>
 										<Button
-											label="Remove"
+											label="Poista"
 											onClick={() =>
 												mf.remove(props.form[0], deps.name, {
 													at: index(),

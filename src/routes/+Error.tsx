@@ -1,17 +1,17 @@
-import { Main } from '@components/Layout';
+import { PageLayout } from '@components/Layout';
 
 export const NotFound = () => {
 	return (
-		<Main>
+		<PageLayout>
 			<h1>Sivua ei löytynyt</h1>
-		</Main>
+		</PageLayout>
 	);
 };
 
 export const Unexpected = () => {
 	return (
-		<Main>
+		<PageLayout>
 			<h1>Jokin meni vikaan</h1>
-		</Main>
+		</PageLayout>
 	);
 };

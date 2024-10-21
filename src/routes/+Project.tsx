@@ -1,4 +1,4 @@
-import { A, useParams } from '@solidjs/router';
+import { useParams } from '@solidjs/router';
 import { createMemo, onMount, Show } from 'solid-js';
 import { TaskList, TaskCreateForm } from '@features/Task';
 import {
@@ -9,20 +9,25 @@ import {
 	ProjectEditForm,
 	ProjectList,
 } from '@features/Project';
-import { Main } from '@components/Layout';
-import * as sx from '@stylexjs/stylex';
+import {
+	H1,
+	PageContentSection,
+	PageHeader,
+	PageLayout,
+} from '@components/Layout';
+import { Link } from '@components/Nav';
 
 export const PListView = () => {
 	return (
-		<Main>
-			<header {...sx.props(style.header)}>
-				<h1 {...sx.props(style.h1)}>Projektit</h1>
-			</header>
-			<section {...sx.props(style.contentSection)}>
+		<PageLayout>
+			<PageHeader>
+				<H1 content="Projektit" />
+			</PageHeader>
+			<PageContentSection>
 				<ProjectList label="Kaikki projektit" />
 				<ProjectCreateForm />
-			</section>
-		</Main>
+			</PageContentSection>
+		</PageLayout>
 	);
 };
 
@@ -42,26 +47,18 @@ export const PView = () => {
 	return (
 		<Show when={project()}>
 			{(project) => (
-				<Main>
-					<header {...sx.props(style.header)}>
-						<h1 {...sx.props(style.h1)}>{project().name}</h1>
-						<A
-							href={previousPath()}
-							textContent="Takaisin"
-							{...sx.props(style.link)}
-						/>
-						<A
-							href={`/projects/${project().id}/edit`}
-							textContent="Hallitse"
-							{...sx.props(style.link)}
-						/>
-					</header>
+				<PageLayout>
+					<PageHeader>
+						<H1 content={project().name} />
+						<Link href={previousPath()} content="Takaisin" />
+						<Link href={`/projects/${project().id}/edit`} content="Hallitse" />
+					</PageHeader>
 
-					<div {...sx.props(style.contentSection)}>
+					<PageContentSection>
 						<TaskList project={projectID} label="Kaikki tehtävät" />
 						<TaskCreateForm project={projectID} />
-					</div>
-				</Main>
+					</PageContentSection>
+				</PageLayout>
 			)}
 		</Show>
 	);
@@ -75,47 +72,15 @@ export const PEditView = () => {
 	return (
 		<Show when={project()}>
 			{(project) => (
-				<Main>
-					<header {...sx.props(style.header)}>
-						<h1 {...sx.props(style.h1)}>{project().name}</h1>
-						<A
-							href={`/projects/${projectID}`}
-							textContent="Takaisin"
-							{...sx.props(style.link)}
-						/>
-					</header>
+				<PageLayout>
+					<PageHeader>
+						<H1 content={project().name} />
+						<Link href={`/projects/${projectID}`} content="Takaisin" />
+					</PageHeader>
 
 					<ProjectEditForm project={project} />
-				</Main>
+				</PageLayout>
 			)}
 		</Show>
 	);
 };
-
-const style = sx.create({
-	header: {
-		display: 'flex',
-		alignItems: 'end',
-		gap: '1rem',
-		marginBottom: '1rem',
-	},
-
-	link: {
-		color: 'inherit',
-		fontSize: '1.25rem',
-	},
-
-	contentSection: {
-		display: 'grid',
-		gap: '2rem',
-		gridTemplateColumns: {
-			default: '1fr 1fr',
-			'@media (max-width: 800px)': '1fr',
-		},
-	},
-
-	h1: {
-		fontSize: '2rem',
-		lineHeight: '1.5rem',
-	},
-});

@@ -92,7 +92,7 @@ type SelectFieldProps = {
 	error?: string;
 	options: Options;
 	placeholder?: string;
-	extraStyle?: sx.StyleXStyles;
+	variant?: 'small';
 } & ComponentProps<'select'>;
 
 export function SelectField(props: SelectFieldProps) {
@@ -102,7 +102,7 @@ export function SelectField(props: SelectFieldProps) {
 		'label',
 		'error',
 		'placeholder',
-		'extraStyle',
+		'variant',
 	]);
 
 	return (
@@ -112,7 +112,7 @@ export function SelectField(props: SelectFieldProps) {
 			<select
 				{...selectProps}
 				id={id}
-				{...sx.props(style.select, props.extraStyle)}
+				{...sx.props(style.select(props.variant))}
 			>
 				<Show when={props.placeholder}>
 					<option value="" label={props.placeholder} />
@@ -145,9 +145,9 @@ const style = sx.create({
 		padding: '1rem',
 	},
 
-	select: {
-		padding: '1rem',
-	},
+	select: (variant: SelectFieldProps['variant']) => ({
+		padding: variant ? '.25rem' : '1rem',
+	}),
 
 	button: {
 		padding: '1rem',

@@ -13,7 +13,7 @@ import { DAY, WEEK } from '@lib/dates';
 import { getWeekNumber, Weekdays, Months } from '@lib/dates';
 import * as sx from '@stylexjs/stylex';
 import { Portal } from 'solid-js/web';
-import { Button } from './Form';
+import { Button } from '@components/Form';
 import { formatDate } from '@solid-primitives/date';
 
 export const Gantt = (props: { tasks: Task[] }) => {
@@ -219,7 +219,7 @@ const TaskModal = (props: TaskModalProps) => {
 					<div {...sx.props(style.modalOverlay)} onClick={handleOverlayClick}>
 						<section {...sx.props(style.taskModal)}>
 							<header {...sx.props(style.modalHeader)}>
-								<h1 {...sx.props(style.modalHeading)}>{task().name}</h1>
+								<h2 {...sx.props(style.modalHeading)}>{task().name}</h2>
 								<Button
 									type="button"
 									label="Sulje"
@@ -379,6 +379,7 @@ const style = sx.create({
 		flexDirection: 'column',
 		alignItems: 'center',
 		background: isToday ? '#ccc' : 'white',
+		textWrap: 'nowrap',
 		overflow: 'hidden',
 	}),
 
@@ -389,6 +390,7 @@ const style = sx.create({
 		display: 'flex',
 		justifyContent: 'center',
 		alignItems: 'center',
+		textWrap: 'nowrap',
 		overflow: 'hidden',
 		background: week.isThisWeek ? '#ccc' : 'white',
 	}),
@@ -401,6 +403,7 @@ const style = sx.create({
 		justifyContent: 'center',
 		alignItems: 'center',
 		background: 'white',
+		textWrap: 'nowrap',
 		overflow: 'hidden',
 	}),
 
@@ -437,6 +440,7 @@ const style = sx.create({
 		borderLeft: 'none',
 		borderRight: 'none',
 		cursor: 'pointer',
+		textWrap: 'nowrap',
 		overflow: 'hidden',
 		display: 'flex',
 		alignItems: 'center',
@@ -468,10 +472,9 @@ const style = sx.create({
 		width: 'calc(clamp(18.75rem, 33.019vw + 12.146rem, 62.5rem))',
 		background: 'white',
 		position: 'relative',
-		padding: '1em',
+		padding: '2rem 1.5rem',
 		zIndex: 1001,
-		boxShadow:
-			'rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 2px 6px 2px',
+		border: '3px solid black',
 	},
 
 	modalHeader: {
@@ -483,7 +486,7 @@ const style = sx.create({
 	},
 
 	modalHeading: {
-		fontSize: '2rem',
+		fontSize: '1.5rem',
 		lineHeight: '1.5rem',
 	},
 
@@ -492,6 +495,6 @@ const style = sx.create({
 		background: 'none',
 		border: 'none',
 		cursor: 'pointer',
-		fontSize: '1.25rem',
+		fontSize: '1.15rem',
 	},
 });
