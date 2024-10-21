@@ -64,6 +64,8 @@ export const Gantt = (props: { tasks: Task[] }) => {
 	onMount(() => {
 		const wrapper = document.getElementById('wrapper');
 		if (wrapper) {
+			const width = wrapper.getBoundingClientRect().width;
+			if (width >= 1500) setZoom(56);
 			wrapper.scrollLeft =
 				((gridAnchorDate() - gridStartDate() - DAY * 2) / DAY) * gridColWidth();
 		}
