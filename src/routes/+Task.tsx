@@ -1,7 +1,7 @@
 import { useParams } from '@solidjs/router';
 import { Show } from 'solid-js';
 import { type Task, TaskEditForm, tasks } from '@features/Task';
-import { H1, PageHeader, PageLayout } from '@components/Layout';
+import { Heading, PageHeader, PageLayout } from '@components/Layout';
 import { Link } from '@components/Nav';
 
 export function TView() {
@@ -14,7 +14,7 @@ export function TView() {
 			{(task) => (
 				<PageLayout>
 					<PageHeader>
-						<H1 content={task().name} />
+						<Heading content={task().name} level="h1" />
 						<Link href={`/projects/${task().project}`} content="Takaisin" />
 					</PageHeader>
 					<TaskEditForm task={task} />

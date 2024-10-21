@@ -1,7 +1,7 @@
 import { TaskList } from '@features/Task';
 import { ProjectList } from '@features/Project';
 import {
-	H1,
+	Heading,
 	PageContentSection,
 	PageHeader,
 	PageLayout,
@@ -11,7 +11,7 @@ export const Dashboard = () => {
 	return (
 		<PageLayout>
 			<PageHeader>
-				<H1 content="Yleiskatsaus" />
+				<Heading content="Yleiskatsaus" level="h1" />
 			</PageHeader>
 			<PageContentSection>
 				<ProjectList label="Viimeksi katsottu" filter="lastAccessed" />

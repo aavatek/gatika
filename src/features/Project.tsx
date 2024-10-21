@@ -8,6 +8,7 @@ import { A, useNavigate } from '@solidjs/router';
 import { makePersisted, storageSync } from '@solid-primitives/storage';
 import { Button, InputField } from '@components/Form';
 import { tasks } from '@features/Task';
+import { Heading } from '../components/Layout';
 
 // -------------------------------------------------------------------------------------
 
@@ -132,8 +133,8 @@ export const ProjectCreateForm = () => {
 	};
 
 	return (
-		<section>
-			<h2 {...sx.props(style.h2)}>Luo projekti</h2>
+		<section {...sx.props(style.formWrapper)}>
+			<Heading content="Luo projekti" level="h2" />
 			<ProjectForm onSubmit={handleSubmit} form={form}>
 				<Button type="submit" label="Luo" />
 			</ProjectForm>
@@ -172,7 +173,6 @@ export const ProjectEditForm = (props: ProjectEditFormProps) => {
 
 	return (
 		<section>
-			<h2 {...sx.props(style.h2)}>Muokkaa projektia</h2>
 			<ProjectForm onSubmit={handleSubmit} form={form}>
 				<Button type="submit" label="Tallenna" />
 				<Button
@@ -202,7 +202,7 @@ export const ProjectList = (props: ProjectListProps) => {
 
 	return (
 		<section {...sx.props(style.listWrapper)}>
-			<h2 {...sx.props(style.h2)}>{props.label}</h2>
+			<Heading content={props.label} level="h2" />
 			<ol {...sx.props(style.list)}>
 				<For each={listItem()} fallback={<div>Ei viimeksi katsottuja</div>}>
 					{(project: Project) => <ProjectListItem {...project} />}
@@ -254,15 +254,18 @@ const style = sx.create({
 		color: 'black',
 	},
 
+	formWrapper: {
+		display: 'flex',
+		gap: '1rem',
+		flexDirection: 'column',
+	},
+
 	form: {
 		display: 'flex',
 		gap: '.5rem',
 		flexDirection: 'column',
-	},
-
-	h2: {
-		fontSize: '1.5rem',
-		marginBottom: '.5rem',
+		border: '2px solid black',
+		padding: '1rem',
 	},
 
 	buttonWarn: {

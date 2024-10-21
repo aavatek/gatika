@@ -15,6 +15,7 @@ import * as sx from '@stylexjs/stylex';
 import { Portal } from 'solid-js/web';
 import { Button } from '@components/Form';
 import { formatDate } from '@solid-primitives/date';
+import { Heading } from './Layout';
 
 export const Gantt = (props: { tasks: Task[] }) => {
 	const gridStartDate = createMemo(() => Date.now() - WEEK * 20);
@@ -219,7 +220,7 @@ const TaskModal = (props: TaskModalProps) => {
 					<div {...sx.props(style.modalOverlay)} onClick={handleOverlayClick}>
 						<section {...sx.props(style.taskModal)}>
 							<header {...sx.props(style.modalHeader)}>
-								<h2 {...sx.props(style.modalHeading)}>{task().name}</h2>
+								<Heading content={task().name} level="h2" />
 								<Button
 									type="button"
 									label="Sulje"

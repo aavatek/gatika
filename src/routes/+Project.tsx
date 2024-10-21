@@ -10,7 +10,7 @@ import {
 	ProjectList,
 } from '@features/Project';
 import {
-	H1,
+	Heading,
 	PageContentSection,
 	PageHeader,
 	PageLayout,
@@ -21,7 +21,7 @@ export const PListView = () => {
 	return (
 		<PageLayout>
 			<PageHeader>
-				<H1 content="Projektit" />
+				<Heading content="Projektit" level="h1" />
 			</PageHeader>
 			<PageContentSection>
 				<ProjectList label="Kaikki projektit" />
@@ -49,7 +49,7 @@ export const PView = () => {
 			{(project) => (
 				<PageLayout>
 					<PageHeader>
-						<H1 content={project().name} />
+						<Heading content={project().name} level="h1" />
 						<Link href={previousPath()} content="Takaisin" />
 						<Link href={`/projects/${project().id}/edit`} content="Hallitse" />
 					</PageHeader>
@@ -74,7 +74,7 @@ export const PEditView = () => {
 			{(project) => (
 				<PageLayout>
 					<PageHeader>
-						<H1 content={project().name} />
+						<Heading content={project().name} level="h1" />
 						<Link href={`/projects/${projectID}`} content="Takaisin" />
 					</PageHeader>
 

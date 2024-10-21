@@ -2,7 +2,7 @@ import { createMemo, createSignal } from 'solid-js';
 import { SelectField } from '@components/Form';
 import { projects, type Project } from '@features/Project';
 import { tasks } from '@features/Task';
-import { H1, PageHeader, PageLayout } from '@components/Layout';
+import { Heading, PageHeader, PageLayout } from '@components/Layout';
 import { Gantt } from '@components/Gantt';
 
 export const Page = () => {
@@ -24,7 +24,7 @@ export const Page = () => {
 	return (
 		<PageLayout>
 			<PageHeader>
-				<H1 content="Gantt" />
+				<Heading content="Gantt" level="h1" />
 				<SelectField
 					variant="small"
 					placeholder="Kaikki"

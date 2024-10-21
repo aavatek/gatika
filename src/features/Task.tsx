@@ -9,6 +9,7 @@ import { Button, InputField, SelectField } from '@components/Form';
 import { makePersisted, storageSync } from '@solid-primitives/storage';
 import { createStore, produce } from 'solid-js/store';
 import { projects, type Project } from '@features/Project';
+import { Heading } from '../components/Layout';
 
 // -------------------------------------------------------------------------------------
 
@@ -379,8 +380,8 @@ export const TaskCreateForm = (props: TaskCreateFormProps) => {
 	};
 
 	return (
-		<section>
-			<h2 {...sx.props(style.h2)}>Luo tehtävä</h2>
+		<section {...sx.props(style.formWrapper)}>
+			<Heading content="Luo tehtävä" level="h2" />
 			<TaskForm onSubmit={handleSubmit} form={form} project={props.project}>
 				<Button type="submit" label="Luo tehtävä" />
 			</TaskForm>
@@ -419,23 +420,20 @@ export const TaskEditForm = (props: TaskEditFormProps) => {
 	});
 
 	return (
-		<section>
-			<h2 {...sx.props(style.h2)}>Muokkaa tehtävää</h2>
-			<TaskForm
-				onSubmit={handleSubmit}
-				form={form}
-				task={props.task().id}
-				project={props.task().project as Project['id']}
-			>
-				<Button type="submit" label="Tallenna" />
-				<Button
-					type="button"
-					label="Poista"
-					onClick={handleDelete}
-					extraStyle={style.buttonWarn}
-				/>
-			</TaskForm>
-		</section>
+		<TaskForm
+			onSubmit={handleSubmit}
+			form={form}
+			task={props.task().id}
+			project={props.task().project as Project['id']}
+		>
+			<Button type="submit" label="Tallenna" />
+			<Button
+				type="button"
+				label="Poista"
+				onClick={handleDelete}
+				extraStyle={style.buttonWarn}
+			/>
+		</TaskForm>
 	);
 };
 
@@ -465,7 +463,7 @@ export const TaskList = (props: TaskListProps) => {
 
 	return (
 		<section {...sx.props(style.wrapper)}>
-			<h2 {...sx.props(style.h2)}>{props.label}</h2>
+			<Heading content={props.label} level="h2" />
 			<ol {...sx.props(style.list)}>
 				<For each={list()} fallback={<div>Ei tulevia tehtäviä</div>}>
 					{(task: Task) => (
@@ -555,10 +553,18 @@ const style = sx.create({
 		color: 'black',
 	},
 
+	formWrapper: {
+		display: 'flex',
+		gap: '1rem',
+		flexDirection: 'column',
+	},
+
 	form: {
 		display: 'flex',
 		gap: '.5rem',
 		flexDirection: 'column',
+		border: '2px solid black',
+		padding: '1rem',
 	},
 
 	formDependencyField: {
@@ -572,11 +578,6 @@ const style = sx.create({
 		gap: '1rem',
 		gridTemplateColumns: '1fr auto',
 		alignItems: 'end',
-	},
-
-	h2: {
-		fontSize: '1.5rem',
-		marginBottom: '.5rem',
 	},
 
 	buttonWarn: {

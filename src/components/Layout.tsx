@@ -2,6 +2,7 @@ import { splitProps, type ComponentProps, type JSXElement } from 'solid-js';
 import { Meta, Title } from '@solidjs/meta';
 import * as sx from '@stylexjs/stylex';
 import { Nav } from '@components/Nav';
+import { Dynamic } from 'solid-js/web';
 
 // -------------------------------------------------------------------------------------
 
@@ -56,7 +57,7 @@ type PageLayoutProps = {
 export const PageLayout = (props: PageLayoutProps) => {
 	const [_, mainProps] = splitProps(props, ['children']);
 	return (
-		<main {...mainProps} {...sx.props(styles.pageLayout)}>
+		<main {...mainProps} {...sx.props(style.pageLayout)}>
 			{props.children}
 		</main>
 	);
@@ -71,7 +72,7 @@ type PageHeaderProps = {
 export const PageHeader = (props: PageHeaderProps) => {
 	const [_, headerProps] = splitProps(props, ['children']);
 	return (
-		<header {...headerProps} {...sx.props(styles.pageHeader)}>
+		<header {...headerProps} {...sx.props(style.pageHeader)}>
 			{props.children}
 		</header>
 	);
@@ -84,37 +85,43 @@ type PageContentSectionProps = {
 export const PageContentSection = (props: PageContentSectionProps) => {
 	const [_, sectionProps] = splitProps(props, ['children']);
 	return (
-		<section {...sectionProps} {...sx.props(styles.pageContentSection)}>
+		<section {...sectionProps} {...sx.props(style.pageContentSection)}>
 			{props.children}
 		</section>
 	);
 };
 
-type HeadingOneProps = {
+type HeadingLevel = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
+type HeadingProps = {
 	content: string;
-} & ComponentProps<'h1'>;
+	level: HeadingLevel;
+} & ComponentProps<HeadingLevel>;
 
-export const H1 = (props: HeadingOneProps) => {
-	const [_, h1Props] = splitProps(props, ['content']);
+export const Heading = (props: HeadingProps) => {
+	const [_, headingProps] = splitProps(props, ['content', 'level']);
 	return (
-		<h1 {...h1Props} {...sx.props(styles.h1)}>
+		<Dynamic
+			component={props.level}
+			{...headingProps}
+			{...sx.props(style[props.level])}
+		>
 			{props.content}
-		</h1>
+		</Dynamic>
 	);
 };
 
-const styles = sx.create({
+const style = sx.create({
 	pageLayout: {
 		padding: '1.5rem 1rem',
 		display: 'grid',
 		gridTemplateRows: 'auto 1fr',
+		rowGap: '1rem',
 	},
 
 	pageHeader: {
 		display: 'flex',
-		gap: '1rem',
+		columnGap: '1rem',
 		alignItems: 'center',
-		height: '4rem',
 	},
 
 	pageContentSection: {
@@ -126,8 +133,10 @@ const styles = sx.create({
 		},
 	},
 
-	h1: {
-		fontSize: '2rem',
-		lineHeight: '1.5rem',
-	},
+	h1: { fontSize: '2rem' },
+	h2: { fontSize: '1.5rem' },
+	h3: { fontSize: '1.25rem' },
+	h4: { fontSize: '1rem' },
+	h5: { fontSize: '1rem' },
+	h6: { fontSize: '1rem' },
 });
