@@ -216,7 +216,7 @@ const TaskModal = (props: TaskModalProps) => {
 	return (
 		<Show when={task()}>
 			{(task) => (
-				<Portal mount={document.querySelector('main') as HTMLElement}>
+				<Portal>
 					<div {...sx.props(style.modalOverlay)} onClick={handleOverlayClick}>
 						<section {...sx.props(style.taskModal)}>
 							<header {...sx.props(style.modalHeader)}>
@@ -379,7 +379,7 @@ const style = sx.create({
 		justifyContent: 'center',
 		flexDirection: 'column',
 		alignItems: 'center',
-		background: isToday ? '#ccc' : 'white',
+		background: isToday ? '#d0d0d0' : 'white',
 		textWrap: 'nowrap',
 		overflow: 'hidden',
 	}),
@@ -393,7 +393,7 @@ const style = sx.create({
 		alignItems: 'center',
 		textWrap: 'nowrap',
 		overflow: 'hidden',
-		background: week.isThisWeek ? '#ccc' : 'white',
+		background: week.isThisWeek ? '#d0d0d0' : 'white',
 	}),
 
 	months: (month) => ({
@@ -436,7 +436,7 @@ const style = sx.create({
 	}),
 
 	task: (current) => ({
-		background: current().floating ? '#f0f0f0' : 'white',
+		background: current().floating ? '#e0e0e0' : 'white',
 		border: `2px ${current().floating ? 'dashed' : 'solid'} #666`,
 		borderLeft: 'none',
 		borderRight: 'none',
@@ -456,17 +456,15 @@ const style = sx.create({
 	}),
 
 	modalOverlay: {
-		position: 'fixed',
 		top: 0,
-		left: 0,
-		right: 0,
-		bottom: 0,
+		position: 'absolute',
+		width: '100vw',
+		height: '100vh',
 		backgroundColor: 'rgba(0, 0, 0, 0.5)',
 		backdropFilter: 'blur(.1rem)',
 		display: 'flex',
 		justifyContent: 'center',
 		alignItems: 'center',
-		zIndex: 1000,
 	},
 
 	taskModal: {
@@ -474,7 +472,6 @@ const style = sx.create({
 		background: 'white',
 		position: 'relative',
 		padding: '2rem 1.5rem',
-		zIndex: 1001,
 		border: '3px solid black',
 	},
 

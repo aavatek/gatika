@@ -143,10 +143,12 @@ const style = sx.create({
 
 	input: {
 		padding: '1rem',
+		fontSize: '16px',
 	},
 
 	select: (variant: SelectFieldProps['variant']) => ({
 		padding: variant ? '.25rem' : '1rem',
+		fontSize: 'inherit',
 	}),
 
 	button: {
@@ -154,6 +156,7 @@ const style = sx.create({
 		outline: 'none',
 		boxSizing: 'border-box',
 		border: '2px solid black',
+		fontSize: 'inherit',
 		background: {
 			default: '#f0f0f0',
 			':hover': '#ccc',
