@@ -38,6 +38,7 @@ const Header = () => {
 	const links = [
 		{ href: '/', innerText: 'Yleiskatsaus' },
 		{ href: '/projects', innerText: 'Projektit' },
+		{ href: '/resources', innerText: 'Resurssit' },
 		{ href: '/gantt', innerText: 'Gantt' },
 	];
 

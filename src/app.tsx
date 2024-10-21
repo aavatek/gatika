@@ -9,6 +9,7 @@ import { Dashboard } from '@routes/+Index';
 import { PListView, PView, PEditView } from '@routes/+Project';
 import { TView } from '@routes/+Task';
 import { Page } from '@routes/+Gantt';
+import { RListView, RView } from '@routes/+Resource';
 
 // styles
 import 'virtual:uno.css';
@@ -123,6 +124,10 @@ render(
 								<Route path="/edit" component={PEditView} />
 								<Route path="/tasks/:taskID" component={TView} />
 							</Route>
+						</Route>
+						<Route path="/resources">
+							<Route path="/" component={RListView} />
+							<Route path="/:resourceID" component={RView} />
 						</Route>
 					</Router>
 				</Suspense>
