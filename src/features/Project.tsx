@@ -136,7 +136,7 @@ export const ProjectCreateForm = () => {
 		<section {...sx.props(style.formWrapper)}>
 			<Heading content="Luo projekti" level="h2" />
 			<ProjectForm onSubmit={handleSubmit} form={form}>
-				<Button type="submit" label="Luo" />
+				<Button variant="primary" type="submit" label="Luo" />
 			</ProjectForm>
 		</section>
 	);
@@ -174,12 +174,12 @@ export const ProjectEditForm = (props: ProjectEditFormProps) => {
 	return (
 		<section>
 			<ProjectForm onSubmit={handleSubmit} form={form}>
-				<Button type="submit" label="Tallenna" />
+				<Button variant="primary" type="submit" label="Tallenna" />
 				<Button
+					variant="warning"
 					type="button"
 					label="Poista"
 					onClick={handleDelete}
-					extraStyle={style.buttonWarn}
 				/>
 			</ProjectForm>
 		</section>
@@ -266,15 +266,5 @@ const style = sx.create({
 		flexDirection: 'column',
 		border: '2px solid black',
 		padding: '1rem',
-	},
-
-	buttonWarn: {
-		background: {
-			default: '#FFEBEE',
-			':hover': '#FFCDD2',
-		},
-		color: '#B71C1C',
-		fontWeight: 'bold',
-		border: '2px solid #B71C1C',
 	},
 });

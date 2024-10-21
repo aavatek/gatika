@@ -222,10 +222,10 @@ const TaskModal = (props: TaskModalProps) => {
 							<header {...sx.props(style.modalHeader)}>
 								<Heading content={task().name} level="h2" />
 								<Button
+									variant="link"
 									type="button"
 									label="Sulje"
 									onClick={props.handleClose}
-									extraStyle={style.modalCloseButton}
 								/>
 							</header>
 							<TaskEditForm task={task} />

@@ -6,13 +6,16 @@ import * as sx from '@stylexjs/stylex';
 
 type ButtonProps = {
 	label: string;
-	extraStyle?: sx.StyleXStyles;
+	variant: 'primary' | 'warning' | 'link';
 } & ComponentProps<'button'>;
 
 export function Button(props: ButtonProps) {
-	const [_, buttonProps] = splitProps(props, ['label', 'extraStyle']);
+	const [_, buttonProps] = splitProps(props, ['label', 'variant']);
 	return (
-		<button {...buttonProps} {...sx.props(style.button, props.extraStyle)}>
+		<button
+			{...buttonProps}
+			{...sx.props(style.button, style[`${props.variant}Button`])}
+		>
 			{props.label}
 		</button>
 	);
@@ -157,10 +160,31 @@ const style = sx.create({
 		boxSizing: 'border-box',
 		border: '2px solid black',
 		fontSize: 'inherit',
+	},
+
+	primaryButton: {
 		background: {
 			default: '#f0f0f0',
 			':hover': '#ccc',
 			':focus': '#ccc',
 		},
+	},
+
+	warningButton: {
+		border: '2px solid #b71c1c',
+		color: '#b71c1c',
+		fontWeight: 600,
+		background: {
+			default: '#ffebee',
+			':hover': '#ffcde2',
+			':focus': '#ffcde2',
+		},
+	},
+
+	linkButton: {
+		padding: 0,
+		border: 'none',
+		background: 'none',
+		cursor: 'pointer',
 	},
 });

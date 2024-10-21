@@ -302,6 +302,7 @@ export const TaskForm = (props: TaskFormProps) => {
 						<div {...sx.props(style.formDependencyField)}>
 							<Button
 								type="button"
+								variant="primary"
 								label="Lisää riippuvuus"
 								onClick={() => {
 									const availableTask = availableTasks().find(
@@ -336,6 +337,8 @@ export const TaskForm = (props: TaskFormProps) => {
 											)}
 										</Field>
 										<Button
+											type="button"
+											variant="primary"
 											label="Poista"
 											onClick={() =>
 												mf.remove(props.form[0], deps.name, {
@@ -383,7 +386,7 @@ export const TaskCreateForm = (props: TaskCreateFormProps) => {
 		<section {...sx.props(style.formWrapper)}>
 			<Heading content="Luo tehtävä" level="h2" />
 			<TaskForm onSubmit={handleSubmit} form={form} project={props.project}>
-				<Button type="submit" label="Luo tehtävä" />
+				<Button type="submit" variant="primary" label="Luo tehtävä" />
 			</TaskForm>
 		</section>
 	);
@@ -426,12 +429,12 @@ export const TaskEditForm = (props: TaskEditFormProps) => {
 			task={props.task().id}
 			project={props.task().project as Project['id']}
 		>
-			<Button type="submit" label="Tallenna" />
+			<Button variant="primary" type="submit" label="Tallenna" />
 			<Button
+				variant="warning"
 				type="button"
 				label="Poista"
 				onClick={handleDelete}
-				extraStyle={style.buttonWarn}
 			/>
 		</TaskForm>
 	);
@@ -578,16 +581,6 @@ const style = sx.create({
 		gap: '1rem',
 		gridTemplateColumns: '1fr auto',
 		alignItems: 'end',
-	},
-
-	buttonWarn: {
-		background: {
-			default: '#FFEBEE',
-			':hover': '#FFCDD2',
-		},
-		color: '#B71C1C',
-		fontWeight: 'bold',
-		border: '2px solid #B71C1C',
 	},
 });
 
