@@ -103,7 +103,9 @@ describe('InputField', () => {
 
 describe('Button', () => {
 	it('should render a button', () => {
-		const { getByRole } = render(() => <Button label="Do something" />);
+		const { getByRole } = render(() => (
+			<Button variant="primary" label="Do something" />
+		));
 
 		const button = getByRole('button');
 		expect(button.textContent).toBe('Do something');
@@ -112,7 +114,7 @@ describe('Button', () => {
 	it('calls onClick handler when clicked', async () => {
 		const handleClick = vi.fn();
 		const { getByRole } = render(() => (
-			<Button onClick={handleClick} label="Do something" />
+			<Button variant="primary" onClick={handleClick} label="Do something" />
 		));
 
 		const button = getByRole('button');
@@ -127,6 +129,7 @@ describe('Button', () => {
 
 		const { getByRole } = render(() => (
 			<Button
+				variant="primary"
 				name={name}
 				type="submit"
 				label="Do something"
@@ -149,7 +152,7 @@ describe('Button', () => {
 
 		for (const type of types) {
 			const { getByRole } = render(() => (
-				<Button type={type} label="Do something" />
+				<Button variant="primary" type={type} label="Do something" />
 			));
 			const button = getByRole('button');
 			expect(button).toHaveAttribute('type', type);

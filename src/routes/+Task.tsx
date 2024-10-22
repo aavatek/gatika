@@ -1,50 +1,24 @@
-import { useNavigate, useParams } from '@solidjs/router';
+import { useParams } from '@solidjs/router';
 import { Show } from 'solid-js';
-import { Button } from '@components/Form';
 import { type Task, TaskEditForm, tasks } from '@features/Task';
-import type { Project } from '@features/Project';
+import { Heading, PageHeader, PageLayout } from '@components/Layout';
+import { Link } from '@components/Nav';
 
 export function TView() {
 	const params = useParams();
-	const navigate = useNavigate();
-	const projectID = params.projectID as Project['id'];
-	const taskID = params.taskID as Task['id'];
-	const task = tasks.read(taskID);
-
-	const handleBack = () => navigate(-1);
-	const handleEdit = () =>
-		navigate(`/projects/${projectID}/tasks/${taskID}/edit`);
-	const handleDelete = () => {
-		tasks.delete(taskID);
-		navigate(`/projects/${projectID}`, { replace: true });
-	};
-
-	return (
-		<Show when={task()}>
-			{(task) => (
-				<main>
-					<h1>Tehtävä: {task().name}</h1>
-					<Button label="Takaisin" onclick={handleBack} />
-					<Button label="Muokkaa" onclick={handleEdit} />
-					<Button label="Poista" onclick={handleDelete} />
-				</main>
-			)}
-		</Show>
-	);
-}
-
-export function TEditView() {
-	const params = useParams();
 	const taskID = params.taskID as Task['id'];
 	const task = tasks.read(taskID);
 
 	return (
 		<Show when={task()}>
 			{(task) => (
-				<main>
-					<h1>Tehtävä: {task().name}</h1>
+				<PageLayout>
+					<PageHeader>
+						<Heading content={task().name} level="h1" />
+						<Link href={`/projects/${task().project}`} content="Takaisin" />
+					</PageHeader>
 					<TaskEditForm task={task} />
-				</main>
+				</PageLayout>
 			)}
 		</Show>
 	);

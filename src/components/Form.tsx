@@ -1,15 +1,24 @@
 import type { ComponentProps } from 'solid-js';
 import { For, Show, createMemo, createUniqueId, splitProps } from 'solid-js';
+import * as sx from '@stylexjs/stylex';
 
 // -------------------------------------------------------------------------------------
 
 type ButtonProps = {
 	label: string;
+	variant: 'primary' | 'warning' | 'link';
 } & ComponentProps<'button'>;
 
 export function Button(props: ButtonProps) {
-	const [_, buttonProps] = splitProps(props, ['label']);
-	return <button {...buttonProps}>{props.label}</button>;
+	const [_, buttonProps] = splitProps(props, ['label', 'variant']);
+	return (
+		<button
+			{...buttonProps}
+			{...sx.props(style.button, style[`${props.variant}Button`])}
+		>
+			{props.label}
+		</button>
+	);
 }
 
 // -------------------------------------------------------------------------------------
@@ -56,7 +65,7 @@ export function InputField(props: InputFieldProps) {
 	});
 
 	return (
-		<div>
+		<div {...sx.props(style.field)}>
 			<FieldLabel id={id} label={props.label} />
 
 			<input
@@ -65,6 +74,7 @@ export function InputField(props: InputFieldProps) {
 				value={value()}
 				aria-invalid={props.error ? 'true' : undefined}
 				aria-errormessage={errorID()}
+				{...sx.props(style.input)}
 			/>
 
 			<FieldError id={errorID()} error={props.error} />
@@ -85,6 +95,7 @@ type SelectFieldProps = {
 	error?: string;
 	options: Options;
 	placeholder?: string;
+	variant?: 'small';
 } & ComponentProps<'select'>;
 
 export function SelectField(props: SelectFieldProps) {
@@ -94,13 +105,18 @@ export function SelectField(props: SelectFieldProps) {
 		'label',
 		'error',
 		'placeholder',
+		'variant',
 	]);
 
 	return (
-		<div>
+		<div {...sx.props(style.field)}>
 			<FieldLabel id={id} label={props.label} />
 
-			<select {...selectProps} id={id}>
+			<select
+				{...selectProps}
+				id={id}
+				{...sx.props(style.select(props.variant))}
+			>
 				<Show when={props.placeholder}>
 					<option value="" label={props.placeholder} />
 				</Show>
@@ -120,3 +136,55 @@ export function SelectField(props: SelectFieldProps) {
 }
 
 // -------------------------------------------------------------------------------------
+
+const style = sx.create({
+	field: {
+		display: 'flex',
+		flexDirection: 'column',
+		gap: '.25rem',
+	},
+
+	input: {
+		padding: '1rem',
+		fontSize: '16px',
+	},
+
+	select: (variant: SelectFieldProps['variant']) => ({
+		padding: variant ? '.25rem' : '1rem',
+		fontSize: 'inherit',
+	}),
+
+	button: {
+		padding: '1rem',
+		outline: 'none',
+		boxSizing: 'border-box',
+		border: '2px solid black',
+		fontSize: 'inherit',
+	},
+
+	primaryButton: {
+		background: {
+			default: '#f0f0f0',
+			':hover': '#ccc',
+			':focus': '#ccc',
+		},
+	},
+
+	warningButton: {
+		border: '2px solid #b71c1c',
+		color: '#b71c1c',
+		fontWeight: 600,
+		background: {
+			default: '#ffebee',
+			':hover': '#ffcde2',
+			':focus': '#ffcde2',
+		},
+	},
+
+	linkButton: {
+		padding: 0,
+		border: 'none',
+		background: 'none',
+		cursor: 'pointer',
+	},
+});

@@ -14,6 +14,7 @@
 		"baseUrl": "./",
 		"paths": {
 			"@root/*": ["./*"],
+			"@lib/*": ["./src/lib/*"],
 			"@routes/*": ["./src/routes/*"],
 			"@features/*": ["./src/features/*"],
 			"@components/*": ["./src/components/*"]

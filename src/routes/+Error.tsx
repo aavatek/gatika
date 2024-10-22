@@ -1,15 +1,21 @@
+import { Heading, PageHeader, PageLayout } from '@components/Layout';
+
 export const NotFound = () => {
 	return (
-		<main>
-			<h1>Sivua ei löytynyt</h1>
-		</main>
+		<PageLayout>
+			<PageHeader>
+				<Heading content="Sivua ei löytynyt" level="h1" />
+			</PageHeader>
+		</PageLayout>
 	);
 };
 
 export const Unexpected = () => {
 	return (
-		<main>
-			<h1>Jokin meni vikaan</h1>
-		</main>
+		<PageLayout>
+			<PageHeader>
+				<Heading content="Jokin meni pieleen" level="h1" />
+			</PageHeader>
+		</PageLayout>
 	);
 };

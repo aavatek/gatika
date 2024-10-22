@@ -1,76 +1,57 @@
 import type { Accessor, JSX } from 'solid-js';
 import { For, Show, children, createMemo, splitProps } from 'solid-js';
-import { A, useNavigate } from '@solidjs/router';
-import {
-	getTime,
-	getDate,
-	formatDate,
-	getDateDifference,
-	DAY,
-} from '@solid-primitives/date';
+import { A } from '@solidjs/router';
+import { getTime, getDate, formatDate } from '@solid-primitives/date';
 import * as mf from '@modular-forms/solid';
 import * as v from 'valibot';
+import * as sx from '@stylexjs/stylex';
 import { Button, InputField, SelectField } from '@components/Form';
 import { makePersisted, storageSync } from '@solid-primitives/storage';
 import { createStore, produce } from 'solid-js/store';
-import type { Project } from './Project';
+import { projects, type Project } from '@features/Project';
+import { Heading } from '../components/Layout';
 
 // -------------------------------------------------------------------------------------
 
-const [store, setStore] = makePersisted(createStore<Task[]>([]), {
-	name: 'tasks',
-	storage: localStorage,
-	sync: storageSync,
-});
+export const [taskStore, setTaskStore] = makePersisted(
+	createStore<Task[]>([]),
+	{
+		name: 'tasks',
+		storage: localStorage,
+		sync: storageSync,
+	},
+);
 
 export const tasks = {
 	create: (task: Task) => {
-		setStore(
+		setTaskStore(
 			produce((store) => {
 				store.push(task);
 			}),
 		);
 	},
 
-	read: (id: Task['id']) =>
-		createMemo(() => store.find((task) => task.id === id)),
-
 	update: (id: Task['id'], data: Partial<Task>) => {
-		setStore(
+		setTaskStore(
 			(task) => task.id === id,
 			produce((task) => Object.assign(task, data)),
 		);
-
-		if (data.end) {
-			const dependants = tasks
-				.list()
-				.filter((task) => task.dependencies.includes(id));
-			for (const dependant of dependants) {
-				if (!dependant.start) return;
-
-				const newStart = getDate(getTime(new Date(data.end)) + DAY);
-				if (getTime(newStart) > getTime(new Date(dependant.start))) {
-					const newEnd = dependant.duration
-						? getDate(getTime(newStart) + dependant.duration * DAY)
-						: undefined;
-
-					tasks.update(dependant.id, { start: newStart, end: newEnd });
-				}
-			}
-		}
 	},
 
+	read: (id: Task['id']) =>
+		createMemo(() => taskStore.find((task) => task.id === id)),
+
 	delete: (id: Task['id']) => {
-		setStore((store) => store.filter((task) => task.id !== id));
+		setTaskStore((store) => store.filter((task) => task.id !== id));
 	},
 
 	deleteByProject: (id: Project['id']) => {
-		setStore((store) => store.filter((task) => task.project !== id));
+		setTaskStore((store) => store.filter((task) => task.project !== id));
 	},
 
-	list: () => store,
+	list: (): Task[] => taskStore,
 	listByProject: (id: Project['id']) =>
-		store.filter((task) => task.project === id),
+		taskStore.filter((task) => task.project === id),
 };
 
 // -------------------------------------------------------------------------------------
@@ -113,15 +94,8 @@ export const taskStatus = [
 
 const DateSchema = v.pipe(
 	v.string(),
-	v.transform((value) => (value ? new Date(value) : undefined)),
-
-	v.optional(
-		v.pipe(
-			v.date(err.date.invalid),
-			v.minValue(new Date('1950-01-01'), err.date.tooEarly),
-			v.maxValue(new Date('2050-12-31'), err.date.tooLate),
-		),
-	),
+	v.transform((value) => (value ? getTime(value) : null)),
+	v.nullable(v.number(err.date.invalid)),
 );
 
 const NameSchema = v.pipe(
@@ -183,33 +157,30 @@ export const TaskSchema = v.pipe(
 
 			(input): boolean => {
 				if (input.start && input.dependencies) {
-					const sortedEndDates = input.dependencies
-						.map((id) => tasks.read(id as Task['id']))
-						.map((task) => task()?.end)
-						.filter((date) => date !== undefined)
-						.sort((a, b) => getTime(b) - getTime(a));
+					const lastEndDate =
+						Math.max(
+							...input.dependencies
+								.map((id) => tasks.read(id as Task['id']))
+								.filter((task) => task()?.end !== undefined)
+								.map((task) => task()?.end as number),
+						) || -999999999;
 
-					return sortedEndDates.length > 0
-						? getTime(input.start) > getTime(sortedEndDates[0])
-						: true;
+					return input.start >= lastEndDate;
 				}
 
 				return true;
 			},
+
 			err.date.dependencyConflict,
 		),
 		['start'],
 	),
 
-	// generate id and calculate duration
+	// generate id
 
 	v.transform((input) => ({
 		...input,
 		id: crypto.randomUUID(),
-		duration:
-			input.start && input.end
-				? getDateDifference(input.start, input.end) / DAY
-				: undefined,
 	})),
 );
 
@@ -220,10 +191,6 @@ export const TaskEditSchema = v.pipe(
 
 	v.transform((input) => ({
 		...input,
-		duration:
-			input.start && input.end
-				? getDateDifference(input.start, input.end) / DAY
-				: undefined,
 	})),
 );
 
@@ -245,7 +212,7 @@ type TaskFormProps = {
 };
 
 export const TaskForm = (props: TaskFormProps) => {
-	const [_, { Form, Field }] = props.form;
+	const [_, { Form, Field, FieldArray }] = props.form;
 	const Buttons = children(() => props.children);
 
 	const typeOptions = taskTypes.map((type) => ({
@@ -258,14 +225,14 @@ export const TaskForm = (props: TaskFormProps) => {
 		value: type,
 	}));
 
-	const dependencies = createMemo(() =>
+	const availableTasks = createMemo(() =>
 		(props.project ? tasks.listByProject(props.project) : tasks.list()).filter(
 			(task) => task.id !== props.task,
 		),
 	);
 
 	return (
-		<Form onSubmit={props.onSubmit}>
+		<Form onSubmit={props.onSubmit} {...sx.props(style.form)}>
 			<Field name="name">
 				{(field, props) => (
 					<InputField
@@ -329,22 +296,62 @@ export const TaskForm = (props: TaskFormProps) => {
 				)}
 			</Field>
 
-			<Show when={dependencies()}>
-				<For each={dependencies()}>
-					{(task) => (
-						<Field name="dependencies" type="string[]">
-							{(field, props) => (
-								<InputField
-									{...props}
-									label={task.name}
-									type="checkbox"
-									value={task.id}
-									checked={field.value?.includes(task.id)}
-								/>
-							)}
-						</Field>
+			<Show when={availableTasks().length > 0}>
+				<FieldArray name="dependencies">
+					{(deps) => (
+						<div {...sx.props(style.formDependencyField)}>
+							<Button
+								type="button"
+								variant="primary"
+								label="Lisää riippuvuus"
+								onClick={() => {
+									const availableTask = availableTasks().find(
+										(task) =>
+											!deps.items.some(
+												(_, i) =>
+													mf.getValue(props.form[0], `${deps.name}.${i}`) ===
+													task.id,
+											),
+									);
+									if (availableTask) {
+										mf.insert(props.form[0], deps.name, {
+											value: availableTask.id,
+										});
+									}
+								}}
+							/>
+							<For each={deps.items}>
+								{(_, index) => (
+									<div {...sx.props(style.formDependency)}>
+										<Field name={`${deps.name}.${index()}`}>
+											{(field, props) => (
+												<SelectField
+													{...props}
+													value={field.value}
+													error={field.error}
+													options={availableTasks().map((task) => ({
+														label: task.name,
+														value: task.id,
+													}))}
+												/>
+											)}
+										</Field>
+										<Button
+											type="button"
+											variant="primary"
+											label="Poista"
+											onClick={() =>
+												mf.remove(props.form[0], deps.name, {
+													at: index(),
+												})
+											}
+										/>
+									</div>
+								)}
+							</For>
+						</div>
 					)}
-				</For>
+				</FieldArray>
 			</Show>
 
 			{Buttons()}
@@ -373,15 +380,13 @@ export const TaskCreateForm = (props: TaskCreateFormProps) => {
 
 			return mf.reset(form[0]);
 		}
-
-		console.error(validate.issues);
 	};
 
 	return (
-		<section>
-			<h2>Luo tehtävä</h2>
+		<section {...sx.props(style.formWrapper)}>
+			<Heading content="Luo tehtävä" level="h2" />
 			<TaskForm onSubmit={handleSubmit} form={form} project={props.project}>
-				<Button type="submit" label="Luo tehtävä" />
+				<Button type="submit" variant="primary" label="Luo tehtävä" />
 			</TaskForm>
 		</section>
 	);
@@ -394,7 +399,6 @@ type TaskEditFormProps = {
 };
 
 export const TaskEditForm = (props: TaskEditFormProps) => {
-	const navigate = useNavigate();
 	const form = mf.createForm<TaskInput>({
 		validate: mf.valiForm(TaskSchema),
 	});
@@ -404,31 +408,35 @@ export const TaskEditForm = (props: TaskEditFormProps) => {
 		if (validate.success) {
 			return tasks.update(props.task().id, validate.output);
 		}
-
-		console.error(validate.issues);
 	};
+
+	const handleDelete = () => tasks.delete(props.task().id);
 
 	mf.setValues(form[0], {
 		...props.task(),
 		start: props.task().start
-			? formatDate(getDate(props.task().start as Date))
+			? formatDate(getDate(props.task().start as number))
 			: '',
-		end: props.task().end ? formatDate(getDate(props.task().end as Date)) : '',
+		end: props.task().end
+			? formatDate(getDate(props.task().end as number))
+			: '',
 	});
 
 	return (
-		<section>
-			<h2>Muokkaa tehtävää</h2>
-			<TaskForm
-				onSubmit={handleSubmit}
-				form={form}
-				task={props.task().id}
-				project={props.task().project as Project['id']}
-			>
-				<Button type="submit" label="Tallenna" />
-				<Button label="Peruuta" onclick={() => navigate(-1)} />
-			</TaskForm>
-		</section>
+		<TaskForm
+			onSubmit={handleSubmit}
+			form={form}
+			task={props.task().id}
+			project={props.task().project as Project['id']}
+		>
+			<Button variant="primary" type="submit" label="Tallenna" />
+			<Button
+				variant="warning"
+				type="button"
+				label="Poista"
+				onClick={handleDelete}
+			/>
+		</TaskForm>
 	);
 };
 
@@ -441,36 +449,28 @@ type TaskListProps = {
 };
 
 export const TaskList = (props: TaskListProps) => {
-	const taskList = createMemo(() => {
+	const list = createMemo(() => {
 		if (!props.sort)
 			return props.project ? tasks.listByProject(props.project) : tasks.list();
 
 		return props.project
 			? tasks
 					.listByProject(props.project)
-					.filter((task) => task.end)
-					.sort(
-						(a, b) =>
-							getTime(new Date(a.end as Date)) -
-							getTime(new Date(b.end as Date)),
-					)
+					.filter((task) => task.end !== null)
+					.sort((a, b) => (a.end as number) - (b.end as number))
 			: tasks
 					.list()
 					.filter((task) => task.end)
-					.sort(
-						(a, b) =>
-							getTime(new Date(a.end as Date)) -
-							getTime(new Date(b.end as Date)),
-					);
+					.sort((a, b) => (a.end as number) - (b.end as number));
 	});
 
 	return (
-		<section>
-			<h2>{props.label}</h2>
-			<ol>
-				<For each={taskList()}>
+		<section {...sx.props(style.wrapper)}>
+			<Heading content={props.label} level="h2" />
+			<ol {...sx.props(style.list)}>
+				<For each={list()} fallback={<div>Ei tulevia tehtäviä</div>}>
 					{(task: Task) => (
-						<TaskListItem task={task} project={task.project as Project['id']} />
+						<TaskListItem task={task} showProject={!props.project} />
 					)}
 				</For>
 			</ol>
@@ -480,19 +480,108 @@ export const TaskList = (props: TaskListProps) => {
 
 type TaskListItemProps = {
 	task: Task;
-	project: Project['id'];
+	showProject?: boolean;
 };
 
 const TaskListItem = (props: TaskListItemProps) => {
+	const getFormattedDate = (dateString: Date) => {
+		const date = new Date(dateString);
+		const day = date.getDate().toString().padStart(2, '0');
+		const month = (date.getMonth() + 1).toString().padStart(2, '0');
+		const year = date.getFullYear();
+		return `${day}.${month}.${year}`;
+	};
+
+	const start = createMemo(() => {
+		if (!props.task.start) return undefined;
+		return getFormattedDate(new Date(props.task.start));
+	});
+
+	const end = createMemo(() => {
+		if (!props.task.end) return undefined;
+		return getFormattedDate(new Date(props.task.end));
+	});
+
+	const project = projects.read(props.task.project as Project['id']);
+
 	return (
-		<li>
-			<span>{props.task.name}</span>
-			<A
-				href={`/projects/${props.project}/tasks/${props.task.id}`}
-				innerText="Näytä"
-			/>
-		</li>
+		<A
+			{...sx.props(style.link)}
+			href={`/projects/${props.task.project}/tasks/${props.task.id}`}
+		>
+			<li {...sx.props(style.item)}>
+				<span>{props.task.name}</span>
+
+				<Show when={props.showProject}>{project()?.name}</Show>
+
+				<Show when={start()}>
+					<span>
+						{start()} <Show when={end()}>- {end()} </Show>
+					</span>
+				</Show>
+			</li>
+		</A>
 	);
 };
+
+const style = sx.create({
+	wrapper: {
+		display: 'flex',
+		flexDirection: 'column',
+		gap: '1rem',
+	},
+
+	list: {
+		display: 'flex',
+		flexDirection: 'column',
+		gap: '.5rem',
+	},
+
+	item: {
+		border: '2px solid black',
+		padding: '1rem',
+		display: 'grid',
+		gap: '1rem',
+		gridTemplateColumns: 'auto auto 1fr',
+		justifyItems: 'end',
+		alignContent: 'center',
+		background: {
+			default: '#f0f0f0',
+			':hover': '#ccc',
+		},
+	},
+
+	link: {
+		textDecoration: 'none',
+		color: 'black',
+	},
+
+	formWrapper: {
+		display: 'flex',
+		gap: '1rem',
+		flexDirection: 'column',
+	},
+
+	form: {
+		display: 'flex',
+		gap: '.5rem',
+		flexDirection: 'column',
+		border: '2px solid black',
+		padding: '1rem',
+	},
+
+	formDependencyField: {
+		display: 'flex',
+		gap: '.5rem',
+		flexDirection: 'column',
+	},
+
+	formDependency: {
+		display: 'grid',
+		gap: '1rem',
+		gridTemplateColumns: '1fr auto',
+		alignItems: 'end',
+	},
+});
 
 // -------------------------------------------------------------------------------------

@@ -1,6 +1,5 @@
-import { useNavigate, useParams } from '@solidjs/router';
-import { onMount, Show } from 'solid-js';
-import { Button } from '@components/Form';
+import { useParams } from '@solidjs/router';
+import { createMemo, onMount, Show } from 'solid-js';
 import { TaskList, TaskCreateForm } from '@features/Task';
 import {
 	projects,
@@ -10,29 +9,36 @@ import {
 	ProjectEditForm,
 	ProjectList,
 } from '@features/Project';
+import {
+	Heading,
+	PageContentSection,
+	PageHeader,
+	PageLayout,
+} from '@components/Layout';
+import { Link } from '@components/Nav';
 
 export const PListView = () => {
 	return (
-		<main>
-			<h1>Projektit</h1>
-			<ProjectCreateForm />
-			<ProjectList label="Kaikki projektit" />
-		</main>
+		<PageLayout>
+			<PageHeader>
+				<Heading content="Projektit" level="h1" />
+			</PageHeader>
+			<PageContentSection>
+				<ProjectList label="Kaikki projektit" />
+				<ProjectCreateForm />
+			</PageContentSection>
+		</PageLayout>
 	);
 };
 
 export const PView = () => {
 	const params = useParams();
-	const navigate = useNavigate();
 	const projectID = params.projectID as Project['id'];
 	const project = projects.read(projectID);
-
-	const handleBack = () => navigate(-1);
-	const handleEdit = () => navigate(`/projects/${projectID}/edit`);
-	const handleDelete = () => {
-		projects.delete(projectID);
-		navigate('/projects', { replace: true });
-	};
+	const previousPath = createMemo(() => {
+		const state = history.state as { prev?: string } | null;
+		return state?.prev || '/projects';
+	});
 
 	onMount(() => {
 		addToLastVisited(projectID);
@@ -41,16 +47,18 @@ export const PView = () => {
 	return (
 		<Show when={project()}>
 			{(project) => (
-				<main>
-					<h1>Projekti: {project().name}</h1>
+				<PageLayout>
+					<PageHeader>
+						<Heading content={project().name} level="h1" />
+						<Link href={previousPath()} content="Takaisin" />
+						<Link href={`/projects/${project().id}/edit`} content="Hallitse" />
+					</PageHeader>
 
-					<Button label="Takaisin" onclick={handleBack} />
-					<Button label="Muokkaa" onclick={handleEdit} />
-					<Button label="Poista" onclick={handleDelete} />
-
-					<TaskCreateForm project={projectID} />
-					<TaskList project={projectID} label="Kaikki tehtävät" />
-				</main>
+					<PageContentSection>
+						<TaskList project={projectID} label="Kaikki tehtävät" />
+						<TaskCreateForm project={projectID} />
+					</PageContentSection>
+				</PageLayout>
 			)}
 		</Show>
 	);
@@ -64,10 +72,14 @@ export const PEditView = () => {
 	return (
 		<Show when={project()}>
 			{(project) => (
-				<main>
-					<h1>Projekti: {project().name}</h1>
+				<PageLayout>
+					<PageHeader>
+						<Heading content={project().name} level="h1" />
+						<Link href={`/projects/${projectID}`} content="Takaisin" />
+					</PageHeader>
+
 					<ProjectEditForm project={project} />
-				</main>
+				</PageLayout>
 			)}
 		</Show>
 	);
