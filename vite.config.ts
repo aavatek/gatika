@@ -9,7 +9,15 @@ import { default as path } from 'node:path';
 import { default as browserslist } from 'browserslist';
 
 export default defineConfig({
-	plugins: [stylex({ dev: true }), uno(), solid()],
+	plugins: [
+		stylex({
+			dev: true,
+			fileName: './dist/stylex.css',
+			classNamePrefix: 'x',
+		}),
+		uno(),
+		solid(),
+	],
 
 	server: {
 		port: 3000,
