@@ -3,6 +3,7 @@ import { Meta, Title } from '@solidjs/meta';
 import * as sx from '@stylexjs/stylex';
 import { Nav } from '@components/Nav';
 import { Dynamic } from 'solid-js/web';
+import { Notification } from '@features/Notification';
 
 // -------------------------------------------------------------------------------------
 
@@ -16,6 +17,7 @@ export const Layout = (props: LayoutProps) => {
 			<MetaTags />
 			<Header />
 			{props.children}
+			<Notification />
 		</>
 	);
 };
