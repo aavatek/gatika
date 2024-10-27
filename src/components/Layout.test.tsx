@@ -1,6 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
 import { render } from '@solidjs/testing-library';
-import { Layout } from './Layout';
+import {
+	Layout,
+	PageLayout,
+	PageHeader,
+	PageContentSection,
+	Heading,
+} from './Layout';
 import { MetaProvider } from '@solidjs/meta';
 
 vi.mock('./Nav', () => ({
@@ -44,5 +50,62 @@ describe('Layout component', () => {
 		expect(
 			document.querySelector('meta[name="description"]'),
 		).toBeInTheDocument();
+	});
+});
+
+// -------------------------------------------------------------------------------------
+
+describe('PageLayout', () => {
+	it('renders the page layout', () => {
+		const { getByRole } = render(() => (
+			<PageLayout>
+				<section>Page Layout</section>
+			</PageLayout>
+		));
+
+		expect(getByRole('main')).toBeInTheDocument();
+		expect(getByRole('main').textContent).toContain('Page Layout');
+	});
+});
+
+// -------------------------------------------------------------------------------------
+
+describe('PageHeader', () => {
+	it('renders the header', () => {
+		const { getByRole } = render(() => (
+			<PageHeader>
+				<h1>Header</h1>
+			</PageHeader>
+		));
+
+		expect(getByRole('banner')).toBeInTheDocument();
+		expect(getByRole('banner').textContent).toBe('Header');
+	});
+});
+
+// -------------------------------------------------------------------------------------
+
+describe('PageContentSection', () => {
+	it('renders section with provided children', () => {
+		const { getByText } = render(() => (
+			<PageContentSection>
+				<div>Section</div>
+			</PageContentSection>
+		));
+
+		expect(getByText('Section')).toBeInTheDocument();
+	});
+});
+
+// -------------------------------------------------------------------------------------
+
+describe('Heading', () => {
+	it('renders the heading', () => {
+		const { getByRole } = render(() => (
+			<Heading content="Heading" level="h1" />
+		));
+
+		expect(getByRole('heading', { level: 1 })).toBeInTheDocument();
+		expect(getByRole('heading', { level: 1 }).textContent).toBe('Heading');
 	});
 });
