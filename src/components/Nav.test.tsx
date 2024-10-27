@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render } from '@solidjs/testing-library';
-import { Nav } from './Nav';
+import { Nav, Link } from './Nav';
 import type { AnchorProps } from '@solidjs/router';
 
 // -------------------------------------------------------------------------------------
@@ -17,9 +17,9 @@ describe('Nav Component', () => {
 
 	it('renders a list of links when there are multiple items', () => {
 		const items: AnchorProps[] = [
-			// create 2 links: "Home" & "About"
+			// create 2 links: "Home" & "Tasks"
 			{ href: '/home', children: 'Home' },
-			{ href: '/about', children: 'About' },
+			{ href: '/tasks', children: 'Tasks' },
 		];
 
 		const { getByRole, getAllByRole, getByText } = render(() => (
@@ -27,8 +27,19 @@ describe('Nav Component', () => {
 		));
 
 		expect(getByText('Home')).toBeInTheDocument();
-		expect(getByText('About')).toBeInTheDocument();
+		expect(getByText('Tasks')).toBeInTheDocument();
 		expect(getByRole('list')).toBeInTheDocument();
 		expect(getAllByRole('listitem')).toHaveLength(2);
+	});
+});
+
+describe('Link', () => {
+	it('renders the link with provided content and props', () => {
+		const { getByRole } = render(() => (
+			<Link content="Projects" href="/projects" />
+		));
+		expect(getByRole('link')).toBeInTheDocument();
+		expect(getByRole('link')).toHaveAttribute('href', '/projects');
+		expect(getByRole('link').textContent).toBe('Projects');
 	});
 });
