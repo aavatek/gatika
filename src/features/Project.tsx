@@ -4,11 +4,12 @@ import * as sx from '@stylexjs/stylex';
 import type { Accessor, JSX } from 'solid-js';
 import { For, children, createMemo, createSignal, splitProps } from 'solid-js';
 import { createStore, produce } from 'solid-js/store';
-import { A, useNavigate } from '@solidjs/router';
+import { useNavigate } from '@solidjs/router';
 import { makePersisted, storageSync } from '@solid-primitives/storage';
 import { Button, InputField } from '@components/Form';
 import { tasks } from '@features/Task';
-import { Heading } from '../components/Layout';
+import { Heading } from '@components/Layout';
+import { List, ListItem } from '@features/List';
 
 // -------------------------------------------------------------------------------------
 
@@ -201,57 +202,27 @@ export const ProjectList = (props: ProjectListProps) => {
 	}) as () => Project[];
 
 	return (
-		<section {...sx.props(style.listWrapper)}>
-			<Heading content={props.label} level="h2" />
-			<ol {...sx.props(style.list)}>
-				<For each={listItem()} fallback={<div>Ei viimeksi katsottuja</div>}>
-					{(project: Project) => <ProjectListItem {...project} />}
-				</For>
-			</ol>
-		</section>
-	);
-};
-
-const ProjectListItem = (props: Project) => {
-	return (
-		<A {...sx.props(style.listItemLink)} href={`/projects/${props.id}`}>
-			<li {...sx.props(style.listItem)}>
-				<span>{props.name}</span>
-			</li>
-		</A>
+		<List label={props.label}>
+			<For each={listItem()} fallback={<div>Ei viimeksi katsottuja</div>}>
+				{(project: Project) => (
+					<ListItem
+						href={`/projects/${project.id}`}
+						name={project.name}
+						extraStyles={style.listItem}
+					/>
+				)}
+			</For>
+		</List>
 	);
 };
 
 // -------------------------------------------------------------------------------------
 
 const style = sx.create({
-	listWrapper: {
-		display: 'flex',
-		flexDirection: 'column',
-		gap: '1rem',
-	},
-
-	list: {
-		display: 'flex',
-		flexDirection: 'column',
-		gap: '.5rem',
-	},
-
 	listItem: {
-		border: '2px solid black',
-		padding: '1rem',
 		display: 'flex',
 		alignItems: 'center',
 		justifyContent: 'space-between',
-		background: {
-			default: '#f0f0f0',
-			':hover': '#ccc',
-		},
-	},
-
-	listItemLink: {
-		textDecoration: 'none',
-		color: 'black',
 	},
 
 	formWrapper: {
