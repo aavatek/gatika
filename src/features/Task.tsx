@@ -1,6 +1,5 @@
 import type { Accessor, JSX } from 'solid-js';
 import { For, Show, children, createMemo, splitProps } from 'solid-js';
-import { A } from '@solidjs/router';
 import { getTime, getDate, formatDate } from '@solid-primitives/date';
 import * as mf from '@modular-forms/solid';
 import * as v from 'valibot';
@@ -9,7 +8,8 @@ import { Button, InputField, SelectField } from '@components/Form';
 import { makePersisted, storageSync } from '@solid-primitives/storage';
 import { createStore, produce } from 'solid-js/store';
 import { projects, type Project } from '@features/Project';
-import { Heading } from '../components/Layout';
+import { Heading } from '@components/Layout';
+import { List, ListItem } from '@features/List';
 
 // -------------------------------------------------------------------------------------
 
@@ -464,26 +464,6 @@ export const TaskList = (props: TaskListProps) => {
 					.sort((a, b) => (a.end as number) - (b.end as number));
 	});
 
-	return (
-		<section {...sx.props(style.wrapper)}>
-			<Heading content={props.label} level="h2" />
-			<ol {...sx.props(style.list)}>
-				<For each={list()} fallback={<div>Ei tulevia tehtäviä</div>}>
-					{(task: Task) => (
-						<TaskListItem task={task} showProject={!props.project} />
-					)}
-				</For>
-			</ol>
-		</section>
-	);
-};
-
-type TaskListItemProps = {
-	task: Task;
-	showProject?: boolean;
-};
-
-const TaskListItem = (props: TaskListItemProps) => {
 	const getFormattedDate = (dateString: Date) => {
 		const date = new Date(dateString);
 		const day = date.getDate().toString().padStart(2, '0');
@@ -492,68 +472,51 @@ const TaskListItem = (props: TaskListItemProps) => {
 		return `${day}.${month}.${year}`;
 	};
 
-	const start = createMemo(() => {
-		if (!props.task.start) return undefined;
-		return getFormattedDate(new Date(props.task.start));
-	});
-
-	const end = createMemo(() => {
-		if (!props.task.end) return undefined;
-		return getFormattedDate(new Date(props.task.end));
-	});
-
-	const project = projects.read(props.task.project as Project['id']);
-
 	return (
-		<A
-			{...sx.props(style.link)}
-			href={`/projects/${props.task.project}/tasks/${props.task.id}`}
-		>
-			<li {...sx.props(style.item)}>
-				<span>{props.task.name}</span>
+		<>
+			<List label={props.label}>
+				<For each={list()} fallback={<div>Ei tulevia tehtäviä</div>}>
+					{(task) => {
+						const start = createMemo(() => {
+							if (!task.start) return undefined;
+							return getFormattedDate(new Date(task.start));
+						});
 
-				<Show when={props.showProject}>{project()?.name}</Show>
+						const end = createMemo(() => {
+							if (!task.end) return undefined;
+							return getFormattedDate(new Date(task.end));
+						});
 
-				<Show when={start()}>
-					<span>
-						{start()} <Show when={end()}>- {end()} </Show>
-					</span>
-				</Show>
-			</li>
-		</A>
+						const project = projects.read(task.project as Project['id']);
+
+						return (
+							<ListItem
+								href={`/projects/${task.project}/tasks/${task.id}`}
+								name={task.name}
+								extraStyles={style.listItem}
+							>
+								<Show when={!props.project}>{project()?.name}</Show>
+								<Show when={start()}>
+									<span>
+										{start()} <Show when={end()}>- {end()} </Show>
+									</span>
+								</Show>
+							</ListItem>
+						);
+					}}
+				</For>
+			</List>
+		</>
 	);
 };
 
 const style = sx.create({
-	wrapper: {
-		display: 'flex',
-		flexDirection: 'column',
-		gap: '1rem',
-	},
-
-	list: {
-		display: 'flex',
-		flexDirection: 'column',
-		gap: '.5rem',
-	},
-
-	item: {
-		border: '2px solid black',
-		padding: '1rem',
+	listItem: {
 		display: 'grid',
 		gap: '1rem',
 		gridTemplateColumns: 'auto auto 1fr',
 		justifyItems: 'end',
 		alignContent: 'center',
-		background: {
-			default: '#f0f0f0',
-			':hover': '#ccc',
-		},
-	},
-
-	link: {
-		textDecoration: 'none',
-		color: 'black',
 	},
 
 	formWrapper: {
