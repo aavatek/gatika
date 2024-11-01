@@ -1,6 +1,13 @@
 import type { Accessor, JSX } from 'solid-js';
-import { For, Show, children, createMemo, splitProps } from 'solid-js';
-import { getTime, getDate, formatDate } from '@solid-primitives/date';
+import {
+	For,
+	Show,
+	children,
+	createEffect,
+	createMemo,
+	splitProps,
+} from 'solid-js';
+import { getTime, getDate, formatDate, DAY } from '@solid-primitives/date';
 import * as mf from '@modular-forms/solid';
 import * as v from 'valibot';
 import * as sx from '@stylexjs/stylex';
@@ -32,10 +39,53 @@ export const tasks = {
 	},
 
 	update: (id: Task['id'], data: Partial<Task>) => {
+		const currentTask = taskStore.find((task) => task.id === id);
+		if (!currentTask) return new Error('Task not found');
+
+		const predecessorsSorted = taskStore
+			.filter((task) => currentTask.dependencies.includes(task.id))
+			.filter((task) => task.end)
+			.sort((a, b) => (b.end as number) - (a.end as number));
+
+		if (predecessorsSorted.length > 0) {
+			const firstPossibleStart = predecessorsSorted[0].end as number;
+			if (
+				data.start &&
+				formatDate(getDate(data.start)) <=
+					formatDate(getDate(firstPossibleStart))
+			)
+				return new Error(err.date.dependencyConflict);
+		}
+
 		setTaskStore(
 			(task) => task.id === id,
 			produce((task) => Object.assign(task, data)),
 		);
+
+		const successors = taskStore.filter((task) =>
+			task.dependencies.includes(id),
+		);
+
+		if (successors.length > 0) {
+			successors.forEach((successor) => {
+				if (successor.start && data.end) {
+					let newStart = formatDate(getDate(successor.start));
+					let newEnd = formatDate(
+						getDate(successor.end ?? successor.start + DAY),
+					);
+
+					while (newStart <= formatDate(getDate(data.end))) {
+						newStart = formatDate(getDate(getTime(newStart) + DAY));
+						newEnd = formatDate(getDate(getTime(newEnd) + DAY));
+					}
+
+					tasks.update(successor.id, {
+						start: getTime(newStart),
+						end: getTime(newEnd),
+					});
+				}
+			});
+		}
 	},
 
 	read: (id: Task['id']) =>
@@ -94,6 +144,11 @@ export const taskStatus = [
 
 const DateSchema = v.pipe(
 	v.string(),
+	v.transform((value) => {
+		const dateObj = value ? new Date(value) : null;
+		if (dateObj) dateObj.setHours(0, 0, 0);
+		return dateObj;
+	}),
 	v.transform((value) => (value ? getTime(value) : null)),
 	v.nullable(v.number(err.date.invalid)),
 );
@@ -212,7 +267,7 @@ type TaskFormProps = {
 };
 
 export const TaskForm = (props: TaskFormProps) => {
-	const [_, { Form, Field, FieldArray }] = props.form;
+	const [formStore, { Form, Field, FieldArray }] = props.form;
 	const Buttons = children(() => props.children);
 
 	const typeOptions = taskTypes.map((type) => ({
@@ -230,6 +285,8 @@ export const TaskForm = (props: TaskFormProps) => {
 			(task) => task.id !== props.task,
 		),
 	);
+
+	createEffect(() => console.log(mf.getValue(formStore, 'dependencies')));
 
 	return (
 		<Form onSubmit={props.onSubmit} {...sx.props(style.form)}>
