@@ -10,6 +10,7 @@ import { Button, InputField } from '@components/Form';
 import { tasks } from '@features/Task';
 import { Heading } from '@components/Layout';
 import { List, ListItem } from '@features/List';
+import { notificationMsg, setNotification } from './Notification';
 
 // -------------------------------------------------------------------------------------
 
@@ -112,7 +113,6 @@ export const ProjectForm = (props: ProjectFormProps) => {
 					/>
 				)}
 			</Field>
-
 			{Buttons()}
 		</Form>
 	);
@@ -129,8 +129,17 @@ export const ProjectCreateForm = () => {
 		const validate = v.safeParse(ProjectSchema, data);
 		if (validate.success) {
 			projects.create(validate.output);
+			setNotification({
+				variant: 'success',
+				message: notificationMsg.projectCreated,
+			});
 			return mf.reset(form[0]);
 		}
+
+		setNotification({
+			variant: 'error',
+			message: notificationMsg.unexpectedError,
+		});
 	};
 
 	return (
@@ -158,12 +167,27 @@ export const ProjectEditForm = (props: ProjectEditFormProps) => {
 	const handleSubmit: mf.SubmitHandler<ProjectInput> = (data, _) => {
 		const validate = v.safeParse(ProjectEditSchema, data);
 		if (validate.success) {
+			setNotification({
+				variant: 'success',
+				message: notificationMsg.projectEdited,
+			});
+
 			return projects.update(props.project().id, validate.output);
 		}
+
+		setNotification({
+			variant: 'error',
+			message: notificationMsg.unexpectedError,
+		});
 	};
 
 	const handleDelete = () => {
 		projects.delete(props.project().id);
+		setNotification({
+			variant: 'success',
+			message: notificationMsg.projectDeleted,
+		});
+
 		navigate('/projects', { replace: true });
 	};
 
