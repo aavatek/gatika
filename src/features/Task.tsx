@@ -59,17 +59,16 @@ export const tasks = {
 
 const err = {
 	name: {
-		invalid: 'nameInvalid',
-		empty: 'nameEmpty',
-		tooLong: 'nameTooLong',
+		invalid: 'Anna tehtävälle nimi',
+		empty: 'Anna tehtävälle nimi',
+		tooLong: 'Tehtävän nimen tulee olla enintään 255 merkkiä',
 	},
 	date: {
-		invalid: 'dateInvalid',
+		invalid: 'Anna päivämäärä',
 		tooEarly: 'dateTooEarly',
 		tooLate: 'dateTooLate',
-		endButNoStart: 'dateEndButNoStart',
-		endBeforeStart: 'dateEndBeforeStart',
-		dependencyConflict: 'dateDependancyConflict',
+		endBeforeStart: 'Tehtävä ei voi päättyä ennen alkamista',
+		dependencyConflict: 'Tehtävä ei voi alkaa ennen riippuvuuksien päättymistä',
 	},
 };
 
@@ -130,14 +129,14 @@ export const TaskSchema = v.pipe(
 
 	// verify start is given if end is given
 
-	v.forward(
-		v.partialCheck(
-			[['start'], ['end']],
-			({ start, end }) => !(end && !start),
-			err.date.endButNoStart,
-		),
-		['end'],
-	),
+	// v.forward(
+	// 	v.partialCheck(
+	// 		[['start'], ['end']],
+	// 		({ start, end }) => !(end && !start),
+	// 		err.date.endButNoStart,
+	// 	),
+	// 	['end'],
+	// ),
 
 	// verify start is before end if both are given
 

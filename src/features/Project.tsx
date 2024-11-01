@@ -65,9 +65,21 @@ export const addToLastVisited = (id: Project['id']) => {
 
 // -------------------------------------------------------------------------------------
 
+const err = {
+	name: {
+		invalid: 'Anna projektille nimi',
+		empty: 'Anna projektille nimi',
+		tooLong: 'Projektin nimen tulee olla enintään 255 merkkiä',
+	},
+};
+
 export const ProjectSchema = v.pipe(
 	v.object({
-		name: v.pipe(v.string(), v.nonEmpty()),
+		name: v.pipe(
+			v.string(err.name.empty),
+			v.nonEmpty(err.name.empty),
+			v.maxLength(255, err.name.tooLong),
+		),
 	}),
 
 	v.transform((input) => ({
