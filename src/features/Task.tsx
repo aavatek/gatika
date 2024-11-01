@@ -10,6 +10,7 @@ import { createStore, produce } from 'solid-js/store';
 import { projects, type Project } from '@features/Project';
 import { Heading } from '@components/Layout';
 import { List, ListItem } from '@features/List';
+import { notificationMsg, setNotification } from '@features/Notification';
 
 // -------------------------------------------------------------------------------------
 
@@ -58,17 +59,16 @@ export const tasks = {
 
 const err = {
 	name: {
-		invalid: 'nameInvalid',
-		empty: 'nameEmpty',
-		tooLong: 'nameTooLong',
+		invalid: 'Anna tehtävälle nimi',
+		empty: 'Anna tehtävälle nimi',
+		tooLong: 'Tehtävän nimen tulee olla enintään 255 merkkiä',
 	},
 	date: {
-		invalid: 'dateInvalid',
+		invalid: 'Anna päivämäärä',
 		tooEarly: 'dateTooEarly',
 		tooLate: 'dateTooLate',
-		endButNoStart: 'dateEndButNoStart',
-		endBeforeStart: 'dateEndBeforeStart',
-		dependencyConflict: 'dateDependancyConflict',
+		endBeforeStart: 'Tehtävä ei voi päättyä ennen alkamista',
+		dependencyConflict: 'Tehtävä ei voi alkaa ennen riippuvuuksien päättymistä',
 	},
 };
 
@@ -129,14 +129,14 @@ export const TaskSchema = v.pipe(
 
 	// verify start is given if end is given
 
-	v.forward(
-		v.partialCheck(
-			[['start'], ['end']],
-			({ start, end }) => !(end && !start),
-			err.date.endButNoStart,
-		),
-		['end'],
-	),
+	// v.forward(
+	// 	v.partialCheck(
+	// 		[['start'], ['end']],
+	// 		({ start, end }) => !(end && !start),
+	// 		err.date.endButNoStart,
+	// 	),
+	// 	['end'],
+	// ),
 
 	// verify start is before end if both are given
 
@@ -373,6 +373,11 @@ export const TaskCreateForm = (props: TaskCreateFormProps) => {
 	const handleSubmit: mf.SubmitHandler<TaskInput> = (data, _) => {
 		const validate = v.safeParse(TaskSchema, data);
 		if (validate.success) {
+			setNotification({
+				variant: 'success',
+				message: notificationMsg.taskCreated,
+			});
+
 			tasks.create({
 				...validate.output,
 				project: props.project,
@@ -380,6 +385,11 @@ export const TaskCreateForm = (props: TaskCreateFormProps) => {
 
 			return mf.reset(form[0]);
 		}
+
+		setNotification({
+			variant: 'error',
+			message: notificationMsg.unexpectedError,
+		});
 	};
 
 	return (
@@ -406,11 +416,27 @@ export const TaskEditForm = (props: TaskEditFormProps) => {
 	const handleSubmit: mf.SubmitHandler<TaskInput> = (data, _) => {
 		const validate = v.safeParse(TaskEditSchema, data);
 		if (validate.success) {
+			setNotification({
+				variant: 'success',
+				message: notificationMsg.taskEdited,
+			});
+
 			return tasks.update(props.task().id, validate.output);
 		}
+
+		setNotification({
+			variant: 'error',
+			message: notificationMsg.unexpectedError,
+		});
 	};
 
-	const handleDelete = () => tasks.delete(props.task().id);
+	const handleDelete = () => {
+		setNotification({
+			variant: 'success',
+			message: notificationMsg.taskDeleted,
+		});
+		tasks.delete(props.task().id);
+	};
 
 	mf.setValues(form[0], {
 		...props.task(),

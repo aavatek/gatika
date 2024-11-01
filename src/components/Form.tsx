@@ -5,8 +5,9 @@ import * as sx from '@stylexjs/stylex';
 // -------------------------------------------------------------------------------------
 
 type ButtonProps = {
-	label: string;
+	label?: string;
 	variant: 'primary' | 'warning' | 'link';
+	extraStyle?: sx.StyleXStyles;
 } & ComponentProps<'button'>;
 
 export function Button(props: ButtonProps) {
@@ -14,7 +15,11 @@ export function Button(props: ButtonProps) {
 	return (
 		<button
 			{...buttonProps}
-			{...sx.props(style.button, style[`${props.variant}Button`])}
+			{...sx.props(
+				style.button,
+				style[`${props.variant}Button`],
+				props.extraStyle,
+			)}
 		>
 			{props.label}
 		</button>
