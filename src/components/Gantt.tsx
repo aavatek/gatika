@@ -121,7 +121,7 @@ const GanttTask = (props: GanttTaskProps) => {
 	});
 
 	const colSpan = createMemo(() => {
-		return Math.ceil((task().end - task().start) / DAY);
+		return Math.ceil((task().end - task().start) / DAY) + 1;
 	});
 
 	const handleDrag = (mode: 'move' | 'left' | 'right') => (e: PointerEvent) => {
