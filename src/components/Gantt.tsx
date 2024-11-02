@@ -110,11 +110,50 @@ type GanttTaskProps = {
 
 const GanttTask = (props: GanttTaskProps) => {
 	const [valid, setValid] = createSignal(true);
+
+	const startDate = createMemo(() => {
+		if (props.task.start) {
+			return props.task.start;
+		}
+
+		if (!props.task.start && props.task.end) {
+			return props.task.end - WEEK;
+		}
+
+		return props.gridAnchorDate();
+	});
+
+	const endDate = createMemo(() => {
+		if (props.task.end) {
+			return props.task.end;
+		}
+
+		if (props.task.start && !props.task.end) {
+			return props.task.start + WEEK;
+		}
+
+		return props.gridAnchorDate() + WEEK;
+	});
+
+	const floating = createMemo(() => {
+		if (props.task.start && !props.task.end) {
+			return 'end';
+		}
+
+		if (!props.task.start && props.task.end) {
+			return 'start';
+		}
+
+		if (!props.task.start && !props.task.end) {
+			return 'full';
+		}
+	});
+
 	const task = createMemo(() => ({
 		...props.task,
-		start: props.task.start ?? props.gridAnchorDate(),
-		end: props.task.end ?? props.gridAnchorDate() + WEEK,
-		floating: !props.task.start,
+		start: startDate(),
+		end: endDate(),
+		floating: floating(),
 		valid: valid(),
 	}));
 
@@ -154,7 +193,7 @@ const GanttTask = (props: GanttTaskProps) => {
 			const valid =
 				newStart >= props.gridStartDate() &&
 				newEnd <= props.gridEndDate() + DAY &&
-				newEnd > newStart;
+				newEnd >= newStart;
 
 			if (valid) {
 				const err = tasks.update(task().id, {
@@ -184,7 +223,7 @@ const GanttTask = (props: GanttTaskProps) => {
 	};
 
 	return (
-		<div {...sx.props(style.taskWrapper(props.row, colStart, colSpan))}>
+		<div {...sx.props(style.taskWrapper(props.row, colStart, colSpan, task))}>
 			<span
 				{...sx.props(style.taskHandle('left', task))}
 				onPointerDown={handleDrag('left')}
@@ -434,21 +473,31 @@ const style = sx.create({
 		backgroundImage: 'linear-gradient(to right, #e0e0e0 1px, transparent 1px)',
 	}),
 
-	taskWrapper: (row, colStart, colSpan) => ({
+	taskWrapper: (row, colStart, colSpan, current) => ({
 		gridRow: row() + 1,
 		gridColumn: `${colStart()} / span ${colSpan()}`,
 		display: 'grid',
 		gridTemplateColumns: 'auto 1fr auto',
 		alignContent: 'stretch',
 		justifyItems: 'stretch',
+		maskImage:
+			current().floating === 'start'
+				? 'linear-gradient(to right, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 1))'
+				: current().floating === 'end'
+					? 'linear-gradient(to right, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0.4))'
+					: 'none',
+		':hover': {
+			maskImage: 'none',
+		},
 	}),
 
 	task: (current) => ({
-		background: current().floating
-			? '#e0e0e0'
-			: current().valid
-				? 'white'
-				: '#ffebee',
+		background:
+			current().floating === 'full'
+				? '#e0e0e0'
+				: current().valid
+					? 'white'
+					: '#ffebee',
 		border: `2px ${current().floating ? 'dashed' : 'solid'} ${current().valid ? '#666' : '#b71c1c'}`,
 		borderLeft: 'none',
 		borderRight: 'none',
@@ -469,7 +518,7 @@ const style = sx.create({
 
 	modalOverlay: {
 		top: 0,
-		position: 'absolute',
+		position: 'fixed',
 		width: '100vw',
 		height: '100vh',
 		backgroundColor: 'rgba(0, 0, 0, 0.5)',

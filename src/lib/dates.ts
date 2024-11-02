@@ -32,6 +32,12 @@ export const getWeekNumber = (d: Date): number => {
 	return Math.ceil(((date.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
 };
 
+export const getNormalizedTime = (epoch: number): number => {
+	const dateObj = new Date(epoch);
+	dateObj.setUTCHours(0, 0, 0, 0);
+	return dateObj.getTime();
+};
+
 export enum Weekdays {
 	SUN = 0,
 	MON = 1,

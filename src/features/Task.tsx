@@ -18,6 +18,7 @@ import { projects, type Project } from '@features/Project';
 import { Heading } from '@components/Layout';
 import { List, ListItem } from '@features/List';
 import { notificationMsg, setNotification } from '@features/Notification';
+import { getNormalizedTime } from '@lib/dates';
 
 // -------------------------------------------------------------------------------------
 
@@ -144,13 +145,9 @@ export const taskStatus = [
 
 const DateSchema = v.pipe(
 	v.string(),
-	v.transform((value) => {
-		const dateObj = value ? new Date(value) : null;
-		if (dateObj) dateObj.setHours(0, 0, 0);
-		return dateObj;
-	}),
-	v.transform((value) => (value ? getTime(value) : null)),
-	v.nullable(v.number(err.date.invalid)),
+	v.transform((value) =>
+		value ? getNormalizedTime(getTime(value)) : Number.NaN,
+	),
 );
 
 const NameSchema = v.pipe(

@@ -13,7 +13,7 @@ import { Page } from '@routes/+Gantt';
 // styles
 import 'virtual:uno.css';
 import '@unocss/reset/eric-meyer.css';
-import { WEEK } from '@lib/dates';
+import { DAY, getNormalizedTime, WEEK } from '@lib/dates';
 import { setProjectStore, setVisited, type Project } from '@features/Project';
 import { setTaskStore, tasks, type Task } from './features/Task';
 
@@ -42,32 +42,32 @@ const populate = () => {
 			{
 				id: crypto.randomUUID(),
 				name: 'Tehtävä A1',
-				start: Date.now() - WEEK,
-				end: Date.now(),
+				start: getNormalizedTime(Date.now() - WEEK),
+				end: getNormalizedTime(Date.now()),
 				project: mockProjects[0].id,
 				dependencies: [],
 			},
 			{
 				id: crypto.randomUUID(),
 				name: 'Tehtävä A2',
-				start: Date.now(),
-				end: Date.now() + WEEK,
+				start: getNormalizedTime(Date.now() + DAY),
+				end: getNormalizedTime(Date.now() + DAY + WEEK),
 				project: mockProjects[0].id,
 				dependencies: [],
 			},
 			{
 				id: crypto.randomUUID(),
 				name: 'Tehtävä A3',
-				start: Date.now() + WEEK,
-				end: Date.now() + WEEK * 2,
+				start: getNormalizedTime(Date.now() + DAY * 2 + WEEK),
+				end: getNormalizedTime(Date.now() + DAY * 2 + WEEK * 2),
 				project: mockProjects[0].id,
 				dependencies: [],
 			},
 			{
 				id: crypto.randomUUID(),
-				name: 'Tehtävä A3',
-				start: Date.now() - WEEK * 3,
-				end: Date.now() + WEEK,
+				name: 'Tehtävä A4',
+				start: getNormalizedTime(Date.now() - WEEK * 3),
+				end: getNormalizedTime(Date.now() + WEEK),
 				project: mockProjects[0].id,
 				dependencies: [],
 			},
@@ -77,24 +77,24 @@ const populate = () => {
 			{
 				id: crypto.randomUUID(),
 				name: 'Tehtävä C1',
-				start: null,
-				end: null,
+				start: Number.NaN,
+				end: Number.NaN,
 				project: mockProjects[2].id,
 				dependencies: [],
 			},
 			{
 				id: crypto.randomUUID(),
 				name: 'Tehtävä C2',
-				start: null,
-				end: null,
+				start: Number.NaN,
+				end: Number.NaN,
 				project: mockProjects[2].id,
 				dependencies: [],
 			},
 			{
 				id: crypto.randomUUID(),
 				name: 'Tehtävä C3',
-				start: null,
-				end: null,
+				start: Number.NaN,
+				end: Number.NaN,
 				project: mockProjects[2].id,
 				dependencies: [],
 			},
