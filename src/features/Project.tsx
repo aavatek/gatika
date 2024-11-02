@@ -10,6 +10,7 @@ import { Button, InputField } from '@components/Form';
 import { tasks } from '@features/Task';
 import { Heading } from '@components/Layout';
 import { List, ListItem } from '@features/List';
+import { notificationMsg, setNotification } from './Notification';
 
 // -------------------------------------------------------------------------------------
 
@@ -64,9 +65,21 @@ export const addToLastVisited = (id: Project['id']) => {
 
 // -------------------------------------------------------------------------------------
 
+const err = {
+	name: {
+		invalid: 'Anna projektille nimi',
+		empty: 'Anna projektille nimi',
+		tooLong: 'Projektin nimen tulee olla enintään 255 merkkiä',
+	},
+};
+
 export const ProjectSchema = v.pipe(
 	v.object({
-		name: v.pipe(v.string(), v.nonEmpty()),
+		name: v.pipe(
+			v.string(err.name.empty),
+			v.nonEmpty(err.name.empty),
+			v.maxLength(255, err.name.tooLong),
+		),
 	}),
 
 	v.transform((input) => ({
@@ -112,7 +125,6 @@ export const ProjectForm = (props: ProjectFormProps) => {
 					/>
 				)}
 			</Field>
-
 			{Buttons()}
 		</Form>
 	);
@@ -129,8 +141,17 @@ export const ProjectCreateForm = () => {
 		const validate = v.safeParse(ProjectSchema, data);
 		if (validate.success) {
 			projects.create(validate.output);
+			setNotification({
+				variant: 'success',
+				message: notificationMsg.projectCreated,
+			});
 			return mf.reset(form[0]);
 		}
+
+		setNotification({
+			variant: 'error',
+			message: notificationMsg.unexpectedError,
+		});
 	};
 
 	return (
@@ -158,12 +179,27 @@ export const ProjectEditForm = (props: ProjectEditFormProps) => {
 	const handleSubmit: mf.SubmitHandler<ProjectInput> = (data, _) => {
 		const validate = v.safeParse(ProjectEditSchema, data);
 		if (validate.success) {
+			setNotification({
+				variant: 'success',
+				message: notificationMsg.projectEdited,
+			});
+
 			return projects.update(props.project().id, validate.output);
 		}
+
+		setNotification({
+			variant: 'error',
+			message: notificationMsg.unexpectedError,
+		});
 	};
 
 	const handleDelete = () => {
 		projects.delete(props.project().id);
+		setNotification({
+			variant: 'success',
+			message: notificationMsg.projectDeleted,
+		});
+
 		navigate('/projects', { replace: true });
 	};
 
