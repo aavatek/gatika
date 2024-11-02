@@ -112,8 +112,8 @@ const GanttTask = (props: GanttTaskProps) => {
 	const [valid, setValid] = createSignal(true);
 	const task = createMemo(() => ({
 		...props.task,
-		start: props.task.start ?? props.gridAnchorDate(),
-		end: props.task.end ?? props.gridAnchorDate() + WEEK,
+		start: props.task.start || props.gridAnchorDate(),
+		end: props.task.end || props.gridAnchorDate() + WEEK,
 		floating: !props.task.start,
 		valid: valid(),
 	}));
