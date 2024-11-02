@@ -148,7 +148,6 @@ const DateSchema = v.pipe(
 	v.transform((value) =>
 		value ? getNormalizedTime(getTime(value)) : Number.NaN,
 	),
-	v.number(err.date.invalid),
 );
 
 const NameSchema = v.pipe(
