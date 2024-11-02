@@ -109,11 +109,13 @@ type GanttTaskProps = {
 };
 
 const GanttTask = (props: GanttTaskProps) => {
+	const [valid, setValid] = createSignal(true);
 	const task = createMemo(() => ({
 		...props.task,
 		start: props.task.start ?? props.gridAnchorDate(),
 		end: props.task.end ?? props.gridAnchorDate() + WEEK,
 		floating: !props.task.start,
+		valid: valid(),
 	}));
 
 	const colStart = createMemo(() => {
@@ -121,7 +123,7 @@ const GanttTask = (props: GanttTaskProps) => {
 	});
 
 	const colSpan = createMemo(() => {
-		return Math.ceil((task().end - task().start) / DAY);
+		return Math.ceil((task().end - task().start) / DAY) + 1;
 	});
 
 	const handleDrag = (mode: 'move' | 'left' | 'right') => (e: PointerEvent) => {
@@ -155,16 +157,20 @@ const GanttTask = (props: GanttTaskProps) => {
 				newEnd > newStart;
 
 			if (valid) {
-				tasks.update(task().id, {
+				const err = tasks.update(task().id, {
 					start: newStart,
 					end: newEnd,
 				});
+
+				if (err) setValid(false);
+				else setValid(true);
 			}
 		};
 
 		const handleRelease = () => {
 			document.removeEventListener('pointermove', handleMove);
 			document.removeEventListener('pointerup', handleRelease);
+			setValid(true);
 		};
 
 		document.addEventListener('pointermove', handleMove);
@@ -180,7 +186,7 @@ const GanttTask = (props: GanttTaskProps) => {
 	return (
 		<div {...sx.props(style.taskWrapper(props.row, colStart, colSpan))}>
 			<span
-				{...sx.props(style.taskHandle('left'))}
+				{...sx.props(style.taskHandle('left', task))}
 				onPointerDown={handleDrag('left')}
 			/>
 			<span
@@ -191,7 +197,7 @@ const GanttTask = (props: GanttTaskProps) => {
 				{props.task.name}
 			</span>
 			<span
-				{...sx.props(style.taskHandle('right'))}
+				{...sx.props(style.taskHandle('right', task))}
 				onPointerDown={handleDrag('right')}
 			/>
 			<Show when={modalVisible()}>
@@ -438,8 +444,12 @@ const style = sx.create({
 	}),
 
 	task: (current) => ({
-		background: current().floating ? '#e0e0e0' : 'white',
-		border: `2px ${current().floating ? 'dashed' : 'solid'} #666`,
+		background: current().floating
+			? '#e0e0e0'
+			: current().valid
+				? 'white'
+				: '#ffebee',
+		border: `2px ${current().floating ? 'dashed' : 'solid'} ${current().valid ? '#666' : '#b71c1c'}`,
 		borderLeft: 'none',
 		borderRight: 'none',
 		cursor: 'pointer',
@@ -450,10 +460,10 @@ const style = sx.create({
 		justifyContent: 'center',
 	}),
 
-	taskHandle: (side) => ({
+	taskHandle: (side, current) => ({
 		width: '.5rem',
 		cursor: 'ew-resize',
-		backgroundColor: '#666',
+		backgroundColor: `${current().valid ? '#666' : '#b71c1c'}`,
 		borderRadius: side === 'left' ? '4px 0 0 4px' : '0 4px 4px 0',
 	}),
 
