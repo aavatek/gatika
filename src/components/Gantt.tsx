@@ -193,7 +193,7 @@ const GanttTask = (props: GanttTaskProps) => {
 			const valid =
 				newStart >= props.gridStartDate() &&
 				newEnd <= props.gridEndDate() + DAY &&
-				newEnd > newStart;
+				newEnd >= newStart;
 
 			if (valid) {
 				const err = tasks.update(task().id, {
