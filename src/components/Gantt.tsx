@@ -469,7 +469,7 @@ const style = sx.create({
 
 	modalOverlay: {
 		top: 0,
-		position: 'absolute',
+		position: 'fixed',
 		width: '100vw',
 		height: '100vh',
 		backgroundColor: 'rgba(0, 0, 0, 0.5)',
