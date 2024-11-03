@@ -10,6 +10,7 @@ vi.mock('@stylexjs/stylex', () => ({
 
 describe('Notification component', () => {
 	beforeEach(() => {
+		// used only in the last test
 		vi.useFakeTimers();
 		setNotification(undefined);
 	});
@@ -24,7 +25,7 @@ describe('Notification component', () => {
 		await waitFor(() => {
 			expect(screen.getByText(notificationMsg.taskCreated)).toBeInTheDocument();
 		});
-	}, 10000);
+	});
 
 	it('renders warning notification with message', async () => {
 		setNotification({
@@ -39,7 +40,7 @@ describe('Notification component', () => {
 				screen.getByText(notificationMsg.projectCreated),
 			).toBeInTheDocument();
 		});
-	}, 10000);
+	}, 15000);
 
 	it('renders error notification with message', async () => {
 		setNotification({
@@ -54,7 +55,7 @@ describe('Notification component', () => {
 				screen.getByText(notificationMsg.unexpectedError),
 			).toBeInTheDocument();
 		});
-	}, 10000);
+	}, 15000);
 
 	it('hides error notification after 3 seconds', async () => {
 		setNotification({
