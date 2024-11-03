@@ -15,49 +15,41 @@ describe('Notification component', () => {
 		setNotification(undefined);
 	});
 
-	it('renders success notification with message', async () => {
+	it('renders success notification with message', () => {
 		setNotification({
 			variant: 'success',
 			message: notificationMsg.taskCreated,
 		});
 		render(() => <Notification />);
 
-		await waitFor(() => {
-			expect(screen.getByText(notificationMsg.taskCreated)).toBeInTheDocument();
-		});
+		expect(screen.getByText(notificationMsg.taskCreated)).toBeInTheDocument();
 	});
 
-	it('renders warning notification with message', async () => {
+	it('renders warning notification with message', () => {
 		setNotification({
 			variant: 'warning',
 			message: notificationMsg.projectCreated,
 		});
-
 		render(() => <Notification />);
 
-		await waitFor(() => {
-			expect(
-				screen.getByText(notificationMsg.projectCreated),
-			).toBeInTheDocument();
-		});
-	}, 15000);
+		expect(
+			screen.getByText(notificationMsg.projectCreated),
+		).toBeInTheDocument();
+	});
 
-	it('renders error notification with message', async () => {
+	it('renders error notification with message', () => {
 		setNotification({
 			variant: 'error',
 			message: notificationMsg.unexpectedError,
 		});
-
 		render(() => <Notification />);
 
-		await waitFor(() => {
-			expect(
-				screen.getByText(notificationMsg.unexpectedError),
-			).toBeInTheDocument();
-		});
-	}, 15000);
+		expect(
+			screen.getByText(notificationMsg.unexpectedError),
+		).toBeInTheDocument();
+	});
 
-	it('hides error notification after 3 seconds', async () => {
+	it('hides notification after 3 seconds', async () => {
 		setNotification({
 			variant: 'error',
 			message: notificationMsg.taskCreated,
@@ -65,14 +57,14 @@ describe('Notification component', () => {
 
 		render(() => <Notification />);
 
-		await waitFor(() => {
-			expect(screen.getByText(notificationMsg.taskCreated)).toBeInTheDocument();
-		});
+		// Verify notification is initially in the document
+		expect(screen.getByText(notificationMsg.taskCreated)).toBeInTheDocument();
 
-		// Advance the timer by 3000 milliseconds
+		// Advance the timer 3s
 		vi.advanceTimersByTime(3000);
 
-		// Assert that the notification is no longer in the document
-		expect(screen.queryByText(notificationMsg.taskCreated)).toBeNull();
-	}, 10000);
+		await waitFor(() =>
+			expect(screen.queryByText(notificationMsg.taskCreated)).toBeNull(),
+		);
+	});
 });
