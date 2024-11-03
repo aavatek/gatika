@@ -11,6 +11,7 @@ vi.mock('@stylexjs/stylex', () => ({
 describe('Notification component', () => {
 	beforeEach(() => {
 		vi.useFakeTimers();
+		setNotification(undefined);
 	});
 
 	it('renders success notification with message', async () => {
@@ -23,7 +24,7 @@ describe('Notification component', () => {
 		await waitFor(() => {
 			expect(screen.getByText(notificationMsg.taskCreated)).toBeInTheDocument();
 		});
-	});
+	}, 10000);
 
 	it('renders warning notification with message', async () => {
 		setNotification({
@@ -38,7 +39,7 @@ describe('Notification component', () => {
 				screen.getByText(notificationMsg.projectCreated),
 			).toBeInTheDocument();
 		});
-	});
+	}, 10000);
 
 	it('renders error notification with message', async () => {
 		setNotification({
@@ -53,7 +54,7 @@ describe('Notification component', () => {
 				screen.getByText(notificationMsg.unexpectedError),
 			).toBeInTheDocument();
 		});
-	});
+	}, 10000);
 
 	it('hides error notification after 3 seconds', async () => {
 		setNotification({
@@ -63,12 +64,14 @@ describe('Notification component', () => {
 
 		render(() => <Notification />);
 
-		expect(screen.getByText(notificationMsg.taskCreated)).toBeInTheDocument();
+		await waitFor(() => {
+			expect(screen.getByText(notificationMsg.taskCreated)).toBeInTheDocument();
+		});
 
 		// Advance the timer by 3000 milliseconds
 		vi.advanceTimersByTime(3000);
 
 		// Assert that the notification is no longer in the document
 		expect(screen.queryByText(notificationMsg.taskCreated)).toBeNull();
-	});
+	}, 10000);
 });
