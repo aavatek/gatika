@@ -85,6 +85,7 @@ export const ProjectSchema = v.pipe(
 	v.transform((input) => ({
 		...input,
 		id: crypto.randomUUID(),
+		created: Date.now(),
 	})),
 );
 

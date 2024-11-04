@@ -1,7 +1,7 @@
 import { makePersisted } from '@solid-primitives/storage';
 import { createSignal } from 'solid-js';
-import { setProjectStore, setVisited, type Project } from '../features/Project';
-import { setTaskStore } from '../features/Task';
+import { setProjectStore, setVisited, type Project } from '@features/Project';
+import { setTaskStore } from '@features/Task';
 import { DAY, WEEK } from './dates';
 
 export const [version, setVersion] = makePersisted(createSignal<string>(), {
@@ -20,16 +20,19 @@ export const populate = () => {
 		const PA: Project = {
 			id: crypto.randomUUID(),
 			name: 'Projekti A',
+			created: Date.now(),
 		};
 
 		const PB: Project = {
 			id: crypto.randomUUID(),
 			name: 'Projekti B',
+			created: Date.now() + DAY,
 		};
 
 		const PC: Project = {
 			id: crypto.randomUUID(),
 			name: 'Projekti C',
+			created: Date.now() + DAY * 2,
 		};
 
 		const A1 = {
@@ -39,6 +42,7 @@ export const populate = () => {
 			end: Date.now(),
 			project: PA.id,
 			dependencies: [],
+			created: Date.now(),
 		};
 
 		const A2 = {
@@ -48,6 +52,7 @@ export const populate = () => {
 			end: Date.now() + DAY + WEEK,
 			project: PA.id,
 			dependencies: [A1.id],
+			created: Date.now(),
 		};
 
 		const A3 = {
@@ -57,6 +62,7 @@ export const populate = () => {
 			end: Date.now() + DAY * 2 + WEEK * 2,
 			project: PA.id,
 			dependencies: [A2.id],
+			created: Date.now(),
 		};
 
 		const A4 = {
@@ -66,6 +72,7 @@ export const populate = () => {
 			end: Date.now() + WEEK * 2,
 			project: PA.id,
 			dependencies: [A1.id],
+			created: Date.now(),
 		};
 
 		const A5 = {
@@ -75,6 +82,7 @@ export const populate = () => {
 			end: Date.now() + WEEK,
 			project: PA.id,
 			dependencies: [],
+			created: Date.now(),
 		};
 
 		const B1 = {
@@ -84,6 +92,7 @@ export const populate = () => {
 			end: Number.NaN,
 			project: PB.id,
 			dependencies: [],
+			created: Date.now(),
 		};
 
 		const B2 = {
@@ -93,6 +102,7 @@ export const populate = () => {
 			end: Date.now() + WEEK * 2,
 			project: PB.id,
 			dependencies: [],
+			created: Date.now(),
 		};
 
 		const C1 = {
@@ -102,6 +112,7 @@ export const populate = () => {
 			end: Number.NaN,
 			project: PC.id,
 			dependencies: [],
+			created: Date.now(),
 		};
 
 		const C2 = {
@@ -111,6 +122,7 @@ export const populate = () => {
 			end: Number.NaN,
 			project: PC.id,
 			dependencies: [],
+			created: Date.now(),
 		};
 
 		const C3 = {
@@ -120,6 +132,7 @@ export const populate = () => {
 			end: Number.NaN,
 			project: PC.id,
 			dependencies: [],
+			created: Date.now(),
 		};
 
 		setProjectStore([PA, PB, PC]);
