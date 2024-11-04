@@ -427,7 +427,7 @@ const Timeline = (props: TimelineProps) => {
 				<Match when={props.zoomModifier() < 45}>
 					<For each={tl().weeks}>
 						{(week) => (
-							<div {...sx.props(style.weeks(week))}>Week {week.label}</div>
+							<div {...sx.props(style.weeks(week))}>Viikko {week.label}</div>
 						)}
 					</For>
 				</Match>
