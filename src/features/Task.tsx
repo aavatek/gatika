@@ -179,17 +179,6 @@ export const TaskSchema = v.pipe(
 		dependencies: v.optional(v.array(IdSchema), []),
 	}),
 
-	// verify start is given if end is given
-
-	// v.forward(
-	// 	v.partialCheck(
-	// 		[['start'], ['end']],
-	// 		({ start, end }) => !(end && !start),
-	// 		err.date.endButNoStart,
-	// 	),
-	// 	['end'],
-	// ),
-
 	// verify start is before end if both are given
 
 	v.forward(
