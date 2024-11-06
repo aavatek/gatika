@@ -19,6 +19,7 @@ import { Heading } from '@components/Layout';
 import { List, ListItem } from '@features/List';
 import { notificationMsg, setNotification } from '@features/Notification';
 import { getNormalizedTime } from '@lib/dates';
+import { useNavigate } from '@solidjs/router';
 
 // -------------------------------------------------------------------------------------
 
@@ -450,9 +451,12 @@ export const TaskCreateForm = (props: TaskCreateFormProps) => {
 
 type TaskEditFormProps = {
 	task: Accessor<Task>;
+	handleBack?: () => void;
 };
 
 export const TaskEditForm = (props: TaskEditFormProps) => {
+	const navigate = useNavigate();
+
 	const form = mf.createForm<TaskInput>({
 		validate: mf.valiForm(TaskSchema),
 	});
@@ -479,7 +483,10 @@ export const TaskEditForm = (props: TaskEditFormProps) => {
 			variant: 'success',
 			message: notificationMsg.taskDeleted,
 		});
+
 		tasks.delete(props.task().id);
+
+		if (props.handleBack) props.handleBack();
 	};
 
 	mf.setValues(form[0], {
