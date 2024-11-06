@@ -41,26 +41,41 @@ export const PView = () => {
 	const handleBack = () => navigate(-1);
 
 	onMount(() => {
-		addToLastVisited(projectID);
+		if (project()) {
+			addToLastVisited(projectID);
+		}
 	});
 
 	return (
-		<Show when={project()}>
-			{(project) => (
-				<PageLayout>
+		<PageLayout>
+			<Show
+				when={project()}
+				fallback={
 					<PageHeader>
-						<Heading content={project().name} level="h1" />
+						<Heading content="Projektia ei löytynyt" level="h1" />
 						<Button label="Takaisin" variant="link" onClick={handleBack} />
-						<Link href={`/projects/${project().id}/edit`} content="Hallitse" />
 					</PageHeader>
+				}
+			>
+				{(project) => (
+					<>
+						<PageHeader>
+							<Heading content={project().name} level="h1" />
+							<Button label="Takaisin" variant="link" onClick={handleBack} />
+							<Link
+								href={`/projects/${project().id}/edit`}
+								content="Hallitse"
+							/>
+						</PageHeader>
 
-					<PageContentSection>
-						<TaskList project={projectID} label="Kaikki tehtävät" />
-						<TaskCreateForm project={projectID} />
-					</PageContentSection>
-				</PageLayout>
-			)}
-		</Show>
+						<PageContentSection>
+							<TaskList project={projectID} label="Kaikki tehtävät" />
+							<TaskCreateForm project={projectID} />
+						</PageContentSection>
+					</>
+				)}
+			</Show>
+		</PageLayout>
 	);
 };
 
