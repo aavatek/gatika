@@ -191,5 +191,8 @@ const style = sx.create({
 		border: 'none',
 		background: 'none',
 		cursor: 'pointer',
+		fontFamily: 'inherit',
+		fontSize: '1.25rem',
+		textDecoration: 'underline',
 	},
 });
