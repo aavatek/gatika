@@ -13,16 +13,26 @@ export function TView() {
 	const handleBack = () => navigate(-1);
 
 	return (
-		<Show when={task()}>
-			{(task) => (
-				<PageLayout>
+		<PageLayout>
+			<Show
+				when={task()}
+				fallback={
 					<PageHeader>
-						<Heading content={task().name} level="h1" />
+						<Heading content="Tehtävää ei löytynyt" level="h1" />
 						<Button label="Takaisin" variant="link" onClick={handleBack} />
 					</PageHeader>
-					<TaskEditForm task={task} handleBack={handleBack} />
-				</PageLayout>
-			)}
-		</Show>
+				}
+			>
+				{(task) => (
+					<>
+						<PageHeader>
+							<Heading content={task().name} level="h1" />
+							<Button label="Takaisin" variant="link" onClick={handleBack} />
+						</PageHeader>
+						<TaskEditForm task={task} handleBack={handleBack} />
+					</>
+				)}
+			</Show>
+		</PageLayout>
 	);
 }
