@@ -19,7 +19,6 @@ import { Heading } from '@components/Layout';
 import { List, ListItem } from '@features/List';
 import { notificationMsg, setNotification } from '@features/Notification';
 import { getNormalizedTime } from '@lib/dates';
-import { useNavigate } from '@solidjs/router';
 
 // -------------------------------------------------------------------------------------
 
@@ -418,6 +417,19 @@ export const TaskCreateForm = (props: TaskCreateFormProps) => {
 	const handleSubmit: mf.SubmitHandler<TaskInput> = (data, _) => {
 		const validate = v.safeParse(TaskSchema, data);
 		if (validate.success) {
+			const tasksByProject = tasks.listByProject(props.project);
+			for (const task of tasksByProject) {
+				if (task.name === validate.output.name) {
+					if (task.id !== validate.output.id) {
+						return mf.setError(
+							form[0],
+							'name',
+							'Projektissa on jo tehtävä tällä nimellä',
+						);
+					}
+				}
+			}
+
 			setNotification({
 				variant: 'success',
 				message: notificationMsg.taskCreated,
@@ -455,8 +467,6 @@ type TaskEditFormProps = {
 };
 
 export const TaskEditForm = (props: TaskEditFormProps) => {
-	const navigate = useNavigate();
-
 	const form = mf.createForm<TaskInput>({
 		validate: mf.valiForm(TaskSchema),
 	});
@@ -464,6 +474,21 @@ export const TaskEditForm = (props: TaskEditFormProps) => {
 	const handleSubmit: mf.SubmitHandler<TaskInput> = (data, _) => {
 		const validate = v.safeParse(TaskEditSchema, data);
 		if (validate.success) {
+			const tasksByProject = tasks.listByProject(
+				props.task().project as Project['id'],
+			);
+			for (const task of tasksByProject) {
+				if (task.name === validate.output.name) {
+					if (task.id !== props.task().id) {
+						return mf.setError(
+							form[0],
+							'name',
+							'Projektissa on jo tehtävä tällä nimellä',
+						);
+					}
+				}
+			}
+
 			setNotification({
 				variant: 'success',
 				message: notificationMsg.taskEdited,
