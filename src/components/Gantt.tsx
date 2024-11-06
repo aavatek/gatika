@@ -16,6 +16,7 @@ import { Portal } from 'solid-js/web';
 import { Button } from '@components/Form';
 import { formatDate } from '@solid-primitives/date';
 import { Heading } from './Layout';
+import { projects, type Project } from '@features/Project';
 
 export const Gantt = (props: { tasks: Task[] }) => {
 	const gridStartDate = createMemo(() => Date.now() - WEEK * 20);
@@ -28,6 +29,31 @@ export const Gantt = (props: { tasks: Task[] }) => {
 			.filter((task) => !task.start || task.start > gridStartDate())
 			.filter((task) => !task.end || task.end < gridEndDate() + DAY),
 	);
+
+	const tasksSorted = createMemo(() => {
+		return tasksWithinRange().sort((a, b) => {
+			// sort based on when project was created
+			const projectA = projects.read(a.project as Project['id'])();
+			const projectB = projects.read(b.project as Project['id'])();
+			if (projectA?.created !== projectB?.created) {
+				return (projectA?.created ?? 0) - (projectB?.created ?? 0);
+			}
+
+			// group by project
+			if (a.project !== b.project) {
+				return (a.project ?? '').localeCompare(b.project ?? '');
+			}
+
+			// floating tasks come last
+			const aIsFloating = Number.isNaN(a.start) && Number.isNaN(a.end);
+			const bIsFloating = Number.isNaN(b.start) && Number.isNaN(b.end);
+
+			if (aIsFloating && !bIsFloating) return 1;
+			if (!aIsFloating && bIsFloating) return -1;
+
+			return 0;
+		});
+	});
 
 	const gridRows = createMemo(() => Math.max(tasksWithinRange().length, 15));
 	const gridCols = createMemo(() => (gridEndDate() - gridStartDate()) / DAY);
@@ -82,7 +108,7 @@ export const Gantt = (props: { tasks: Task[] }) => {
 			/>
 
 			<div {...sx.props(style.gantt(gridCols, gridRows, zoom))}>
-				<For each={tasksWithinRange()} fallback={<div />}>
+				<For each={tasksSorted()} fallback={<div />}>
 					{(task, row) => (
 						<GanttTask
 							task={task}
@@ -401,7 +427,7 @@ const Timeline = (props: TimelineProps) => {
 				<Match when={props.zoomModifier() < 45}>
 					<For each={tl().weeks}>
 						{(week) => (
-							<div {...sx.props(style.weeks(week))}>Week {week.label}</div>
+							<div {...sx.props(style.weeks(week))}>Viikko {week.label}</div>
 						)}
 					</For>
 				</Match>
