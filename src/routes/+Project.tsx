@@ -1,5 +1,5 @@
-import { useParams } from '@solidjs/router';
-import { createMemo, onMount, Show } from 'solid-js';
+import { useNavigate, useParams } from '@solidjs/router';
+import { onMount, Show } from 'solid-js';
 import { TaskList, TaskCreateForm } from '@features/Task';
 import {
 	projects,
@@ -16,6 +16,7 @@ import {
 	PageLayout,
 } from '@components/Layout';
 import { Link } from '@components/Nav';
+import { Button } from '@components/Form';
 
 export const PListView = () => {
 	return (
@@ -35,10 +36,9 @@ export const PView = () => {
 	const params = useParams();
 	const projectID = params.projectID as Project['id'];
 	const project = projects.read(projectID);
-	const previousPath = createMemo(() => {
-		const state = history.state as { prev?: string } | null;
-		return state?.prev || '/projects';
-	});
+
+	const navigate = useNavigate();
+	const handleBack = () => navigate(-1);
 
 	onMount(() => {
 		addToLastVisited(projectID);
@@ -50,7 +50,7 @@ export const PView = () => {
 				<PageLayout>
 					<PageHeader>
 						<Heading content={project().name} level="h1" />
-						<Link href={previousPath()} content="Takaisin" />
+						<Button label="Takaisin" variant="link" onClick={handleBack} />
 						<Link href={`/projects/${project().id}/edit`} content="Hallitse" />
 					</PageHeader>
 
