@@ -15,56 +15,60 @@ describe('Notification component', () => {
 		setNotification(undefined);
 	});
 
-	it('renders success notification with message', () => {
+	it('renders success notification with message', async () => {
+		render(() => <Notification />);
 		setNotification({
 			variant: 'success',
 			message: notificationMsg.taskCreated,
 		});
-		render(() => <Notification />);
+		screen.debug();
 
-		expect(screen.getByText(notificationMsg.taskCreated)).toBeInTheDocument();
+		expect(
+			await screen.findByText(notificationMsg.taskCreated),
+		).toBeInTheDocument();
 	});
 
 	it('renders warning notification with message', () => {
+		render(() => <Notification />);
 		setNotification({
 			variant: 'warning',
 			message: notificationMsg.projectCreated,
 		});
-		render(() => <Notification />);
-
+		// test with debugs to see what causes the error
+		screen.debug();
 		expect(
 			screen.getByText(notificationMsg.projectCreated),
 		).toBeInTheDocument();
 	});
 
 	it('renders error notification with message', () => {
+		render(() => <Notification />);
 		setNotification({
 			variant: 'error',
 			message: notificationMsg.unexpectedError,
 		});
-		render(() => <Notification />);
-
+		screen.debug();
 		expect(
 			screen.getByText(notificationMsg.unexpectedError),
 		).toBeInTheDocument();
 	});
 
 	it('hides notification after 3 seconds', async () => {
+		render(() => <Notification />);
+
 		setNotification({
 			variant: 'error',
 			message: notificationMsg.taskCreated,
 		});
-
-		render(() => <Notification />);
-
+		screen.debug();
 		// Verify notification is initially in the document
 		expect(screen.getByText(notificationMsg.taskCreated)).toBeInTheDocument();
 
 		// Advance the timer 3s
 		vi.advanceTimersByTime(3000);
-
 		await waitFor(() =>
 			expect(screen.queryByText(notificationMsg.taskCreated)).toBeNull(),
 		);
+		screen.debug();
 	});
 });
