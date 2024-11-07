@@ -49,6 +49,7 @@ export default defineConfig({
 			exclude: ['src/app.tsx', 'src/routes/*'],
 			include: ['src/**/*.ts', 'src/**/*.tsx'],
 		},
+		testTimeout: 1000,
 	},
 	resolve: {
 		alias: {
