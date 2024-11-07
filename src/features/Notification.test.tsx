@@ -10,8 +10,6 @@ vi.mock('@stylexjs/stylex', () => ({
 
 describe('Notification component', () => {
 	beforeEach(() => {
-		// used only in the last test
-		vi.useFakeTimers();
 		setNotification(undefined);
 	});
 
@@ -23,39 +21,41 @@ describe('Notification component', () => {
 		});
 		screen.debug();
 
-		expect(
-			await screen.findByText(notificationMsg.taskCreated),
-		).toBeInTheDocument();
+		await waitFor(() =>
+			expect(screen.getByText(notificationMsg.taskCreated)).toBeInTheDocument(),
+		);
 	});
 
-	it('renders warning notification with message', () => {
+	it('renders warning notification with message', async () => {
 		render(() => <Notification />);
 		setNotification({
 			variant: 'warning',
 			message: notificationMsg.projectCreated,
 		});
-		// test with debugs to see what causes the error
-		screen.debug();
-		expect(
-			screen.getByText(notificationMsg.projectCreated),
-		).toBeInTheDocument();
+
+		await waitFor(() =>
+			expect(
+				screen.getByText(notificationMsg.projectCreated),
+			).toBeInTheDocument(),
+		);
 	});
 
-	it('renders error notification with message', () => {
+	it('renders error notification with message', async () => {
 		render(() => <Notification />);
 		setNotification({
 			variant: 'error',
 			message: notificationMsg.unexpectedError,
 		});
-		screen.debug();
-		expect(
-			screen.getByText(notificationMsg.unexpectedError),
-		).toBeInTheDocument();
+		await waitFor(() =>
+			expect(
+				screen.getByText(notificationMsg.unexpectedError),
+			).toBeInTheDocument(),
+		);
 	});
 
 	it('hides notification after 3 seconds', async () => {
 		render(() => <Notification />);
-
+		vi.useFakeTimers();
 		setNotification({
 			variant: 'error',
 			message: notificationMsg.taskCreated,
