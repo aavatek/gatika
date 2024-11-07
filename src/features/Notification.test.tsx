@@ -2,12 +2,6 @@ import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { render, waitFor, screen } from '@solidjs/testing-library';
 import { Notification, setNotification, notificationMsg } from './Notification';
 
-// Mock style properties
-vi.mock('@stylexjs/stylex', () => ({
-	props: vi.fn(() => ({})),
-	create: vi.fn((styles) => styles),
-}));
-
 describe('Notification component', () => {
 	beforeEach(() => {
 		setNotification(undefined);
