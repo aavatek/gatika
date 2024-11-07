@@ -41,7 +41,7 @@ export default defineConfig({
 	test: {
 		globals: true,
 		isolate: false,
-		environment: 'happy-dom',
+		environment: 'jsdom',
 		include: ['src/**/*.test.{ts,tsx}'],
 		coverage: {
 			provider: 'v8',

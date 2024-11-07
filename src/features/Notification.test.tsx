@@ -19,7 +19,6 @@ describe('Notification component', () => {
 			variant: 'success',
 			message: notificationMsg.taskCreated,
 		});
-		screen.debug();
 
 		await waitFor(() =>
 			expect(screen.getByText(notificationMsg.taskCreated)).toBeInTheDocument(),
@@ -32,7 +31,6 @@ describe('Notification component', () => {
 			variant: 'warning',
 			message: notificationMsg.projectCreated,
 		});
-
 		await waitFor(() =>
 			expect(
 				screen.getByText(notificationMsg.projectCreated),
@@ -60,7 +58,6 @@ describe('Notification component', () => {
 			variant: 'error',
 			message: notificationMsg.taskCreated,
 		});
-		screen.debug();
 		// Verify notification is initially in the document
 		expect(screen.getByText(notificationMsg.taskCreated)).toBeInTheDocument();
 
@@ -69,6 +66,5 @@ describe('Notification component', () => {
 		await waitFor(() =>
 			expect(screen.queryByText(notificationMsg.taskCreated)).toBeNull(),
 		);
-		screen.debug();
 	});
 });
