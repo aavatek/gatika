@@ -14,9 +14,10 @@ import { getWeekNumber, Weekdays, Months } from '@lib/dates';
 import * as sx from '@stylexjs/stylex';
 import { Portal } from 'solid-js/web';
 import { Button } from '@components/Form';
-import { formatDate } from '@solid-primitives/date';
+import { formatDate, getDate } from '@solid-primitives/date';
 import { Heading } from './Layout';
 import { projects, type Project } from '@features/Project';
+import { notificationMsg, setNotification } from '../features/Notification';
 
 export const Gantt = (props: { tasks: Task[] }) => {
 	const gridStartDate = createMemo(() => Date.now() - WEEK * 20);
@@ -242,6 +243,126 @@ const GanttTask = (props: GanttTaskProps) => {
 		document.addEventListener('pointerup', handleRelease);
 	};
 
+	const handleCreateConnection = (e: PointerEvent) => {
+		e.preventDefault();
+		const startX = e.clientX;
+		const startY = e.clientY;
+
+		const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+		svg.style.position = 'fixed';
+		svg.style.top = '0';
+		svg.style.left = '0';
+		svg.style.width = '100%';
+		svg.style.height = '100%';
+		svg.style.pointerEvents = 'none';
+		svg.style.zIndex = '1000';
+
+		const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+		line.setAttribute('x1', startX.toString());
+		line.setAttribute('y1', startY.toString());
+		line.setAttribute('x2', startX.toString());
+		line.setAttribute('y2', startY.toString());
+		line.setAttribute('stroke', 'black');
+		line.setAttribute('stroke-width', '2');
+		line.setAttribute('stroke-dasharray', '4');
+
+		svg.appendChild(line);
+		document.body.appendChild(svg);
+
+		// find all left-side connectors
+		const allConnectors = document.querySelectorAll('[data-connector="left"]');
+
+		const connectors = Array.from(allConnectors).filter(
+			(connector: Element) => {
+				const spanConnector = connector as HTMLSpanElement;
+				const connectorID = spanConnector.getAttribute(
+					'data-task-id',
+				) as Task['id'];
+				const connectorTask = tasks.read(connectorID);
+				return (
+					task().project === connectorTask()?.project &&
+					task().id !== connectorTask()?.id &&
+					formatDate(getDate(task().end)) <=
+						formatDate(getDate(connectorTask()?.start || -1)) &&
+					!connectorTask()?.dependencies.includes(task().id)
+				);
+			},
+		);
+
+		const handleMove = (moveEvent: PointerEvent) => {
+			moveEvent.preventDefault();
+			line.setAttribute('x2', moveEvent.clientX.toString());
+			line.setAttribute('y2', moveEvent.clientY.toString());
+
+			connectors.forEach((connector) => {
+				(connector as HTMLElement).style.opacity = '1';
+			});
+
+			// check if we're hovering over any connector
+			connectors.forEach((connector) => {
+				const rect = connector.getBoundingClientRect();
+				const centerX = rect.left + rect.width / 2;
+				const centerY = rect.top + rect.height / 2;
+
+				// check if cursor is within 15px of connector center
+				const distance = Math.hypot(
+					moveEvent.clientX - centerX,
+					moveEvent.clientY - centerY,
+				);
+
+				// add hover effect if close to connector
+				if (distance < 15) {
+					(connector as HTMLElement).style.background = 'gray';
+				} else {
+					(connector as HTMLElement).style.background = 'lightgray';
+				}
+			});
+		};
+
+		const handleRelease = (releaseEvent: PointerEvent) => {
+			connectors.forEach((connector) => {
+				(connector as HTMLElement).style.opacity = '0';
+				(connector as HTMLElement).style.background = 'lightgray';
+
+				const rect = connector.getBoundingClientRect();
+				const centerX = rect.left + rect.width / 2;
+				const centerY = rect.top + rect.height / 2;
+
+				const distance = Math.hypot(
+					releaseEvent.clientX - centerX,
+					releaseEvent.clientY - centerY,
+				);
+
+				if (distance < 15) {
+					const targetTaskId = connector.getAttribute(
+						'data-task-id',
+					) as Task['id'];
+					if (targetTaskId) {
+						const targetTask = tasks.read(targetTaskId);
+						if (targetTask()) {
+							const targetDeps = targetTask()?.dependencies || [];
+							tasks.update(targetTaskId, {
+								dependencies: [...targetDeps, task().id],
+							});
+
+							setNotification({
+								variant: 'success',
+								message: notificationMsg.taskDependencyCreated,
+							});
+						}
+					}
+				}
+			});
+
+			document.removeEventListener('pointermove', handleMove);
+			document.removeEventListener('pointerup', handleRelease);
+			svg.remove();
+		};
+
+		document.addEventListener('pointermove', handleMove);
+		document.addEventListener('pointerup', handleRelease);
+	};
+
 	const [modalVisible, setModalVisible] = createSignal(false);
 	const handleDoubleClick = (e: MouseEvent) => {
 		e.preventDefault();
@@ -250,6 +371,12 @@ const GanttTask = (props: GanttTaskProps) => {
 
 	return (
 		<div {...sx.props(style.taskWrapper(props.row, colStart, colSpan, task))}>
+			<span
+				{...sx.props(style.taskConnector('left'))}
+				onPointerDown={handleCreateConnection}
+				data-connector="left"
+				data-task-id={task().id}
+			/>
 			<span
 				{...sx.props(style.taskHandle('left', task))}
 				onPointerDown={handleDrag('left')}
@@ -264,6 +391,12 @@ const GanttTask = (props: GanttTaskProps) => {
 			<span
 				{...sx.props(style.taskHandle('right', task))}
 				onPointerDown={handleDrag('right')}
+				data-task-id={task().id}
+			/>
+			<span
+				{...sx.props(style.taskConnector('right'))}
+				data-connector="right"
+				onPointerDown={handleCreateConnection}
 			/>
 			<Show when={modalVisible()}>
 				<TaskModal id={task().id} handleClose={() => setModalVisible(false)} />
@@ -499,9 +632,31 @@ const style = sx.create({
 		backgroundImage: 'linear-gradient(to right, #e0e0e0 1px, transparent 1px)',
 	}),
 
+	taskConnector: (side) => ({
+		position: 'absolute',
+		top: '50%',
+		transform: 'translateY(-50%)',
+		width: '12px',
+		height: '12px',
+		borderRadius: '50%',
+		background: 'lightgray',
+		cursor: 'pointer',
+		alignSelf: 'center',
+		left: side === 'left' ? '-.85rem' : 'initial',
+		right: side === 'right' ? '-.85rem' : 'initial',
+		opacity: 0,
+		':hover': {
+			opacity: side === 'right' ? 1 : 0,
+		},
+		':active': {
+			opacity: side === 'right' ? 1 : 0,
+		},
+	}),
+
 	taskWrapper: (row, colStart, colSpan, current) => ({
 		gridRow: row() + 1,
 		gridColumn: `${colStart()} / span ${colSpan()}`,
+		position: 'relative',
 		display: 'grid',
 		gridTemplateColumns: 'auto 1fr auto',
 		alignContent: 'stretch',

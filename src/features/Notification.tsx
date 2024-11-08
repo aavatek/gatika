@@ -7,6 +7,7 @@ export const notificationMsg = {
 	taskCreated: 'Tehtävä luotu onnistuneesti',
 	taskEdited: 'Tehtävä tallennettu onnistuneesti',
 	taskDeleted: 'Tehtävä poistettu onnistuneesti',
+	taskDependencyCreated: 'Riippuvuus luotu onnistuneesti',
 
 	projectCreated: 'Projekti luotu onnistuneesti',
 	projectEdited: 'Projekti tallennettu onnistuneesti',
