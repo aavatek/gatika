@@ -65,6 +65,27 @@ export const addToLastVisited = (id: Project['id']) => {
 
 // -------------------------------------------------------------------------------------
 
+const colors = [
+	'#AECEFF',
+	'#FAEEC1',
+	'#D9BCAF',
+	'#D5CCF0',
+	'#AAC9AF',
+	'#A4CCEC',
+	'#E3BAD6',
+	'#CEFFFF',
+	'#D1B4E3',
+	'#FFC9AC',
+];
+
+const isColorUsed = (color: string): boolean =>
+	projects.list().some((project: Project) => project.color === color);
+
+const getColor = (): string => {
+	const available = colors.filter((color) => !isColorUsed(color));
+	return available.length ? available[0] : '#ffffff';
+};
+
 const err = {
 	name: {
 		invalid: 'Anna projektille nimi',
@@ -85,6 +106,7 @@ export const ProjectSchema = v.pipe(
 	v.transform((input) => ({
 		...input,
 		id: crypto.randomUUID(),
+		color: getColor(),
 		created: Date.now(),
 	})),
 );

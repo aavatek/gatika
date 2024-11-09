@@ -21,18 +21,21 @@ export const populate = () => {
 			id: crypto.randomUUID(),
 			name: 'Projekti A',
 			created: Date.now(),
+			color: '#AECEFF',
 		};
 
 		const PB: Project = {
 			id: crypto.randomUUID(),
 			name: 'Projekti B',
 			created: Date.now() + DAY,
+			color: '#FAEEC1',
 		};
 
 		const PC: Project = {
 			id: crypto.randomUUID(),
 			name: 'Projekti C',
 			created: Date.now() + DAY * 2,
+			color: '#D9BCAF',
 		};
 
 		const A1 = {

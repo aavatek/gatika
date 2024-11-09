@@ -175,12 +175,20 @@ const GanttTask = (props: GanttTaskProps) => {
 		}
 	});
 
+	const projectColor = createMemo(() => {
+		const projectId = props.task.project as Project['id'];
+		const project = projects.read(projectId);
+
+		return project()?.color;
+	});
+
 	const task = createMemo(() => ({
 		...props.task,
 		start: startDate(),
 		end: endDate(),
 		floating: floating(),
 		valid: valid(),
+		color: projectColor(),
 	}));
 
 	const colStart = createMemo(() => {
@@ -522,7 +530,7 @@ const style = sx.create({
 			current().floating === 'full'
 				? '#e0e0e0'
 				: current().valid
-					? 'white'
+					? current().color
 					: '#ffebee',
 		border: `2px ${current().floating ? 'dashed' : 'solid'} ${current().valid ? '#666' : '#b71c1c'}`,
 		borderLeft: 'none',
