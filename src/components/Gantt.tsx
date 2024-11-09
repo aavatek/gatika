@@ -60,6 +60,87 @@ export const Gantt = (props: { tasks: Task[] }) => {
 	const gridCols = createMemo(() => (gridEndDate() - gridStartDate()) / DAY);
 	const gridColWidth = createMemo(() => (gridCols() * zoom()) / gridCols());
 
+	const renderConnections = () => {
+		const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+		svg.style.position = 'absolute';
+		svg.style.top = '0';
+		svg.style.left = '0';
+		svg.style.width = '100%';
+		svg.style.height = '100%';
+		svg.style.pointerEvents = 'none';
+		svg.style.zIndex = '0';
+
+		// Group connections by source
+		const connectionsBySource = new Map();
+		tasksWithinRange().forEach((task) => {
+			if (task.dependencies?.length) {
+				task.dependencies.forEach((sourceId) => {
+					if (!connectionsBySource.has(sourceId)) {
+						connectionsBySource.set(sourceId, []);
+					}
+					connectionsBySource.get(sourceId).push(task.id);
+				});
+			}
+		});
+
+		connectionsBySource.forEach((targetIds, sourceId) => {
+			const startConnector = document.querySelector(
+				`[data-connector="right"][data-task-id="${sourceId}"]`,
+			);
+			if (!startConnector) return;
+
+			const sortedTargets = targetIds
+				.map((targetId) => {
+					const connector = document.querySelector(
+						`[data-connector="left"][data-task-id="${targetId}"]`,
+					);
+					if (!connector) return null;
+					const bounds = connector.getBoundingClientRect();
+					return {
+						id: targetId,
+						x: bounds.left + bounds.width / 2,
+						y: bounds.top + bounds.height / 2,
+					};
+				})
+				.filter(Boolean)
+				.sort((a, b) => a.x - b.x); // Sort by x position instead of y
+
+			if (sortedTargets.length === 0) return;
+
+			const startBounds = startConnector.getBoundingClientRect();
+			const startX = startBounds.left + startBounds.width / 2;
+			const startY = startBounds.top + startBounds.height / 2;
+			const firstVerticalY = startBounds.bottom + 18; // The gap we already had
+
+			let pathD = `
+      M ${startX} ${startY}
+      V ${firstVerticalY}
+      H ${sortedTargets[0].x}
+      V ${sortedTargets[0].y}
+    `;
+
+			// For additional targets, continue down from where we are
+			for (let i = 1; i < sortedTargets.length; i++) {
+				pathD += `
+        V ${sortedTargets[i].y}
+        H ${sortedTargets[i].x}
+      `;
+			}
+
+			const path = document.createElementNS(
+				'http://www.w3.org/2000/svg',
+				'path',
+			);
+			path.setAttribute('d', pathD);
+			path.setAttribute('stroke', 'black');
+			path.setAttribute('stroke-width', '2');
+			path.setAttribute('fill', 'none');
+
+			svg.appendChild(path);
+		});
+
+		return svg;
+	};
 	const handleZoom = (e: WheelEvent) => {
 		const MIN_ZOOM = 16;
 		const MAX_ZOOM = 192;
@@ -108,6 +189,7 @@ export const Gantt = (props: { tasks: Task[] }) => {
 				gridEndDate={gridEndDate}
 			/>
 
+			{renderConnections()}
 			<div {...sx.props(style.gantt(gridCols, gridRows, zoom))}>
 				<For each={tasksSorted()} fallback={<div />}>
 					{(task, row) => (
@@ -175,6 +257,13 @@ const GanttTask = (props: GanttTaskProps) => {
 			return 'full';
 		}
 	});
+
+	const hasSuccessors = createMemo(() => props.task.dependencies.length > 0);
+	const hasPredecessors = createMemo(
+		() =>
+			tasks.list().filter((task) => task.dependencies.includes(props.task.id))
+				.length > 0,
+	);
 
 	const task = createMemo(() => ({
 		...props.task,
@@ -372,7 +461,9 @@ const GanttTask = (props: GanttTaskProps) => {
 	return (
 		<div {...sx.props(style.taskWrapper(props.row, colStart, colSpan, task))}>
 			<span
-				{...sx.props(style.taskConnector('left'))}
+				{...sx.props(
+					style.taskConnector('left', hasSuccessors, hasPredecessors),
+				)}
 				onPointerDown={handleCreateConnection}
 				data-connector="left"
 				data-task-id={task().id}
@@ -394,8 +485,11 @@ const GanttTask = (props: GanttTaskProps) => {
 				data-task-id={task().id}
 			/>
 			<span
-				{...sx.props(style.taskConnector('right'))}
+				{...sx.props(
+					style.taskConnector('right', hasSuccessors, hasPredecessors),
+				)}
 				data-connector="right"
+				data-task-id={task().id}
 				onPointerDown={handleCreateConnection}
 			/>
 			<Show when={modalVisible()}>
@@ -632,7 +726,11 @@ const style = sx.create({
 		backgroundImage: 'linear-gradient(to right, #e0e0e0 1px, transparent 1px)',
 	}),
 
-	taskConnector: (side) => ({
+	taskConnector: (
+		side,
+		hasSuccessors: Accessor<boolean>,
+		hasPredecessors: Accessor<boolean>,
+	) => ({
 		position: 'absolute',
 		top: '50%',
 		transform: 'translateY(-50%)',
@@ -644,7 +742,12 @@ const style = sx.create({
 		alignSelf: 'center',
 		left: side === 'left' ? '-.85rem' : 'initial',
 		right: side === 'right' ? '-.85rem' : 'initial',
-		opacity: 0,
+		opacity:
+			side === 'right' && hasPredecessors()
+				? 1
+				: side === 'left' && hasSuccessors()
+					? 1
+					: 0,
 		':hover': {
 			opacity: side === 'right' ? 1 : 0,
 		},
