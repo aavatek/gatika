@@ -257,119 +257,126 @@ const GanttTask = (props: GanttTaskProps) => {
 
 	const handleCreateConnection = (e: PointerEvent) => {
 		e.preventDefault();
-		const startX = e.clientX;
-		const startY = e.clientY;
+		if (e.target === rightConnectorRef) {
+			const startX = e.clientX;
+			const startY = e.clientY;
 
-		const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-		svg.style.position = 'fixed';
-		svg.style.top = '0';
-		svg.style.left = '0';
-		svg.style.width = '100%';
-		svg.style.height = '100%';
-		svg.style.pointerEvents = 'none';
-		svg.style.zIndex = '1000';
+			const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+			svg.style.position = 'fixed';
+			svg.style.top = '0';
+			svg.style.left = '0';
+			svg.style.width = '100%';
+			svg.style.height = '100%';
+			svg.style.pointerEvents = 'none';
+			svg.style.zIndex = '1000';
 
-		const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-		line.setAttribute('x1', startX.toString());
-		line.setAttribute('y1', startY.toString());
-		line.setAttribute('x2', startX.toString());
-		line.setAttribute('y2', startY.toString());
-		line.setAttribute('stroke', 'black');
-		line.setAttribute('stroke-width', '2');
-		line.setAttribute('stroke-dasharray', '4');
+			const line = document.createElementNS(
+				'http://www.w3.org/2000/svg',
+				'line',
+			);
+			line.setAttribute('x1', startX.toString());
+			line.setAttribute('y1', startY.toString());
+			line.setAttribute('x2', startX.toString());
+			line.setAttribute('y2', startY.toString());
+			line.setAttribute('stroke', 'black');
+			line.setAttribute('stroke-width', '2');
+			line.setAttribute('stroke-dasharray', '4');
 
-		svg.appendChild(line);
-		document.body.appendChild(svg);
+			svg.appendChild(line);
+			document.body.appendChild(svg);
 
-		// find all left-side connectors
-		const allConnectors = document.querySelectorAll('[data-connector="left"]');
+			// find all left-side connectors
+			const allConnectors = document.querySelectorAll(
+				'[data-connector="left"]',
+			);
 
-		const connectors = Array.from(allConnectors).filter(
-			(connector: Element) => {
-				const spanConnector = connector as HTMLSpanElement;
-				const connectorID = spanConnector.getAttribute(
-					'data-task-id',
-				) as Task['id'];
-				const connectorTask = tasks.read(connectorID);
-				return (
-					task().project === connectorTask()?.project &&
-					task().id !== connectorTask()?.id &&
-					formatDate(getDate(task().end)) <
-						formatDate(getDate(connectorTask()?.start || -1)) &&
-					!connectorTask()?.dependencies.includes(task().id)
-				);
-			},
-		);
-
-		const handleMove = (moveEvent: PointerEvent) => {
-			moveEvent.preventDefault();
-			line.setAttribute('x2', moveEvent.clientX.toString());
-			line.setAttribute('y2', moveEvent.clientY.toString());
-
-			// check if we're hovering over any connector
-			connectors.forEach((connector) => {
-				connector.setAttribute('data-visible', 'true');
-				const rect = connector.getBoundingClientRect();
-				const centerX = rect.left + rect.width / 2;
-				const centerY = rect.top + rect.height / 2;
-
-				// check if cursor is within 15px of connector center
-				const distance = Math.hypot(
-					moveEvent.clientX - centerX,
-					moveEvent.clientY - centerY,
-				);
-
-				// add hover effect if close to connector
-				if (distance < 15) {
-					(connector as HTMLElement).style.background = 'gray';
-				} else {
-					(connector as HTMLElement).style.background = 'lightgray';
-				}
-			});
-		};
-
-		const handleRelease = (releaseEvent: PointerEvent) => {
-			connectors.forEach((connector) => {
-				(connector as HTMLElement).style.background = 'lightgray';
-				(connector as HTMLElement).removeAttribute('data-visible');
-
-				const rect = connector.getBoundingClientRect();
-				const centerX = rect.left + rect.width / 2;
-				const centerY = rect.top + rect.height / 2;
-
-				const distance = Math.hypot(
-					releaseEvent.clientX - centerX,
-					releaseEvent.clientY - centerY,
-				);
-
-				if (distance < 15) {
-					const targetTaskId = connector.getAttribute(
+			const connectors = Array.from(allConnectors).filter(
+				(connector: Element) => {
+					const spanConnector = connector as HTMLSpanElement;
+					const connectorID = spanConnector.getAttribute(
 						'data-task-id',
 					) as Task['id'];
-					if (targetTaskId) {
-						const targetTask = tasks.read(targetTaskId);
-						if (targetTask()) {
-							const targetDeps = targetTask()?.dependencies || [];
-							tasks.update(targetTaskId, {
-								dependencies: [...targetDeps, task().id],
-							});
+					const connectorTask = tasks.read(connectorID);
+					return (
+						task().project === connectorTask()?.project &&
+						task().id !== connectorTask()?.id &&
+						formatDate(getDate(task().end)) <
+							formatDate(getDate(connectorTask()?.start || -1)) &&
+						!connectorTask()?.dependencies.includes(task().id)
+					);
+				},
+			);
 
-							setNotification({
-								variant: 'success',
-								message: notificationMsg.taskDependencyCreated,
-							});
+			const handleMove = (moveEvent: PointerEvent) => {
+				moveEvent.preventDefault();
+				line.setAttribute('x2', moveEvent.clientX.toString());
+				line.setAttribute('y2', moveEvent.clientY.toString());
+
+				// check if we're hovering over any connector
+				connectors.forEach((connector) => {
+					connector.setAttribute('data-visible', 'true');
+					const rect = connector.getBoundingClientRect();
+					const centerX = rect.left + rect.width / 2;
+					const centerY = rect.top + rect.height / 2;
+
+					// check if cursor is within 15px of connector center
+					const distance = Math.hypot(
+						moveEvent.clientX - centerX,
+						moveEvent.clientY - centerY,
+					);
+
+					// add hover effect if close to connector
+					if (distance < 15) {
+						(connector as HTMLElement).style.background = 'gray';
+					} else {
+						(connector as HTMLElement).style.background = 'lightgray';
+					}
+				});
+			};
+
+			const handleRelease = (releaseEvent: PointerEvent) => {
+				connectors.forEach((connector) => {
+					(connector as HTMLElement).style.background = 'lightgray';
+					(connector as HTMLElement).removeAttribute('data-visible');
+
+					const rect = connector.getBoundingClientRect();
+					const centerX = rect.left + rect.width / 2;
+					const centerY = rect.top + rect.height / 2;
+
+					const distance = Math.hypot(
+						releaseEvent.clientX - centerX,
+						releaseEvent.clientY - centerY,
+					);
+
+					if (distance < 15) {
+						const targetTaskId = connector.getAttribute(
+							'data-task-id',
+						) as Task['id'];
+						if (targetTaskId) {
+							const targetTask = tasks.read(targetTaskId);
+							if (targetTask()) {
+								const targetDeps = targetTask()?.dependencies || [];
+								tasks.update(targetTaskId, {
+									dependencies: [...targetDeps, task().id],
+								});
+
+								setNotification({
+									variant: 'success',
+									message: notificationMsg.taskDependencyCreated,
+								});
+							}
 						}
 					}
-				}
-			});
+				});
 
-			document.removeEventListener('pointermove', handleMove);
-			document.removeEventListener('pointerup', handleRelease);
-			svg.remove();
-		};
+				document.removeEventListener('pointermove', handleMove);
+				document.removeEventListener('pointerup', handleRelease);
+				svg.remove();
+			};
 
-		document.addEventListener('pointermove', handleMove);
-		document.addEventListener('pointerup', handleRelease);
+			document.addEventListener('pointermove', handleMove);
+			document.addEventListener('pointerup', handleRelease);
+		}
 	};
 
 	const [modalVisible, setModalVisible] = createSignal(false);
@@ -753,24 +760,22 @@ const style = sx.create({
 		height: '12px',
 		borderRadius: '50%',
 		background: 'lightgray',
-		cursor: 'pointer',
 		alignSelf: 'center',
 		left: side === 'left' ? '-.85rem' : 'initial',
 		right: side === 'right' ? '-.85rem' : 'initial',
+		zIndex: 1,
 		opacity:
-			side === 'right' && rightConnectorVisible()
-				? 1
-				: side === 'left' && leftConnectorVisible()
-					? 1
-					: 0,
-		':hover': {
-			opacity: side === 'right' ? 1 : 'initial',
-		},
-		':active': {
-			opacity: side === 'right' ? 1 : 'initial',
-		},
+			side === 'right' ? +rightConnectorVisible() : +leftConnectorVisible(),
 		':is([data-visible])': {
 			opacity: 1,
+		},
+		':is([data-connector="right"]):hover': {
+			opacity: 1,
+			cursor: 'pointer',
+		},
+		':is([data-connector="right"]):active': {
+			opacity: 1,
+			cursor: 'pointer',
 		},
 	}),
 
@@ -781,7 +786,6 @@ const style = sx.create({
 		width: '100%',
 		height: '100%',
 		overflow: 'visible',
-		zIndex: -1,
 	},
 
 	taskWrapper: (row, colStart, colSpan, current) => ({
@@ -819,6 +823,7 @@ const style = sx.create({
 		display: 'flex',
 		alignItems: 'center',
 		justifyContent: 'center',
+		zIndex: '1',
 	}),
 
 	taskHandle: (side, current) => ({
@@ -826,6 +831,7 @@ const style = sx.create({
 		cursor: 'ew-resize',
 		backgroundColor: `${current().valid ? '#666' : '#b71c1c'}`,
 		borderRadius: side === 'left' ? '4px 0 0 4px' : '0 4px 4px 0',
+		zIndex: 1,
 	}),
 
 	modalOverlay: {
@@ -838,6 +844,7 @@ const style = sx.create({
 		display: 'flex',
 		justifyContent: 'center',
 		alignItems: 'center',
+		zIndex: 2,
 	},
 
 	taskModal: {
