@@ -65,25 +65,30 @@ export const addToLastVisited = (id: Project['id']) => {
 
 // -------------------------------------------------------------------------------------
 
-const colors = [
-	'#AECEFF',
-	'#FAEEC1',
-	'#D9BCAF',
-	'#D5CCF0',
-	'#AAC9AF',
-	'#A4CCEC',
-	'#E3BAD6',
-	'#CEFFFF',
-	'#D1B4E3',
-	'#FFC9AC',
-];
+export enum ProjectColors {
+	SkyBlue = 'lch(82% 35 250)', // Clearer blue, more vibrant but still professional
+	SoftSage = 'lch(84% 32 145)', // Crisper sage green
+	WarmSand = 'lch(85% 38 80)', // Warmer, richer sand tone
+	Lavender = 'lch(83% 34 300)', // More distinct lavender
+	MossGreen = 'lch(84% 33 170)', // Fresher moss green
+	Peach = 'lch(85% 36 55)', // More defined peach
+	Slate = 'lch(82% 32 225)', // Richer slate blue
+	Rose = 'lch(84% 35 15)', // More pronounced rose
+	Mint = 'lch(85% 33 135)', // Clearer mint
+	Mauve = 'lch(83% 34 330)', // More defined mauve
+	Ochre = 'lch(84% 37 95)', // Richer ochre
+	Teal = 'lch(83% 34 190)', // More vibrant teal
+	Coral = 'lch(84% 36 35)', // More defined coral
+}
+export type ColorKey = keyof typeof ProjectColors;
 
-const isColorUsed = (color: string): boolean =>
+const colorUsed = (color: ColorKey): boolean =>
 	projects.list().some((project: Project) => project.color === color);
 
-const getColor = (): string => {
-	const available = colors.filter((color) => !isColorUsed(color));
-	return available.length ? available[0] : '#ffffff';
+export const getColor = (): ColorKey => {
+	const allColors = Object.keys(ProjectColors) as ColorKey[];
+	const available = allColors.filter((color) => !colorUsed(color));
+	return available.length ? available[0] : 'SkyBlue';
 };
 
 const err = {

@@ -16,7 +16,12 @@ import { Portal } from 'solid-js/web';
 import { Button } from '@components/Form';
 import { formatDate } from '@solid-primitives/date';
 import { Heading } from './Layout';
-import { projects, type Project } from '@features/Project';
+import {
+	type ColorKey,
+	ProjectColors,
+	projects,
+	type Project,
+} from '@features/Project';
 
 export const Gantt = (props: { tasks: Task[] }) => {
 	const gridStartDate = createMemo(() => Date.now() - WEEK * 20);
@@ -445,58 +450,79 @@ const Timeline = (props: TimelineProps) => {
 };
 
 const style = sx.create({
-	timeLine: (cols, zoomModifier) => ({
+	timeline: (cols, zoomModifier) => ({
 		width: `${cols() * zoomModifier()}px`,
 		display: 'grid',
 		gridTemplateColumns: `repeat(${cols()}, 1fr)`,
-		borderBottom: '1px solid #ccc',
+		borderBottom: '1px solid rgba(0, 0, 0, 0.1)',
+		background: 'white',
+	}),
+
+	months: (month) => ({
+		height: '2.5rem',
+		gridColumn: `${month.startColumn} / span ${month.days}`,
+		borderLeft: '1px solid rgba(0, 0, 0, 0.1)',
+		borderRight: '1px solid rgba(0, 0, 0, 0.1)',
+		borderTop: '1px solid rgba(0, 0, 0, 0.1)',
+		display: 'flex',
+		justifyContent: 'center',
+		alignItems: 'center',
+		background: '#f8f9fa',
+		textWrap: 'nowrap',
+		overflow: 'hidden',
+		fontSize: '1rem',
+		fontWeight: 500,
+		color: '#495057',
 	}),
 
 	days: (index, isToday) => ({
-		height: '3rem',
+		height: '2.5rem',
 		gridColumn: `${index() + 1} / span 1`,
-		border: '1px solid gray',
+		borderRight: '1px solid rgba(0, 0, 0, 0.08)',
+		borderBottom: '1px solid rgba(0, 0, 0, 0.1)',
 		display: 'flex',
 		justifyContent: 'center',
 		flexDirection: 'column',
 		alignItems: 'center',
-		background: isToday ? '#d0d0d0' : 'white',
+		background: isToday ? 'rgba(0, 0, 0, 0.04)' : 'white',
 		textWrap: 'nowrap',
 		overflow: 'hidden',
+		fontSize: '0.85rem',
+		color: '#666',
+		gap: '0.125rem',
 	}),
 
 	weeks: (week) => ({
-		height: '3rem',
+		height: '2.5rem',
 		gridColumn: `${week.startColumn} / span ${week.days}`,
-		border: '1px solid gray',
+		borderRight: '1px solid rgba(0, 0, 0, 0.08)',
+		borderBottom: '1px solid rgba(0, 0, 0, 0.1)',
 		display: 'flex',
 		justifyContent: 'center',
 		alignItems: 'center',
 		textWrap: 'nowrap',
 		overflow: 'hidden',
-		background: week.isThisWeek ? '#d0d0d0' : 'white',
-	}),
-
-	months: (month) => ({
-		height: '3rem',
-		gridColumn: `${month.startColumn} / span ${month.days}`,
-		border: '1px solid gray',
-		display: 'flex',
-		justifyContent: 'center',
-		alignItems: 'center',
-		background: 'white',
-		textWrap: 'nowrap',
-		overflow: 'hidden',
+		background: week.isThisWeek ? 'rgba(0, 0, 0, 0.04)' : 'white',
+		fontSize: '0.9rem',
+		color: '#666',
 	}),
 
 	wrapper: {
 		overflowX: 'auto',
-		border: '2px solid black',
+		background: '#FAF9FF',
+		boxShadow: `
+		    inset 0 2px 4px -2px rgba(50, 50, 93, 0.25),
+		    inset 0 -2px 4px -2px rgba(50, 50, 93, 0.25),
+		    inset 2px 0 4px -2px rgba(50, 50, 93, 0.25),
+		    inset -2px 0 4px -2px rgba(50, 50, 93, 0.25)
+		  `,
+		borderRadius: '4px',
+		border: '1px solid rgba(0, 0, 0, 0.1)',
 	},
 
 	gantt: (cols, rows, zoomModifier) => ({
 		display: 'grid',
-		rowGap: '1rem',
+		rowGap: '0.75rem',
 		gridTemplateColumns: `repeat(${cols()}, 1fr)`,
 		gridTemplateRows: `repeat(${rows()}, 1fr)`,
 		width: `${cols() * zoomModifier()}px`,
@@ -504,35 +530,47 @@ const style = sx.create({
 		paddingTop: '1rem',
 		paddingBottom: '1rem',
 		backgroundSize: `${100 / cols()}%`,
-		backgroundImage: 'linear-gradient(to right, #e0e0e0 1px, transparent 1px)',
+		backgroundImage:
+			'linear-gradient(to right, rgba(0, 0, 0, 0.06) 1px, transparent 1px)',
 	}),
 
-	taskWrapper: (row, colStart, colSpan, current) => ({
+	taskWrapper: (row, colStart, colSpan) => ({
 		gridRow: row() + 1,
 		gridColumn: `${colStart()} / span ${colSpan()}`,
 		display: 'grid',
 		gridTemplateColumns: 'auto 1fr auto',
 		alignContent: 'stretch',
 		justifyItems: 'stretch',
-		maskImage:
-			current().floating === 'start'
-				? 'linear-gradient(to right, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 1))'
-				: current().floating === 'end'
-					? 'linear-gradient(to right, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0.4))'
-					: 'none',
-		':hover': {
-			maskImage: 'none',
-		},
+		borderRadius: '0.25rem',
+		boxShadow:
+			'rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px',
 	}),
 
 	task: (current) => ({
 		background:
-			current().floating === 'full'
-				? '#e0e0e0'
-				: current().valid
-					? current().color
-					: '#ffebee',
-		border: `2px ${current().floating ? 'dashed' : 'solid'} ${current().valid ? '#666' : '#b71c1c'}`,
+			current().floating === 'start'
+				? `linear-gradient(to right, ${
+						current().valid
+							? `lch(from ${ProjectColors[current().color as ColorKey]} l c h / 0.25)`
+							: '#ffebee'
+					} 20%, ${current().valid ? ProjectColors[current().color as ColorKey] : '#ffebee'})`
+				: current().floating === 'end'
+					? `linear-gradient(to right, ${
+							current().valid
+								? ProjectColors[current().color as ColorKey]
+								: '#ffebee'
+						}, ${
+							current().valid
+								? `lch(from ${ProjectColors[current().color as ColorKey]} l c h / 0.25)`
+								: '#ffebee'
+						} 100%)`
+					: current().floating === 'full'
+						? current().valid
+							? `lch(from ${ProjectColors[current().color as ColorKey]} l c h / 0.25)`
+							: '#ffebee'
+						: current().valid
+							? ProjectColors[current().color as ColorKey]
+							: '#ffebee',
 		borderLeft: 'none',
 		borderRight: 'none',
 		cursor: 'pointer',
@@ -543,11 +581,11 @@ const style = sx.create({
 		justifyContent: 'center',
 	}),
 
-	taskHandle: (side, current) => ({
-		width: '.5rem',
+	taskHandle: (side) => ({
+		width: '6px',
 		cursor: 'ew-resize',
-		backgroundColor: `${current().valid ? '#666' : '#b71c1c'}`,
-		borderRadius: side === 'left' ? '4px 0 0 4px' : '0 4px 4px 0',
+		background: 'rgba(0,0,0,0.7)',
+		borderRadius: side === 'right' ? '0 .25rem .25rem 0' : '.25rem 0 0 .25rem',
 	}),
 
 	modalOverlay: {
@@ -591,3 +629,9 @@ const style = sx.create({
 		fontSize: '1.15rem',
 	},
 });
+
+// const staticStyle = sx.create({
+// 	staticTask: {
+// 		background: projectColors.project1,
+// 	},
+// });
