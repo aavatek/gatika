@@ -1,6 +1,12 @@
 import { makePersisted } from '@solid-primitives/storage';
 import { createSignal } from 'solid-js';
-import { setProjectStore, setVisited, type Project } from '@features/Project';
+import {
+	getColor,
+	projects,
+	setProjectStore,
+	setVisited,
+	type Project,
+} from '@features/Project';
 import { setTaskStore } from '@features/Task';
 import { DAY, WEEK } from './dates';
 
@@ -21,19 +27,49 @@ export const populate = () => {
 			id: crypto.randomUUID(),
 			name: 'Projekti A',
 			created: Date.now(),
+			color: getColor(),
 		};
+		projects.create(PA);
 
 		const PB: Project = {
 			id: crypto.randomUUID(),
 			name: 'Projekti B',
-			created: Date.now() + DAY,
+			created: Date.now() + 1,
+			color: getColor(),
 		};
+		projects.create(PB);
 
 		const PC: Project = {
 			id: crypto.randomUUID(),
 			name: 'Projekti C',
-			created: Date.now() + DAY * 2,
+			created: Date.now() + 2,
+			color: getColor(),
 		};
+		projects.create(PC);
+
+		const PD: Project = {
+			id: crypto.randomUUID(),
+			name: 'Projekti D',
+			created: Date.now() + 3,
+			color: getColor(),
+		};
+		projects.create(PD);
+
+		const PE: Project = {
+			id: crypto.randomUUID(),
+			name: 'Projekti E',
+			created: Date.now() + 4,
+			color: getColor(),
+		};
+		projects.create(PE);
+
+		const PF: Project = {
+			id: crypto.randomUUID(),
+			name: 'Projekti F',
+			created: Date.now() + 5,
+			color: getColor(),
+		};
+		projects.create(PF);
 
 		const A1 = {
 			id: crypto.randomUUID(),
@@ -135,7 +171,83 @@ export const populate = () => {
 			created: Date.now(),
 		};
 
-		setProjectStore([PA, PB, PC]);
-		setTaskStore([A1, A2, A3, A4, A5, B1, B2, C1, C2, C3]);
+		const D1 = {
+			id: crypto.randomUUID(),
+			name: 'Tehtävä D1',
+			start: Number.NaN,
+			end: Number.NaN,
+			project: PD.id,
+			dependencies: [],
+			created: Date.now(),
+		};
+
+		const D2 = {
+			id: crypto.randomUUID(),
+			name: 'Tehtävä D2',
+			start: Date.now() - WEEK,
+			end: Date.now(),
+			project: PD.id,
+			dependencies: [],
+			created: Date.now(),
+		};
+
+		const E1 = {
+			id: crypto.randomUUID(),
+			name: 'Tehtävä E1',
+			start: Number.NaN,
+			end: Number.NaN,
+			project: PE.id,
+			dependencies: [],
+			created: Date.now(),
+		};
+
+		const E2 = {
+			id: crypto.randomUUID(),
+			name: 'Tehtävä E2',
+			start: Date.now() - WEEK,
+			end: Date.now(),
+			project: PE.id,
+			dependencies: [],
+			created: Date.now(),
+		};
+
+		const F1 = {
+			id: crypto.randomUUID(),
+			name: 'Tehtävä F1',
+			start: Number.NaN,
+			end: Number.NaN,
+			project: PF.id,
+			dependencies: [],
+			created: Date.now(),
+		};
+
+		const F2 = {
+			id: crypto.randomUUID(),
+			name: 'Tehtävä F2',
+			start: Date.now() - WEEK,
+			end: Date.now(),
+			project: PF.id,
+			dependencies: [],
+			created: Date.now(),
+		};
+
+		setTaskStore([
+			A1,
+			A2,
+			A3,
+			A4,
+			A5,
+			B1,
+			B2,
+			C1,
+			C2,
+			C3,
+			D1,
+			D2,
+			E1,
+			E2,
+			F1,
+			F2,
+		]);
 	}
 };
