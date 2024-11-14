@@ -598,9 +598,9 @@ export const TaskList = (props: TaskListProps) => {
 								extraStyles={style.listItem}
 							>
 								<Show when={!props.project}>{project()?.name}</Show>
-								<Show when={start()}>
+								<Show when={start() || end()}>
 									<span>
-										{start()} <Show when={end()}>- {end()} </Show>
+										{start() ?? ''} <Show when={end()}>- {end()} </Show>
 									</span>
 								</Show>
 							</ListItem>
