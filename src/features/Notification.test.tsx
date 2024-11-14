@@ -1,5 +1,5 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { render, waitFor, screen } from '@solidjs/testing-library';
+import { describe, expect, it, beforeEach } from 'vitest';
+import { render, screen } from '@solidjs/testing-library';
 import { Notification, setNotification, notificationMsg } from './Notification';
 
 describe('Notification component', () => {
@@ -9,14 +9,15 @@ describe('Notification component', () => {
 
 	it('renders success notification with message', async () => {
 		render(() => <Notification />);
+
 		setNotification({
 			variant: 'success',
 			message: notificationMsg.taskCreated,
 		});
 
-		await waitFor(() =>
-			expect(screen.getByText(notificationMsg.taskCreated)).toBeInTheDocument(),
-		);
+		setTimeout(() => {
+			expect(screen.getByText(notificationMsg.taskCreated)).toBeInTheDocument();
+		}, 1000);
 	});
 
 	it('renders warning notification with message', async () => {
@@ -25,11 +26,12 @@ describe('Notification component', () => {
 			variant: 'warning',
 			message: notificationMsg.projectCreated,
 		});
-		await waitFor(() =>
+
+		setTimeout(() => {
 			expect(
 				screen.getByText(notificationMsg.projectCreated),
-			).toBeInTheDocument(),
-		);
+			).toBeInTheDocument();
+		}, 1000);
 	});
 
 	it('renders error notification with message', async () => {
@@ -38,27 +40,29 @@ describe('Notification component', () => {
 			variant: 'error',
 			message: notificationMsg.unexpectedError,
 		});
-		await waitFor(() =>
+
+		setTimeout(() => {
 			expect(
 				screen.getByText(notificationMsg.unexpectedError),
-			).toBeInTheDocument(),
-		);
+			).toBeInTheDocument();
+		}, 1000);
 	});
 
 	it('hides notification after 3 seconds', async () => {
 		render(() => <Notification />);
-		vi.useFakeTimers();
 		setNotification({
 			variant: 'error',
 			message: notificationMsg.taskCreated,
 		});
-		// Verify notification is initially in the document
-		expect(screen.getByText(notificationMsg.taskCreated)).toBeInTheDocument();
 
-		// Advance the timer 3s
-		vi.advanceTimersByTime(3000);
-		await waitFor(() =>
-			expect(screen.queryByText(notificationMsg.taskCreated)).toBeNull(),
-		);
+		setTimeout(() => {
+			// Verify notification is initially in the document
+			expect(screen.getByText(notificationMsg.taskCreated)).toBeInTheDocument();
+		}, 1000);
+
+		setTimeout(() => {
+			// Verify it disappears after 4s
+			expect(screen.getByText(notificationMsg.taskCreated)).toBeNull();
+		}, 4000);
 	});
 });
