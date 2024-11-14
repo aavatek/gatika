@@ -79,11 +79,16 @@ export const tasks = {
 							.map((task) => task()?.end as number),
 					) + DAY;
 
+				let duration = currentTask.end - currentTask.start;
+				duration = Number.isNaN(duration) || duration < 0 ? DAY * 7 : duration;
+				const newEnd = newStart + duration;
+
 				setTaskStore(
 					(task) => task.id === id,
 					produce((task) =>
 						Object.assign(task, data, {
 							start: newStart,
+							end: newEnd,
 						}),
 					),
 				);
