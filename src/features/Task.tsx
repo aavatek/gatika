@@ -18,7 +18,7 @@ import { projects, type Project } from '@features/Project';
 import { Heading } from '@components/Layout';
 import { List, ListItem } from '@features/List';
 import { notificationMsg, setNotification } from '@features/Notification';
-import { getNormalizedTime } from '@lib/dates';
+import { normalizeTime } from '@lib/dates';
 
 // -------------------------------------------------------------------------------------
 
@@ -97,7 +97,7 @@ export const tasks = {
 					duration =
 						Number.isNaN(duration) || duration < 0 ? DAY * 7 : duration;
 
-					const newEnd = getNormalizedTime(data.start - DAY);
+					const newEnd = normalizeTime(data.start - DAY);
 
 					tasks.update(
 						predecessor.id,
@@ -122,8 +122,8 @@ export const tasks = {
 					duration =
 						Number.isNaN(duration) || duration < 0 ? DAY * 7 : duration;
 
-					const newStart = getNormalizedTime(data.end + DAY);
-					const newEnd = getNormalizedTime(newStart + duration);
+					const newStart = normalizeTime(data.end + DAY);
+					const newEnd = normalizeTime(newStart + duration);
 
 					tasks.update(
 						successor.id,
@@ -194,9 +194,7 @@ export const taskStatus = [
 
 const DateSchema = v.pipe(
 	v.string(),
-	v.transform((value) =>
-		value ? getNormalizedTime(getTime(value)) : Number.NaN,
-	),
+	v.transform((value) => (value ? normalizeTime(getTime(value)) : Number.NaN)),
 );
 
 const NameSchema = v.pipe(
