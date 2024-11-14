@@ -46,7 +46,7 @@ describe('Layout component', () => {
 				<Layout />
 			</MetaProvider>
 		));
-		expect(document.querySelector('meta=[name="author"]')).toBeInTheDocument();
+		expect(document.querySelector('meta[name="author"]')).toBeInTheDocument();
 		expect(
 			document.querySelector('meta[name="description"]'),
 		).toBeInTheDocument();

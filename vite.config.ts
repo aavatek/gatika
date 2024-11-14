@@ -41,7 +41,7 @@ export default defineConfig({
 	test: {
 		globals: true,
 		isolate: false,
-		environment: 'happy-dom',
+		environment: 'jsdom',
 		include: ['src/**/*.test.{ts,tsx}'],
 		coverage: {
 			provider: 'v8',
@@ -49,6 +49,7 @@ export default defineConfig({
 			exclude: ['src/app.tsx', 'src/routes/*'],
 			include: ['src/**/*.ts', 'src/**/*.tsx'],
 		},
+		testTimeout: 1000,
 	},
 	resolve: {
 		alias: {
