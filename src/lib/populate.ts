@@ -87,7 +87,7 @@ export const populate = () => {
 			start: Date.now() + DAY,
 			end: Date.now() + DAY + WEEK,
 			project: PA.id,
-			dependencies: [A1.id],
+			dependencies: [],
 			created: Date.now(),
 		};
 
@@ -97,7 +97,7 @@ export const populate = () => {
 			start: Date.now() + DAY * 2 + WEEK,
 			end: Date.now() + DAY * 2 + WEEK * 2,
 			project: PA.id,
-			dependencies: [A2.id],
+			dependencies: [],
 			created: Date.now(),
 		};
 
@@ -107,7 +107,7 @@ export const populate = () => {
 			start: Date.now() + DAY,
 			end: Date.now() + WEEK * 2,
 			project: PA.id,
-			dependencies: [A1.id],
+			dependencies: [],
 			created: Date.now(),
 		};
 

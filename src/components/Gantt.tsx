@@ -7,6 +7,7 @@ import {
 	Switch,
 	Match,
 	Show,
+	createEffect,
 } from 'solid-js';
 import { TaskEditForm, tasks, type Task } from '@features/Task';
 import { DAY, WEEK } from '@lib/dates';
@@ -14,8 +15,9 @@ import { getWeekNumber, Weekdays, Months } from '@lib/dates';
 import * as sx from '@stylexjs/stylex';
 import { Portal } from 'solid-js/web';
 import { Button } from '@components/Form';
-import { formatDate } from '@solid-primitives/date';
+import { formatDate, getDate } from '@solid-primitives/date';
 import { Heading } from './Layout';
+import { notificationMsg, setNotification } from '../features/Notification';
 import {
 	type ColorKey,
 	ProjectColors,
@@ -122,6 +124,8 @@ export const Gantt = (props: { tasks: Task[] }) => {
 							gridAnchorDate={gridAnchorDate}
 							gridStartDate={gridStartDate}
 							gridEndDate={gridEndDate}
+							tasks={tasksSorted}
+							zoom={zoom}
 						/>
 					)}
 				</For>
@@ -137,6 +141,8 @@ type GanttTaskProps = {
 	gridAnchorDate: Accessor<number>;
 	gridStartDate: Accessor<number>;
 	gridEndDate: Accessor<number>;
+	zoom: Accessor<number>;
+	tasks: Accessor<Task[]>;
 };
 
 const GanttTask = (props: GanttTaskProps) => {
@@ -195,6 +201,13 @@ const GanttTask = (props: GanttTaskProps) => {
 		valid: valid(),
 		color: projectColor(),
 	}));
+
+	const hasPredecessors = createMemo(() => task().dependencies.length > 0);
+	const hasSuccessors = createMemo(
+		() =>
+			props.tasks().filter((t) => t.dependencies.includes(task().id)).length >
+			0,
+	);
 
 	const colStart = createMemo(() => {
 		return Math.ceil((task().start - props.gridStartDate()) / DAY);
@@ -255,16 +268,228 @@ const GanttTask = (props: GanttTaskProps) => {
 		document.addEventListener('pointerup', handleRelease);
 	};
 
+	const handleCreateConnection = (e: PointerEvent) => {
+		e.preventDefault();
+		if (e.target === rightConnectorRef) {
+			const startX = e.clientX;
+			const startY = e.clientY;
+
+			const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+			svg.style.position = 'fixed';
+			svg.style.top = '0';
+			svg.style.left = '0';
+			svg.style.width = '100%';
+			svg.style.height = '100%';
+			svg.style.pointerEvents = 'none';
+			svg.style.zIndex = '1000';
+
+			const line = document.createElementNS(
+				'http://www.w3.org/2000/svg',
+				'line',
+			);
+			line.setAttribute('x1', startX.toString());
+			line.setAttribute('y1', startY.toString());
+			line.setAttribute('x2', startX.toString());
+			line.setAttribute('y2', startY.toString());
+			line.setAttribute('stroke', 'black');
+			line.setAttribute('stroke-width', '2');
+			line.setAttribute('stroke-dasharray', '4');
+
+			svg.appendChild(line);
+			document.body.appendChild(svg);
+
+			// find all left-side connectors
+			const allConnectors = document.querySelectorAll(
+				'[data-connector="left"]',
+			);
+
+			const connectors = Array.from(allConnectors).filter(
+				(connector: Element) => {
+					const spanConnector = connector as HTMLSpanElement;
+					const connectorID = spanConnector.getAttribute(
+						'data-task-id',
+					) as Task['id'];
+					const connectorTask = tasks.read(connectorID);
+					return (
+						task().project === connectorTask()?.project &&
+						task().id !== connectorTask()?.id &&
+						formatDate(getDate(task().end)) <
+							formatDate(getDate(connectorTask()?.start || -1)) &&
+						!connectorTask()?.dependencies.includes(task().id)
+					);
+				},
+			);
+
+			const handleMove = (moveEvent: PointerEvent) => {
+				moveEvent.preventDefault();
+				line.setAttribute('x2', moveEvent.clientX.toString());
+				line.setAttribute('y2', moveEvent.clientY.toString());
+
+				// check if we're hovering over any connector
+				connectors.forEach((connector) => {
+					connector.setAttribute('data-visible', 'true');
+					const rect = connector.getBoundingClientRect();
+					const centerX = rect.left + rect.width / 2;
+					const centerY = rect.top + rect.height / 2;
+
+					// check if cursor is within 15px of connector center
+					const distance = Math.hypot(
+						moveEvent.clientX - centerX,
+						moveEvent.clientY - centerY,
+					);
+
+					// add hover effect if close to connector
+					if (distance < 15) {
+						(connector as HTMLElement).style.background = 'gray';
+					} else {
+						(connector as HTMLElement).style.background = 'lightgray';
+					}
+				});
+			};
+
+			const handleRelease = (releaseEvent: PointerEvent) => {
+				connectors.forEach((connector) => {
+					(connector as HTMLElement).style.background = 'lightgray';
+					(connector as HTMLElement).removeAttribute('data-visible');
+
+					const rect = connector.getBoundingClientRect();
+					const centerX = rect.left + rect.width / 2;
+					const centerY = rect.top + rect.height / 2;
+
+					const distance = Math.hypot(
+						releaseEvent.clientX - centerX,
+						releaseEvent.clientY - centerY,
+					);
+
+					if (distance < 15) {
+						const targetTaskId = connector.getAttribute(
+							'data-task-id',
+						) as Task['id'];
+						if (targetTaskId) {
+							const targetTask = tasks.read(targetTaskId);
+							if (targetTask()) {
+								const targetDeps = targetTask()?.dependencies || [];
+								tasks.update(targetTaskId, {
+									dependencies: [...targetDeps, task().id],
+								});
+
+								setNotification({
+									variant: 'success',
+									message: notificationMsg.taskDependencyCreated,
+								});
+							}
+						}
+					}
+				});
+
+				document.removeEventListener('pointermove', handleMove);
+				document.removeEventListener('pointerup', handleRelease);
+				svg.remove();
+			};
+
+			document.addEventListener('pointermove', handleMove);
+			document.addEventListener('pointerup', handleRelease);
+		}
+	};
+
 	const [modalVisible, setModalVisible] = createSignal(false);
 	const handleDoubleClick = (e: MouseEvent) => {
 		e.preventDefault();
 		setModalVisible(true);
 	};
 
+	const updateConnections = () => {
+		const successors = props
+			.tasks()
+			.filter((a) => a.dependencies.includes(task().id));
+
+		if (successors.length === 0) {
+			connectionPath.setAttribute('d', '');
+			return;
+		}
+
+		if (successors.length > 0) {
+			const fromRect = rightConnectorRef.getBoundingClientRect();
+			const svgRect = connectionWrapper.getBoundingClientRect();
+			const startX = fromRect.left + fromRect.width / 2 - svgRect.left;
+			const startY = fromRect.top + fromRect.height / 2 - svgRect.top;
+			const firstVerticalY = fromRect.bottom - svgRect.top + 18;
+
+			const targetConnectors = successors
+				.map((successor) => document.getElementById(`left-${successor.id}`))
+				.filter((el) => !!el)
+				.map((connector) => {
+					const bounds = connector.getBoundingClientRect();
+					return {
+						x: bounds.left + bounds.width / 2 - svgRect.left,
+						y: bounds.top + bounds.height / 2 - svgRect.top,
+					};
+				})
+				.sort((a, b) => a.x - b.x);
+
+			if (targetConnectors.length > 0) {
+				let pathD = `M ${startX} ${startY} 
+                        V ${firstVerticalY}
+                        H ${targetConnectors[0].x}
+                        V ${targetConnectors[0].y}`;
+
+				for (let i = 1; i < targetConnectors.length; i++) {
+					pathD += ` V ${targetConnectors[i].y}
+                          H ${targetConnectors[i].x}`;
+				}
+
+				connectionPath.setAttribute('d', pathD);
+			}
+		}
+	};
+
+	let leftConnectorRef!: HTMLSpanElement;
+	let rightConnectorRef!: HTMLSpanElement;
+	let connectionWrapper!: SVGSVGElement;
+	let connectionPath!: SVGPathElement;
+
+	onMount(() => {
+		leftConnectorRef.id = `left-${task().id}`;
+		rightConnectorRef.id = `right-${task().id}`;
+		setTimeout(updateConnections, 0);
+	});
+
+	createEffect(() => {
+		const targetActivities = props
+			.tasks()
+			.filter((a) => a.dependencies.includes(task().id))
+			.map((a) => [a.start, a.end]);
+
+		// update when any of these changes
+		const _ = [targetActivities, task(), props.zoom()];
+		requestAnimationFrame(updateConnections);
+	});
+
+	const leftConnectorVisible = createMemo(() => {
+		return hasPredecessors();
+	});
+
+	const rightConnectorVisible = createMemo(() => {
+		return hasSuccessors();
+	});
+
 	return (
-		<div {...sx.props(style.taskWrapper(props.row, colStart, colSpan, task))}>
+		<div {...sx.props(style.taskWrapper(props.row, colStart, colSpan))}>
 			<span
-				{...sx.props(style.taskHandle('left', task))}
+				ref={leftConnectorRef}
+				{...sx.props(
+					style.taskConnector(
+						'left',
+						leftConnectorVisible,
+						rightConnectorVisible,
+					),
+				)}
+				onPointerDown={handleCreateConnection}
+				data-connector="left"
+				data-task-id={task().id}
+			/>
+			<span
+				{...sx.props(style.taskHandle('left'))}
 				onPointerDown={handleDrag('left')}
 			/>
 			<span
@@ -275,9 +500,33 @@ const GanttTask = (props: GanttTaskProps) => {
 				{props.task.name}
 			</span>
 			<span
-				{...sx.props(style.taskHandle('right', task))}
+				{...sx.props(style.taskHandle('right'))}
 				onPointerDown={handleDrag('right')}
+				data-task-id={task().id}
 			/>
+			<span
+				ref={rightConnectorRef}
+				{...sx.props(
+					style.taskConnector(
+						'right',
+						leftConnectorVisible,
+						rightConnectorVisible,
+					),
+				)}
+				data-connector="right"
+				data-task-id={task().id}
+				onPointerDown={handleCreateConnection}
+			/>
+			<svg ref={connectionWrapper} {...sx.props(style.connectorLine)}>
+				<title>Connector Line</title>
+				<path
+					ref={connectionPath}
+					stroke="black"
+					fill="none"
+					stroke-width={2}
+				/>
+			</svg>
+
 			<Show when={modalVisible()}>
 				<TaskModal id={task().id} handleClose={() => setModalVisible(false)} />
 			</Show>
@@ -534,9 +783,50 @@ const style = sx.create({
 			'linear-gradient(to right, rgba(0, 0, 0, 0.06) 1px, transparent 1px)',
 	}),
 
+	taskConnector: (
+		side,
+		leftConnectorVisible: Accessor<boolean>,
+		rightConnectorVisible: Accessor<boolean>,
+	) => ({
+		position: 'absolute',
+		top: '50%',
+		transform: 'translateY(-50%)',
+		width: '12px',
+		height: '12px',
+		borderRadius: '50%',
+		background: 'lightgray',
+		alignSelf: 'center',
+		left: side === 'left' ? '-.85rem' : 'initial',
+		right: side === 'right' ? '-.85rem' : 'initial',
+		zIndex: 1,
+		opacity:
+			side === 'right' ? +rightConnectorVisible() : +leftConnectorVisible(),
+		':is([data-visible])': {
+			opacity: 1,
+		},
+		':is([data-connector="right"]):hover': {
+			opacity: 1,
+			cursor: 'pointer',
+		},
+		':is([data-connector="right"]):active': {
+			opacity: 1,
+			cursor: 'pointer',
+		},
+	}),
+
+	connectorLine: {
+		position: 'absolute',
+		top: 0,
+		left: 0,
+		width: '100%',
+		height: '100%',
+		overflow: 'visible',
+	},
+
 	taskWrapper: (row, colStart, colSpan) => ({
 		gridRow: row() + 1,
 		gridColumn: `${colStart()} / span ${colSpan()}`,
+		position: 'relative',
 		display: 'grid',
 		gridTemplateColumns: 'auto 1fr auto',
 		alignContent: 'stretch',
@@ -579,11 +869,13 @@ const style = sx.create({
 		display: 'flex',
 		alignItems: 'center',
 		justifyContent: 'center',
+		zIndex: '1',
 	}),
 
 	taskHandle: (side) => ({
 		width: '6px',
 		cursor: 'ew-resize',
+		zIndex: 1,
 		background: 'rgba(0,0,0,0.7)',
 		borderRadius: side === 'right' ? '0 .25rem .25rem 0' : '.25rem 0 0 .25rem',
 	}),
@@ -598,6 +890,7 @@ const style = sx.create({
 		display: 'flex',
 		justifyContent: 'center',
 		alignItems: 'center',
+		zIndex: 2,
 	},
 
 	taskModal: {
@@ -606,6 +899,7 @@ const style = sx.create({
 		position: 'relative',
 		padding: '2rem 1.5rem',
 		border: '3px solid black',
+		zIndex: 2,
 	},
 
 	modalHeader: {
@@ -629,9 +923,3 @@ const style = sx.create({
 		fontSize: '1.15rem',
 	},
 });
-
-// const staticStyle = sx.create({
-// 	staticTask: {
-// 		background: projectColors.project1,
-// 	},
-// });
