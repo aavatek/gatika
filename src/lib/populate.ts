@@ -8,7 +8,7 @@ import {
 	type Project,
 } from '@features/Project';
 import { setTaskStore } from '@features/Task';
-import { DAY, WEEK } from './dates';
+import { DAY, getNormalizedTime, WEEK } from '@lib/dates';
 
 export const [version, setVersion] = makePersisted(createSignal<string>(), {
 	name: 'version',
@@ -16,7 +16,7 @@ export const [version, setVersion] = makePersisted(createSignal<string>(), {
 });
 
 export const populate = () => {
-	const versionKey = '13.11';
+	const versionKey = '14.11';
 	if (version() !== versionKey) {
 		setVersion(versionKey);
 		setTaskStore(() => []);
@@ -58,8 +58,8 @@ export const populate = () => {
 		const A1 = {
 			id: crypto.randomUUID(),
 			name: 'Tehtävä A1',
-			start: Date.now() - WEEK,
-			end: Date.now(),
+			start: getNormalizedTime(Date.now() - WEEK),
+			end: getNormalizedTime(Date.now()),
 			project: PA.id,
 			dependencies: [],
 			created: Date.now(),
@@ -68,8 +68,8 @@ export const populate = () => {
 		const A2 = {
 			id: crypto.randomUUID(),
 			name: 'Tehtävä A2',
-			start: Date.now() + DAY,
-			end: Date.now() + DAY + WEEK,
+			start: getNormalizedTime(Date.now() + DAY),
+			end: getNormalizedTime(Date.now() + DAY + WEEK),
 			project: PA.id,
 			dependencies: [],
 			created: Date.now(),
@@ -78,8 +78,8 @@ export const populate = () => {
 		const A3 = {
 			id: crypto.randomUUID(),
 			name: 'Tehtävä A3',
-			start: Date.now() + DAY * 2 + WEEK,
-			end: Date.now() + DAY * 2 + WEEK * 2,
+			start: getNormalizedTime(Date.now() + DAY * 2 + WEEK),
+			end: getNormalizedTime(Date.now() + DAY * 2 + WEEK * 2),
 			project: PA.id,
 			dependencies: [],
 			created: Date.now(),
@@ -88,8 +88,8 @@ export const populate = () => {
 		const A4 = {
 			id: crypto.randomUUID(),
 			name: 'Tehtävä A4',
-			start: Date.now() + DAY,
-			end: Date.now() + WEEK * 2,
+			start: getNormalizedTime(Date.now() + DAY),
+			end: getNormalizedTime(Date.now() + WEEK * 2),
 			project: PA.id,
 			dependencies: [],
 			created: Date.now(),
@@ -98,7 +98,7 @@ export const populate = () => {
 		const B1 = {
 			id: crypto.randomUUID(),
 			name: 'Tehtävä B1 (ei loppua)',
-			start: Date.now() - WEEK,
+			start: getNormalizedTime(Date.now() - WEEK),
 			end: Number.NaN,
 			project: PB.id,
 			dependencies: [],
@@ -109,7 +109,7 @@ export const populate = () => {
 			id: crypto.randomUUID(),
 			name: 'Tehtävä B2 (ei alkua)',
 			start: Number.NaN,
-			end: Date.now() + WEEK + DAY * 2,
+			end: getNormalizedTime(Date.now() + WEEK + DAY * 2),
 			project: PB.id,
 			dependencies: [],
 			created: Date.now(),
@@ -118,8 +118,8 @@ export const populate = () => {
 		const C1 = {
 			id: crypto.randomUUID(),
 			name: 'Tehtävä C1',
-			start: Date.now() - WEEK * 2 + DAY * 4,
-			end: Date.now() - WEEK + DAY * 4,
+			start: getNormalizedTime(Date.now() - WEEK * 2 + DAY * 4),
+			end: getNormalizedTime(Date.now() - WEEK + DAY * 4),
 			project: PC.id,
 			dependencies: [],
 			created: Date.now(),
@@ -138,8 +138,8 @@ export const populate = () => {
 		const D1 = {
 			id: crypto.randomUUID(),
 			name: 'Tehtävä D1',
-			start: Date.now() - WEEK * 2 + DAY * 4,
-			end: Date.now() - WEEK + DAY * 4,
+			start: getNormalizedTime(Date.now() - WEEK * 2 + DAY * 4),
+			end: getNormalizedTime(Date.now() - WEEK + DAY * 4),
 			project: PD.id,
 			dependencies: [],
 			created: Date.now(),
