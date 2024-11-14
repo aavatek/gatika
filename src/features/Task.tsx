@@ -40,7 +40,7 @@ export const tasks = {
 		);
 	},
 
-	update: (id: Task['id'], data: Partial<Task>) => {
+	update: (id: Task['id'], data: Partial<Task>, recursive = true) => {
 		const currentTask = taskStore.find((task) => task.id === id);
 		if (!currentTask) return new Error('Task not found');
 
@@ -59,6 +59,26 @@ export const tasks = {
 				return new Error(err.date.dependencyConflict);
 		}
 
+		if (predecessorsSorted.length > 0) {
+			predecessorsSorted.forEach((predecessor) => {
+				if (predecessor.end && data.start) {
+					let duration = predecessor.end - predecessor.start;
+					duration =
+						Number.isNaN(duration) || duration < 0 ? DAY * 7 : duration;
+
+					const newEnd = data.start - DAY;
+
+					tasks.update(
+						predecessor.id,
+						{
+							end: newEnd,
+						},
+						false,
+					);
+				}
+			});
+		}
+
 		setTaskStore(
 			(task) => task.id === id,
 			produce((task) => Object.assign(task, data)),
@@ -68,22 +88,19 @@ export const tasks = {
 			task.dependencies.includes(id),
 		);
 
-		if (successors.length > 0) {
+		if (recursive && successors.length > 0) {
 			successors.forEach((successor) => {
 				if (successor.start && data.end) {
-					let newStart = formatDate(getDate(successor.start));
-					let newEnd = formatDate(
-						getDate(successor.end ?? successor.start + DAY),
-					);
+					let duration = successor.end - successor.start;
+					duration =
+						Number.isNaN(duration) || duration < 0 ? DAY * 7 : duration;
 
-					while (newStart <= formatDate(getDate(data.end))) {
-						newStart = formatDate(getDate(getTime(newStart) + DAY));
-						newEnd = formatDate(getDate(getTime(newEnd) + DAY));
-					}
+					const newStart = data.end + DAY;
+					const newEnd = newStart + duration;
 
 					tasks.update(successor.id, {
-						start: getTime(newStart),
-						end: getTime(newEnd),
+						start: newStart,
+						end: newEnd,
 					});
 				}
 			});
