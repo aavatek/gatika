@@ -8,8 +8,9 @@ import {
 	Match,
 	Show,
 	createEffect,
+	onCleanup,
 } from 'solid-js';
-import { TaskEditForm, tasks, type Task } from '@features/Task';
+import { TaskEditForm, tasks, taskStore, type Task } from '@features/Task';
 import { DAY, WEEK } from '@lib/dates';
 import { getWeekNumber, Weekdays, Months } from '@lib/dates';
 import * as sx from '@stylexjs/stylex';
@@ -24,6 +25,7 @@ import {
 	projects,
 	type Project,
 } from '@features/Project';
+import { handleHistory, redo, undo } from '../lib/history';
 
 export const Gantt = (props: { tasks: Task[] }) => {
 	const gridStartDate = createMemo(() => Date.now() - WEEK * 20);
@@ -253,7 +255,9 @@ const GanttTask = (props: GanttTaskProps) => {
 					end: newEnd,
 				});
 
-				if (err) setValid(false);
+				handleHistory([...taskStore]);
+				if (err)
+					setValid(false); // if fails, remove last pushed;
 				else setValid(true);
 			}
 		};
@@ -471,6 +475,21 @@ const GanttTask = (props: GanttTaskProps) => {
 
 	const rightConnectorVisible = createMemo(() => {
 		return hasSuccessors();
+	});
+
+	onMount(() => {
+		const handleKeydown = (e: KeyboardEvent) => {
+			if (e.ctrlKey && !e.shiftKey && e.key.toLowerCase() === 'z') {
+				e.preventDefault();
+				undo();
+			}
+			if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'z') {
+				e.preventDefault();
+				redo();
+			}
+		};
+		window.addEventListener('keydown', handleKeydown);
+		onCleanup(() => window.removeEventListener('keydown', handleKeydown));
 	});
 
 	return (
