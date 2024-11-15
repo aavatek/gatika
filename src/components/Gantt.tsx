@@ -340,16 +340,16 @@ const GanttTask = (props: GanttTaskProps) => {
 
 					// add hover effect if close to connector
 					if (distance < 15) {
-						(connector as HTMLElement).style.background = 'gray';
+						(connector as HTMLElement).style.background = '#888599';
 					} else {
-						(connector as HTMLElement).style.background = 'lightgray';
+						(connector as HTMLElement).style.background = '#CBC9D9';
 					}
 				});
 			};
 
 			const handleRelease = (releaseEvent: PointerEvent) => {
 				connectors.forEach((connector) => {
-					(connector as HTMLElement).style.background = 'lightgray';
+					(connector as HTMLElement).style.background = '#B5B2C4';
 					(connector as HTMLElement).removeAttribute('data-visible');
 
 					const rect = connector.getBoundingClientRect();
@@ -521,7 +521,7 @@ const GanttTask = (props: GanttTaskProps) => {
 				<title>Connector Line</title>
 				<path
 					ref={connectionPath}
-					stroke="black"
+					stroke="rgba(0,0,0,0.7)"
 					fill="none"
 					stroke-width={2}
 				/>
@@ -703,8 +703,6 @@ const style = sx.create({
 		width: `${cols() * zoomModifier()}px`,
 		display: 'grid',
 		gridTemplateColumns: `repeat(${cols()}, 1fr)`,
-		borderBottom: '1px solid rgba(0, 0, 0, 0.1)',
-		background: 'white',
 	}),
 
 	months: (month) => ({
@@ -716,12 +714,13 @@ const style = sx.create({
 		display: 'flex',
 		justifyContent: 'center',
 		alignItems: 'center',
-		background: '#f8f9fa',
 		textWrap: 'nowrap',
 		overflow: 'hidden',
 		fontSize: '1rem',
-		fontWeight: 500,
+		fontWeight: 'bold',
 		color: '#495057',
+		background: '#FBFAFC',
+		borderBottom: '1px solid rgba(0, 0, 0, 0.1)',
 	}),
 
 	days: (index, isToday) => ({
@@ -733,11 +732,12 @@ const style = sx.create({
 		justifyContent: 'center',
 		flexDirection: 'column',
 		alignItems: 'center',
-		background: isToday ? 'rgba(0, 0, 0, 0.04)' : 'white',
+		background: isToday ? '#C1BFD0' : '#FBFAFC',
 		textWrap: 'nowrap',
 		overflow: 'hidden',
 		fontSize: '0.85rem',
-		color: '#666',
+		fontWeight: 'bold',
+		color: isToday ? 'black' : '#495057',
 		gap: '0.125rem',
 	}),
 
@@ -751,14 +751,15 @@ const style = sx.create({
 		alignItems: 'center',
 		textWrap: 'nowrap',
 		overflow: 'hidden',
-		background: week.isThisWeek ? 'rgba(0, 0, 0, 0.04)' : 'white',
+		background: week.isThisWeek ? '#C1BFD0' : '#FBFAFC',
 		fontSize: '0.9rem',
-		color: '#666',
+		fontWeight: 'bold',
+		color: week.isThisWeek ? 'black' : '#495057',
 	}),
 
 	wrapper: {
 		overflowX: 'auto',
-		background: '#FAF9FF',
+		background: '#FCFBFD',
 		boxShadow: `
 		    inset 0 2px 4px -2px rgba(50, 50, 93, 0.25),
 		    inset 0 -2px 4px -2px rgba(50, 50, 93, 0.25),
@@ -794,7 +795,7 @@ const style = sx.create({
 		width: '12px',
 		height: '12px',
 		borderRadius: '50%',
-		background: 'lightgray',
+		background: '#B5B2C4',
 		alignSelf: 'center',
 		left: side === 'left' ? '-.85rem' : 'initial',
 		right: side === 'right' ? '-.85rem' : 'initial',
