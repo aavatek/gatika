@@ -8,8 +8,8 @@ const YEAR = 31536000000;
 
 export { SECOND, MINUTE, HOUR, DAY, WEEK, MONTH, YEAR };
 
-export const formatTime = (epoch: number) => {
-	const date = new Date(epoch);
+export const formatTime = (timestamp: number) => {
+	const date = new Date(timestamp);
 
 	const day = String(date.getDate()).padStart(2, '0');
 	const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -18,11 +18,11 @@ export const formatTime = (epoch: number) => {
 	return `${day}.${month}.${year}`;
 };
 
-export const getWeekStart = (date: number): number => {
-	const daysSinceEpoch = Math.floor(date / DAY);
+export const getWeekStart = (timestamp: number): number => {
+	const daysSinceEpoch = Math.floor(timestamp / DAY);
 	const weekday = (daysSinceEpoch + 4) % 7;
 	const daysToSubtract = weekday;
-	return date - daysToSubtract * DAY;
+	return timestamp - daysToSubtract * DAY;
 };
 
 export const getWeekNumber = (d: Date): number => {
@@ -32,7 +32,7 @@ export const getWeekNumber = (d: Date): number => {
 	return Math.ceil(((date.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
 };
 
-export const getNormalizedTime = (epoch: number): number => {
+export const normalizeTime = (epoch: number): number => {
 	const dateObj = new Date(epoch);
 	dateObj.setUTCHours(0, 0, 0, 0);
 	return dateObj.getTime();

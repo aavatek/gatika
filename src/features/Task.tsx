@@ -18,7 +18,7 @@ import { projects, type Project } from '@features/Project';
 import { Heading } from '@components/Layout';
 import { List, ListItem } from '@features/List';
 import { notificationMsg, setNotification } from '@features/Notification';
-import { getNormalizedTime } from '@lib/dates';
+import { normalizeTime } from '@lib/dates';
 
 // -------------------------------------------------------------------------------------
 
@@ -40,7 +40,12 @@ export const tasks = {
 		);
 	},
 
-	update: (id: Task['id'], data: Partial<Task>, recursive = true) => {
+	update: (
+		id: Task['id'],
+		data: Partial<Task>,
+		updatePredecessors = true,
+		updateSuccessors = true,
+	) => {
 		const currentTask = taskStore.find((task) => task.id === id);
 		if (!currentTask) return new Error('Task not found');
 
@@ -59,14 +64,45 @@ export const tasks = {
 				return new Error(err.date.dependencyConflict);
 		}
 
-		if (predecessorsSorted.length > 0) {
+		setTaskStore(
+			(task) => task.id === id,
+			produce((task) => Object.assign(task, data)),
+		);
+
+		if (data.dependencies) {
+			if (data.dependencies.length > 0) {
+				const newStart =
+					Math.max(
+						...data.dependencies
+							.map((id) => tasks.read(id as Task['id']))
+							.filter((task) => !!task)
+							.map((task) => task()?.end as number),
+					) + DAY;
+
+				let duration = currentTask.end - currentTask.start;
+				duration = Number.isNaN(duration) || duration < 0 ? DAY * 7 : duration;
+				const newEnd = newStart + duration;
+
+				setTaskStore(
+					(task) => task.id === id,
+					produce((task) =>
+						Object.assign(task, data, {
+							start: newStart,
+							end: newEnd,
+						}),
+					),
+				);
+			}
+		}
+
+		if (updatePredecessors && predecessorsSorted.length > 0) {
 			predecessorsSorted.forEach((predecessor) => {
 				if (predecessor.end && data.start) {
 					let duration = predecessor.end - predecessor.start;
 					duration =
 						Number.isNaN(duration) || duration < 0 ? DAY * 7 : duration;
 
-					const newEnd = data.start - DAY;
+					const newEnd = normalizeTime(data.start - DAY);
 
 					tasks.update(
 						predecessor.id,
@@ -74,34 +110,35 @@ export const tasks = {
 							end: newEnd,
 						},
 						false,
+						true,
 					);
 				}
 			});
 		}
 
-		setTaskStore(
-			(task) => task.id === id,
-			produce((task) => Object.assign(task, data)),
-		);
-
 		const successors = taskStore.filter((task) =>
 			task.dependencies.includes(id),
 		);
 
-		if (recursive && successors.length > 0) {
+		if (updateSuccessors && successors.length > 0) {
 			successors.forEach((successor) => {
 				if (successor.start && data.end) {
 					let duration = successor.end - successor.start;
 					duration =
 						Number.isNaN(duration) || duration < 0 ? DAY * 7 : duration;
 
-					const newStart = data.end + DAY;
-					const newEnd = newStart + duration;
+					const newStart = normalizeTime(data.end + DAY);
+					const newEnd = normalizeTime(newStart + duration);
 
-					tasks.update(successor.id, {
-						start: newStart,
-						end: newEnd,
-					});
+					tasks.update(
+						successor.id,
+						{
+							start: newStart,
+							end: newEnd,
+						},
+						false,
+						true,
+					);
 				}
 			});
 		}
@@ -162,9 +199,7 @@ export const taskStatus = [
 
 const DateSchema = v.pipe(
 	v.string(),
-	v.transform((value) =>
-		value ? getNormalizedTime(getTime(value)) : Number.NaN,
-	),
+	v.transform((value) => (value ? normalizeTime(getTime(value)) : Number.NaN)),
 );
 
 const NameSchema = v.pipe(

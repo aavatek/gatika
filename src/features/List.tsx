@@ -43,7 +43,7 @@ const style = sx.create({
 	list: {
 		display: 'flex',
 		flexDirection: 'column',
-		gap: '.5rem',
+		gap: '.75rem',
 	},
 
 	itemWrapperLink: {
@@ -52,11 +52,14 @@ const style = sx.create({
 	},
 
 	item: {
-		border: '2px solid black',
+		boxShadow:
+			'rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px',
 		padding: '1rem',
 		background: {
 			default: '#f0f0f0',
 			':hover': '#ccc',
 		},
+		border: '1px solid rgba(0, 0, 0, 0.1)',
+		boxSizing: 'border-box',
 	},
 });
