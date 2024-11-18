@@ -313,6 +313,8 @@ const GanttTask = (props: GanttTaskProps) => {
 					return (
 						task().project === connectorTask()?.project &&
 						task().id !== connectorTask()?.id &&
+						props.task.start &&
+						props.task.end &&
 						formatDate(getDate(task().end)) <
 							formatDate(getDate(connectorTask()?.start || -1)) &&
 						!connectorTask()?.dependencies.includes(task().id)
