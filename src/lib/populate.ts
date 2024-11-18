@@ -16,7 +16,7 @@ export const [version, setVersion] = makePersisted(createSignal<string>(), {
 });
 
 export const populate = () => {
-	const versionKey = '14.11';
+	const versionKey = '18.11';
 	if (version() !== versionKey) {
 		setVersion(versionKey);
 		setTaskStore(() => []);
@@ -29,6 +29,7 @@ export const populate = () => {
 			created: Date.now(),
 			color: getColor(),
 		};
+
 		projects.create(PA);
 
 		const PB: Project = {
