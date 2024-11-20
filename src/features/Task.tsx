@@ -7,7 +7,7 @@ import {
 	createMemo,
 	splitProps,
 } from 'solid-js';
-import { getTime, getDate, formatDate, DAY } from '@solid-primitives/date';
+import { getDate, formatDate, DAY } from '@solid-primitives/date';
 import * as mf from '@modular-forms/solid';
 import * as v from 'valibot';
 import * as sx from '@stylexjs/stylex';
@@ -18,7 +18,7 @@ import { projects, type Project } from '@features/Project';
 import { Heading } from '@components/Layout';
 import { List, ListItem } from '@features/List';
 import { notificationMsg, setNotification } from '@features/Notification';
-import { normalizeTime } from '@lib/dates';
+import { normalizeDate } from '@lib/dates';
 
 // -------------------------------------------------------------------------------------
 
@@ -56,11 +56,7 @@ export const tasks = {
 
 		if (predecessorsSorted.length > 0) {
 			const firstPossibleStart = predecessorsSorted[0].end as number;
-			if (
-				data.start &&
-				formatDate(getDate(data.start)) <=
-					formatDate(getDate(firstPossibleStart))
-			)
+			if (data.start && data.start <= firstPossibleStart)
 				return new Error(err.date.dependencyConflict);
 		}
 
@@ -102,7 +98,7 @@ export const tasks = {
 					duration =
 						Number.isNaN(duration) || duration < 0 ? DAY * 7 : duration;
 
-					const newEnd = normalizeTime(data.start - DAY);
+					const newEnd = normalizeDate(data.start - DAY);
 
 					tasks.update(
 						predecessor.id,
@@ -127,8 +123,8 @@ export const tasks = {
 					duration =
 						Number.isNaN(duration) || duration < 0 ? DAY * 7 : duration;
 
-					const newStart = normalizeTime(data.end + DAY);
-					const newEnd = normalizeTime(newStart + duration);
+					const newStart = normalizeDate(data.end + DAY);
+					const newEnd = normalizeDate(newStart + duration);
 
 					tasks.update(
 						successor.id,
@@ -200,7 +196,9 @@ export const taskStatus = [
 
 const DateSchema = v.pipe(
 	v.string(),
-	v.transform((value) => (value ? normalizeTime(getTime(value)) : Number.NaN)),
+	v.transform((value) =>
+		value ? normalizeDate(new Date(value).getTime()) : Number.NaN,
+	),
 );
 
 const NameSchema = v.pipe(
