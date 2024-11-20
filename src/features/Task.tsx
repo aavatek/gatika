@@ -76,7 +76,7 @@ export const tasks = {
 						...data.dependencies
 							.map((id) => tasks.read(id as Task['id']))
 							.filter((task) => !!task)
-							.map((task) => task()?.end as number),
+							.map((task) => task.end as number),
 					) + DAY;
 
 				let duration = currentTask.end - currentTask.start;
@@ -144,8 +144,9 @@ export const tasks = {
 		}
 	},
 
-	read: (id: Task['id']) =>
-		createMemo(() => taskStore.find((task) => task.id === id)),
+	read: (id: Task['id']) => {
+		return taskStore.find((task) => task.id === id);
+	},
 
 	delete: (id: Task['id']) => {
 		setTaskStore((store) => store.filter((task) => task.id !== id));
@@ -254,8 +255,8 @@ export const TaskSchema = v.pipe(
 						Math.max(
 							...input.dependencies
 								.map((id) => tasks.read(id as Task['id']))
-								.filter((task) => task()?.end !== undefined)
-								.map((task) => task()?.end as number),
+								.filter((task) => !!task?.end)
+								.map((task) => task?.end as number),
 						) || -999999999;
 
 					return input.start >= lastEndDate;
@@ -649,7 +650,7 @@ export const TaskList = (props: TaskListProps) => {
 								name={task.name}
 								extraStyles={style.listItem}
 							>
-								<Show when={!props.project}>{project()?.name}</Show>
+								<Show when={!props.project}>{project?.name}</Show>
 								<Show when={start() || end()}>
 									<span>
 										{start() ?? ''} <Show when={end()}>- {end()} </Show>

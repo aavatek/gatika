@@ -40,8 +40,8 @@ export const Gantt = (props: { tasks: Task[] }) => {
 	const tasksSorted = createMemo(() => {
 		return tasksWithinRange().sort((a, b) => {
 			// sort based on when project was created
-			const projectA = projects.read(a.project as Project['id'])();
-			const projectB = projects.read(b.project as Project['id'])();
+			const projectA = projects.read(a.project as Project['id']);
+			const projectB = projects.read(b.project as Project['id']);
 			if (projectA?.created !== projectB?.created) {
 				return (projectA?.created ?? 0) - (projectB?.created ?? 0);
 			}
@@ -190,7 +190,7 @@ const GanttTask = (props: GanttTaskProps) => {
 		const projectId = props.task.project as Project['id'];
 		const project = projects.read(projectId);
 
-		return project()?.color;
+		return project?.color;
 	});
 
 	const task = createMemo(() => ({
@@ -310,15 +310,18 @@ const GanttTask = (props: GanttTaskProps) => {
 						'data-task-id',
 					) as Task['id'];
 					const connectorTask = tasks.read(connectorID);
-					return (
-						task().project === connectorTask()?.project &&
-						task().id !== connectorTask()?.id &&
-						props.task.start &&
-						props.task.end &&
-						formatDate(getDate(task().end)) <
-							formatDate(getDate(connectorTask()?.start || -1)) &&
-						!connectorTask()?.dependencies.includes(task().id)
-					);
+
+					if (connectorTask) {
+						return (
+							task().project === connectorTask.project &&
+							task().id !== connectorTask.id &&
+							props.task.start &&
+							props.task.end &&
+							formatDate(getDate(task().end)) <
+								formatDate(getDate(connectorTask.start || -1)) &&
+							!connectorTask.dependencies.includes(task().id)
+						);
+					}
 				},
 			);
 
@@ -369,8 +372,8 @@ const GanttTask = (props: GanttTaskProps) => {
 						) as Task['id'];
 						if (targetTaskId) {
 							const targetTask = tasks.read(targetTaskId);
-							if (targetTask()) {
-								const targetDeps = targetTask()?.dependencies || [];
+							if (targetTask) {
+								const targetDeps = targetTask.dependencies || [];
 								tasks.update(targetTaskId, {
 									dependencies: [...targetDeps, task().id],
 								});
@@ -551,7 +554,7 @@ const TaskModal = (props: TaskModalProps) => {
 	};
 
 	return (
-		<Show when={task()}>
+		<Show when={task}>
 			{(task) => (
 				<Portal>
 					<div {...sx.props(style.modalOverlay)} onClick={handleOverlayClick}>

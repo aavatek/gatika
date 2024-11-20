@@ -27,8 +27,9 @@ export const projects = {
 	create: (project: Project) =>
 		setProjectStore(produce((store) => store.push(project))),
 
-	read: (id: Project['id']) =>
-		createMemo(() => projectStore.find((project) => project.id === id)),
+	read: (id: Project['id']) => {
+		return projectStore.find((project) => project.id === id);
+	},
 
 	update: (id: Project['id'], data: Partial<Project>) => {
 		setProjectStore(
@@ -261,7 +262,7 @@ type ProjectListProps = {
 export const ProjectList = (props: ProjectListProps) => {
 	const listItem = createMemo(() => {
 		return props.filter === 'lastAccessed'
-			? visited().map((id) => projects.read(id)())
+			? visited().map((id) => projects.read(id))
 			: projects.list();
 	}) as () => Project[];
 
