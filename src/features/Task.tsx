@@ -22,6 +22,10 @@ import { normalizeDate } from '@lib/dates';
 
 // -------------------------------------------------------------------------------------
 
+export const isFloating = (task: Task) => {
+	return Number.isNaN(task.start) && Number.isNaN(task.end);
+};
+
 export const [taskStore, setTaskStore] = makePersisted(
 	createStore<Task[]>([]),
 	{

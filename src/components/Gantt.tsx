@@ -6,14 +6,13 @@ import {
 	createEffect,
 } from 'solid-js';
 import { For, Switch, Match, Show } from 'solid-js';
-import { TaskEditForm, tasks, type Task } from '@features/Task';
+import { TaskEditForm, tasks, isFloating, type Task } from '@features/Task';
 import { DAY, WEEK, MONTH } from '@lib/dates';
 import { Weekdays, Months } from '@lib/dates';
 import { getDateDiff, getMonth, getWeek, normalizeDate } from '@lib/dates';
 import * as sx from '@stylexjs/stylex';
 import { Portal } from 'solid-js/web';
 import { Button } from '@components/Form';
-import { formatDate, getDate } from '@solid-primitives/date';
 import { Heading } from '@components/Layout';
 import { notificationMsg, setNotification } from '../features/Notification';
 import {
@@ -23,19 +22,15 @@ import {
 	type ColorKey,
 } from '@features/Project';
 
-const isFloating = (task: Task) => {
-	return Number.isNaN(task.start) && Number.isNaN(task.end);
-};
-
 export const Gantt = (props: { tasks: Task[] }) => {
-	// zoom sets the width of a day in pixels
-	const [zoom, setZoom] = createSignal(45);
-
 	const gridStartDate = normalizeDate(Date.now() - MONTH * 2);
 	const gridEndDate = normalizeDate(Date.now() + MONTH * 2);
 	const gridAnchorDate = normalizeDate(Date.now() - WEEK);
 
-	// filter tasks in range of timeline
+	// zoom sets the width of a day in pixels
+	const [zoom, setZoom] = createSignal(45);
+
+	// filter tasks that fall between gridStartDate & gridEndDate
 	const tasksInRange = createMemo(() =>
 		props.tasks
 			.filter((task) => !task.start || task.start > gridStartDate)
@@ -46,6 +41,7 @@ export const Gantt = (props: { tasks: Task[] }) => {
 	const rows = createMemo(() => Math.max(15, tasksInRange.length));
 	const cols = createMemo(() => getDateDiff(gridStartDate, gridEndDate));
 
+	// sort tasks
 	const tasksSorted = createMemo(() => {
 		return tasksInRange().sort((a, b) => {
 			const A = projects.read(a.project as Project['id']);
@@ -65,7 +61,7 @@ export const Gantt = (props: { tasks: Task[] }) => {
 		});
 	});
 
-	// event handlers & cleanup
+	// handle zoom and scroll to position
 	const ref = (el: HTMLDivElement) => {
 		const handleZoom = (ev: WheelEvent) => {
 			if (ev.ctrlKey) {
@@ -135,43 +131,37 @@ type GanttTaskProps = {
 
 const GanttTask = (props: GanttTaskProps) => {
 	const [valid, setValid] = createSignal(true);
+	const [editing, setEditing] = createSignal(false);
 
-	// set placeholder dates for floating tasks
+	// get floating status
+	const floating = createMemo(() => {
+		if (props.task.start && !props.task.end) return 'end';
+		if (!props.task.start && props.task.end) return 'start';
+		if (!props.task.start && !props.task.end) return 'full';
+	});
+
+	// assign placeholder dates for floating tasks
 	const getEffectiveDates = createMemo(() => ({
 		start: props.task.start
 			? props.task.start
 			: props.task.end
 				? props.task.end - WEEK
-				: props.gridAnchorDate,
+				: props.gridAnchorDate + DAY,
 
 		end: props.task.end
 			? props.task.end
 			: props.task.start
-				? props.task.start + WEEK
+				? props.task.start + WEEK - DAY
 				: props.gridAnchorDate + WEEK,
 	}));
 
-	const floating = createMemo(() => {
-		if (props.task.start && !props.task.end) {
-			return 'end';
-		}
-
-		if (!props.task.start && props.task.end) {
-			return 'start';
-		}
-
-		if (!props.task.start && !props.task.end) {
-			return 'full';
-		}
-	});
-
+	// get project color
 	const projectColor = createMemo(() => {
 		const projectId = props.task.project as Project['id'];
-		const project = projects.read(projectId);
-
-		return project?.color;
+		return projects.read(projectId)?.color;
 	});
 
+	// expand task entity
 	const task = createMemo(() => ({
 		...props.task,
 		...getEffectiveDates(),
@@ -180,196 +170,63 @@ const GanttTask = (props: GanttTaskProps) => {
 		color: projectColor(),
 	}));
 
+	// calculate grid position
 	const row = createMemo(() => props.index + 1);
 	const col = createMemo(() => ({
 		start: getDateDiff(props.gridStartDate, task().start),
 		span: getDateDiff(task().end, task().start),
 	}));
 
-	const handleCreateConnection = (e: PointerEvent) => {
-		e.preventDefault();
-		if (e.target === rightConnectorRef) {
-			const startX = e.clientX;
-			const startY = e.clientY;
+	const hasPredecessors = createMemo(() => {
+		return task().dependencies.length > 0;
+	});
 
-			const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-			svg.style.position = 'fixed';
-			svg.style.top = '0';
-			svg.style.left = '0';
-			svg.style.width = '100%';
-			svg.style.height = '100%';
-			svg.style.pointerEvents = 'none';
-			svg.style.zIndex = '1000';
+	const hasSuccessors = createMemo(() => {
+		return props.tasks.some((t) => t.dependencies.includes(task().id));
+	});
 
-			const line = document.createElementNS(
-				'http://www.w3.org/2000/svg',
-				'line',
-			);
-			line.setAttribute('x1', startX.toString());
-			line.setAttribute('y1', startY.toString());
-			line.setAttribute('x2', startX.toString());
-			line.setAttribute('y2', startY.toString());
-			line.setAttribute('stroke', 'black');
-			line.setAttribute('stroke-width', '2');
-			line.setAttribute('stroke-dasharray', '4');
-
-			svg.appendChild(line);
-			document.body.appendChild(svg);
-
-			// find all left-side connectors
-			const allConnectors = document.querySelectorAll(
-				'[data-connector="left"]',
-			);
-
-			const connectors = Array.from(allConnectors).filter(
-				(connector: Element) => {
-					const spanConnector = connector as HTMLSpanElement;
-					const connectorID = spanConnector.getAttribute(
-						'data-task-id',
-					) as Task['id'];
-					const connectorTask = tasks.read(connectorID);
-
-					if (connectorTask) {
-						return (
-							task().project === connectorTask.project &&
-							task().id !== connectorTask.id &&
-							props.task.start &&
-							props.task.end &&
-							formatDate(getDate(task().end)) <
-								formatDate(getDate(connectorTask.start || -1)) &&
-							!connectorTask.dependencies.includes(task().id)
-						);
-					}
-				},
-			);
-
-			const handleMove = (moveEvent: PointerEvent) => {
-				moveEvent.preventDefault();
-				line.setAttribute('x2', moveEvent.clientX.toString());
-				line.setAttribute('y2', moveEvent.clientY.toString());
-
-				// check if we're hovering over any connector
-				connectors.forEach((connector) => {
-					connector.setAttribute('data-visible', 'true');
-					const rect = connector.getBoundingClientRect();
-					const centerX = rect.left + rect.width / 2;
-					const centerY = rect.top + rect.height / 2;
-
-					// check if cursor is within 15px of connector center
-					const distance = Math.hypot(
-						moveEvent.clientX - centerX,
-						moveEvent.clientY - centerY,
-					);
-
-					// add hover effect if close to connector
-					if (distance < 15) {
-						(connector as HTMLElement).style.background = '#888599';
-					} else {
-						(connector as HTMLElement).style.background = '#CBC9D9';
-					}
-				});
-			};
-
-			const handleRelease = (releaseEvent: PointerEvent) => {
-				connectors.forEach((connector) => {
-					(connector as HTMLElement).style.background = '#B5B2C4';
-					(connector as HTMLElement).removeAttribute('data-visible');
-
-					const rect = connector.getBoundingClientRect();
-					const centerX = rect.left + rect.width / 2;
-					const centerY = rect.top + rect.height / 2;
-
-					const distance = Math.hypot(
-						releaseEvent.clientX - centerX,
-						releaseEvent.clientY - centerY,
-					);
-
-					if (distance < 15) {
-						const targetTaskId = connector.getAttribute(
-							'data-task-id',
-						) as Task['id'];
-						if (targetTaskId) {
-							const targetTask = tasks.read(targetTaskId);
-							if (targetTask) {
-								const targetDeps = targetTask.dependencies || [];
-								tasks.update(targetTaskId, {
-									dependencies: [...targetDeps, task().id],
-								});
-
-								setNotification({
-									variant: 'success',
-									message: notificationMsg.taskDependencyCreated,
-								});
-							}
-						}
-					}
-				});
-
-				document.removeEventListener('pointermove', handleMove);
-				document.removeEventListener('pointerup', handleRelease);
-				svg.remove();
-			};
-
-			document.addEventListener('pointermove', handleMove);
-			document.addEventListener('pointerup', handleRelease);
-		}
-	};
+	let connectionWrapper!: SVGSVGElement;
+	let connectionPath!: SVGPathElement;
 
 	const updateConnections = () => {
 		const successors = props.tasks.filter((a) =>
 			a.dependencies.includes(task().id),
 		);
 
-		if (successors.length === 0) {
-			connectionPath.setAttribute('d', '');
-			return;
-		}
+		if (!successors.length) return connectionPath.setAttribute('d', '');
 
-		if (successors.length > 0) {
-			const fromRect = rightConnectorRef.getBoundingClientRect();
-			const svgRect = connectionWrapper.getBoundingClientRect();
-			const startX = fromRect.left + fromRect.width / 2 - svgRect.left;
-			const startY = fromRect.top + fromRect.height / 2 - svgRect.top;
-			const firstVerticalY = fromRect.bottom - svgRect.top + 18;
+		const rightConnector = document.getElementById(`right#${task().id}`);
+		if (!rightConnector) return;
 
-			const targetConnectors = successors
-				.map((successor) => document.getElementById(`left-${successor.id}`))
-				.filter((el) => !!el)
-				.map((connector) => {
-					const bounds = connector.getBoundingClientRect();
-					return {
-						x: bounds.left + bounds.width / 2 - svgRect.left,
-						y: bounds.top + bounds.height / 2 - svgRect.top,
-					};
-				})
-				.sort((a, b) => a.x - b.x);
+		const fromRect = rightConnector.getBoundingClientRect();
+		const svgRect = connectionWrapper.getBoundingClientRect();
+		const startX = fromRect.left + fromRect.width / 2 - svgRect.left;
+		const startY = fromRect.top + fromRect.height / 2 - svgRect.top;
+		const firstVerticalY = fromRect.bottom - svgRect.top + 18;
 
-			if (targetConnectors.length > 0) {
-				let pathD = `M ${startX} ${startY} 
-                        V ${firstVerticalY}
-                        H ${targetConnectors[0].x}
-                        V ${targetConnectors[0].y}`;
+		const targetConnectors = successors
+			.map((successor) => document.getElementById(`left#${successor.id}`))
+			.filter((connector) => !!connector)
+			.map((connector) => {
+				const bounds = connector.getBoundingClientRect();
+				return {
+					x: bounds.left + bounds.width / 2 - svgRect.left,
+					y: bounds.top + bounds.height / 2 - svgRect.top,
+				};
+			})
+			.sort((a, b) => a.x - b.x);
 
-				for (let i = 1; i < targetConnectors.length; i++) {
-					pathD += ` V ${targetConnectors[i].y}
-                          H ${targetConnectors[i].x}`;
-				}
-
-				connectionPath.setAttribute('d', pathD);
+		if (targetConnectors.length) {
+			let pathD = `M ${startX} ${startY} V ${firstVerticalY} H ${targetConnectors[0].x} V ${targetConnectors[0].y}`;
+			for (let i = 1; i < targetConnectors.length; i++) {
+				pathD += ` V ${targetConnectors[i].y} H ${targetConnectors[i].x}`;
 			}
+			connectionPath.setAttribute('d', pathD);
 		}
 	};
 
-	let leftConnectorRef!: HTMLSpanElement;
-	let rightConnectorRef!: HTMLSpanElement;
-	let connectionWrapper!: SVGSVGElement;
-	let connectionPath!: SVGPathElement;
-
-	onMount(() => {
-		setTimeout(updateConnections, 0);
-	});
-
 	const offset = (dx: number) => Math.round(dx / props.zoom) * DAY;
+
 	const updatePosition = (start: number, end: number) => {
 		const validStart = start >= props.gridStartDate;
 		const validEnd = end >= start && end <= props.gridEndDate;
@@ -380,17 +237,15 @@ const GanttTask = (props: GanttTaskProps) => {
 		}
 	};
 
-	const [modalVisible, setModalVisible] = createSignal(false);
+	// handle task moving and resizing
 	const ref = (role: 'left' | 'center' | 'right') => (el: HTMLSpanElement) => {
 		const handleDrag = (ev: PointerEvent) => {
 			ev.preventDefault();
-
 			const { clientX } = ev;
 			const { start, end } = task();
 
 			const handleMove = (ev: PointerEvent) => {
 				const dx = ev.clientX - clientX;
-
 				switch (role) {
 					case 'left':
 						return updatePosition(start + offset(dx), end);
@@ -411,58 +266,179 @@ const GanttTask = (props: GanttTaskProps) => {
 			document.addEventListener('pointerup', handleCleanup);
 		};
 
-		const handleDblClick = () => {
-			setModalVisible(true);
-		};
-
 		onMount(() => {
 			el.addEventListener('pointerdown', handleDrag);
-			el.addEventListener('dblclick', handleDblClick);
+			el.addEventListener('dblclick', () => setEditing(true));
 
 			onCleanup(() => {
 				el.removeEventListener('pointerdown', handleDrag);
-				el.removeEventListener('dblclick', handleDblClick);
+				el.removeEventListener('dblclick', () => setEditing(true));
 			});
 		});
 	};
+
+	const connector = (side: 'left' | 'right') => (el: HTMLSpanElement) => {
+		el.setAttribute('data-side', side);
+		el.id = `${side}#${task().id}`;
+
+		// mark targets
+		createEffect(() => {
+			switch (true) {
+				case side === 'left' && hasPredecessors():
+				case side === 'right' && hasSuccessors():
+					return el.setAttribute('data-target', 'true');
+				default:
+					el.removeAttribute('data-target');
+			}
+		});
+
+		if (side === 'right') {
+			const handleConnect = (ev: PointerEvent) => {
+				ev.preventDefault();
+
+				// calculate mouse position in relation to element
+				const getDistance = (ev: PointerEvent, el: Element) => {
+					const rect = el.getBoundingClientRect();
+					const centerX = rect.left + rect.width / 2;
+					const centerY = rect.top + rect.height / 2;
+					const disX = ev.clientX - centerX;
+					const disY = ev.clientY - centerY;
+					return Math.hypot(disX, disY);
+				};
+
+				// get original position
+				const { clientX: startX, clientY: startY } = ev;
+
+				// create the line element
+				const Line = (
+					<line
+						x1={startX}
+						y1={startY}
+						x2={startX}
+						y2={startY}
+						stroke="black"
+						stroke-width="2"
+						stroke-dasharray="4"
+					/>
+				) as SVGLineElement;
+
+				// wrap the line in an svg
+				const SVGwrapper = (
+					<svg>
+						<title>Connection Line</title>
+						{Line}
+					</svg>
+				) as SVGSVGElement;
+
+				// assign styles to wrapper
+				Object.assign(SVGwrapper.style, {
+					position: 'fixed',
+					top: '0',
+					left: '0',
+					width: '100%',
+					height: '100%',
+					zIndex: 2,
+					pointerEvents: 'none',
+				});
+
+				// add line to document
+				document.body.appendChild(SVGwrapper);
+
+				// find target connectors
+				const all = Array.from(document.querySelectorAll('[data-side="left"]'));
+
+				// filter valid targets
+				const validTargets = all.filter((connector: Element) => {
+					const targetID = connector.id.split('#')[1] as Task['id'];
+					const target = tasks.read(targetID);
+					const current = task();
+
+					if (target) {
+						return (
+							// must not target self
+							current.id !== target.id &&
+							// must share project
+							current.project === target.project &&
+							// must not break constraints
+							current.end < target.start &&
+							// must be a unique connection
+							!target.dependencies.includes(task().id)
+						);
+					}
+				});
+
+				// mark possible targets
+				validTargets.forEach((connector) => {
+					connector.setAttribute('data-possible-target', 'true');
+				});
+
+				const handleMove = (ev: PointerEvent) => {
+					// update line as mouse moves
+					Line.setAttribute('x2', ev.clientX.toString());
+					Line.setAttribute('y2', ev.clientY.toString());
+				};
+
+				const handleRelease = (ev: PointerEvent) => {
+					validTargets.forEach((connector) => {
+						// create connection if hovering connector during release
+						if (getDistance(ev, connector) < 15) {
+							const targetID = connector.id.split('#')[1] as Task['id'];
+							const target = tasks.read(targetID);
+
+							if (target) {
+								tasks.update(target.id, {
+									dependencies: [...target.dependencies, task().id],
+								});
+
+								setNotification({
+									variant: 'success',
+									message: notificationMsg.taskDependencyCreated,
+								});
+							}
+						}
+
+						// unmark possible targets
+						validTargets.forEach((connector) => {
+							connector.removeAttribute('data-possible-target');
+						});
+					});
+
+					document.removeEventListener('pointermove', handleMove);
+					document.removeEventListener('pointerup', handleRelease);
+					SVGwrapper.remove();
+				};
+
+				document.addEventListener('pointermove', handleMove);
+				document.addEventListener('pointerup', handleRelease);
+			};
+
+			el.addEventListener('pointerdown', handleConnect);
+			onCleanup(() => el.removeEventListener('pointerdown', handleConnect));
+		}
+	};
+
+	onMount(() => {
+		setTimeout(updateConnections, 0);
+	});
 
 	createEffect(() => {
 		const targetActivities = props.tasks
 			.filter((a) => a.dependencies.includes(task().id))
 			.map((a) => [a.start, a.end]);
 
-		// update when any of these changes
 		const _ = [targetActivities, task(), props.zoom];
 		requestAnimationFrame(updateConnections);
 	});
 
 	return (
 		<div {...sx.attrs(style.taskWrapper(row(), col()))}>
-			<span
-				ref={leftConnectorRef}
-				{...sx.attrs(style.taskConnector('left'))}
-				onPointerDown={handleCreateConnection}
-				data-connector="left"
-				data-task-id={task().id}
-				id={`left-${task().id}`}
-			/>
-
+			<span ref={connector('left')} {...sx.attrs(style.connector(true))} />
 			<span ref={ref('left')} {...sx.attrs(style.taskHandle('left'))} />
-
 			<span ref={ref('center')} {...sx.attrs(style.task(task))}>
 				{props.task.name}
 			</span>
-
 			<span ref={ref('right')} {...sx.attrs(style.taskHandle('right'))} />
-
-			<span
-				ref={rightConnectorRef}
-				{...sx.attrs(style.taskConnector('right'))}
-				data-connector="right"
-				data-task-id={task().id}
-				onPointerDown={handleCreateConnection}
-				id={`right-${task().id}`}
-			/>
+			<span ref={connector('right')} {...sx.attrs(style.connector(false))} />
 
 			<svg ref={connectionWrapper} {...sx.attrs(style.connectorLine)}>
 				<title>Connector Line</title>
@@ -474,8 +450,8 @@ const GanttTask = (props: GanttTaskProps) => {
 				/>
 			</svg>
 
-			<Show when={modalVisible()}>
-				<TaskModal id={task().id} handleClose={() => setModalVisible(false)} />
+			<Show when={editing()}>
+				<TaskModal id={task().id} handleClose={() => setEditing(false)} />
 			</Show>
 		</div>
 	);
@@ -620,25 +596,44 @@ const style = sx.create({
 			'linear-gradient(to right, rgba(0, 0, 0, 0.06) 1px, transparent 1px)',
 	}),
 
-	taskConnector: (side: 'left' | 'right') => ({
+	connector: (isTarget: boolean) => ({
 		position: 'absolute',
-		top: '50%',
-		transform: 'translateY(-50%)',
 		width: '12px',
 		height: '12px',
 		borderRadius: '50%',
 		background: '#B5B2C4',
 		alignSelf: 'center',
-		left: side === 'left' ? '-.85rem' : 'initial',
-		right: side === 'right' ? '-.85rem' : 'initial',
+		left: isTarget ? '-.85rem' : 'initial',
+		right: !isTarget ? '-.85rem' : 'initial',
 		zIndex: 1,
-		':is([data-connector="right"]):hover': {
-			opacity: 1,
-			cursor: 'pointer',
+		cursor: isTarget ? 'initial' : 'pointer',
+
+		// not data targets
+		':not([data-target], [data-possible-target])': {
+			opacity: 0,
+
+			// hover right connector only
+			':hover': {
+				opacity: isTarget ? 0 : 1,
+			},
+
+			// keep effect while dragging
+			':active': {
+				opacity: isTarget ? 0 : 1,
+			},
 		},
-		':is([data-connector="right"]):active': {
+
+		// current targets
+		':is([data-target])': {
 			opacity: 1,
-			cursor: 'pointer',
+		},
+
+		// possible target (while creating connection)
+		':is([data-possible-target])': {
+			opacity: 1,
+			':hover': {
+				filter: 'brightness(0.75)',
+			},
 		},
 	}),
 
@@ -697,7 +692,7 @@ const style = sx.create({
 		display: 'flex',
 		alignItems: 'center',
 		justifyContent: 'center',
-		zIndex: '1',
+		zIndex: 1,
 	}),
 
 	taskHandle: (side: 'left' | 'right') => ({
