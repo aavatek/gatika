@@ -1,9 +1,10 @@
 import { createMemo, createSignal } from 'solid-js';
-import { SelectField } from '@components/Form';
+import { Button, SelectField } from '@components/Form';
 import { projects, type Project } from '@features/Project';
 import { tasks } from '@features/Task';
 import { Heading, PageHeader, PageLayout } from '@components/Layout';
 import { Gantt } from '@components/Gantt';
+import { redo, undo } from '@lib/history';
 
 export const Page = () => {
 	const [selected, setSelected] = createSignal('');
@@ -32,6 +33,8 @@ export const Page = () => {
 					value={selected()}
 					onChange={(e) => setSelected(e.target.value)}
 				/>
+				<Button label="undo" variant="primary" onClick={() => undo()} />
+				<Button label="redo" variant="primary" onClick={() => redo()} />
 			</PageHeader>
 			<Gantt tasks={ganttTasks()} />
 		</PageLayout>
