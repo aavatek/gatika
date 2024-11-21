@@ -69,12 +69,13 @@ export const PageLayout = (props: PageLayoutProps) => {
 
 type PageHeaderProps = {
 	children?: JSXElement;
+	extraStyles?: sx.StyleXStyles;
 } & ComponentProps<'header'>;
 
 export const PageHeader = (props: PageHeaderProps) => {
-	const [_, headerProps] = splitProps(props, ['children']);
+	const [_, headerProps] = splitProps(props, ['children', 'extraStyles']);
 	return (
-		<header {...headerProps} {...sx.props(style.pageHeader)}>
+		<header {...headerProps} {...sx.props(style.pageHeader, props.extraStyles)}>
 			{props.children}
 		</header>
 	);
