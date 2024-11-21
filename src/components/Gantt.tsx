@@ -224,6 +224,8 @@ const GanttTask = (props: GanttTaskProps) => {
 		const x = e.clientX;
 		const { start, end } = task();
 
+		handleHistory([...taskStore]);
+
 		const handleMove = (moveEvent: PointerEvent) => {
 			moveEvent.preventDefault();
 			const dx = moveEvent.clientX - x;
@@ -255,7 +257,6 @@ const GanttTask = (props: GanttTaskProps) => {
 					end: newEnd,
 				});
 
-				handleHistory([...taskStore]);
 				if (err)
 					setValid(false); // if fails, remove last pushed;
 				else setValid(true);
