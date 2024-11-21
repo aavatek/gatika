@@ -93,7 +93,7 @@ export const Gantt = (props: { tasks: Task[] }) => {
 
 	return (
 		<div ref={ref} {...sx.attrs(style.wrapper)}>
-			<TimelineHeader
+			<GanttHeader
 				cols={cols()}
 				zoom={zoom()}
 				gridStartDate={gridStartDate}
@@ -155,13 +155,11 @@ const GanttTask = (props: GanttTaskProps) => {
 				: props.gridAnchorDate + WEEK,
 	}));
 
-	// get project color
 	const projectColor = createMemo(() => {
 		const projectId = props.task.project as Project['id'];
 		return projects.read(projectId)?.color;
 	});
 
-	// expand task entity
 	const task = createMemo(() => ({
 		...props.task,
 		...getEffectiveDates(),
@@ -177,68 +175,19 @@ const GanttTask = (props: GanttTaskProps) => {
 		span: getDateDiff(task().end, task().start),
 	}));
 
-	const hasPredecessors = createMemo(() => {
-		return task().dependencies.length > 0;
-	});
-
-	const hasSuccessors = createMemo(() => {
-		return props.tasks.some((t) => t.dependencies.includes(task().id));
-	});
-
-	let connectionWrapper!: SVGSVGElement;
-	let connectionPath!: SVGPathElement;
-
-	const updateConnections = () => {
-		const successors = props.tasks.filter((a) =>
-			a.dependencies.includes(task().id),
-		);
-
-		if (!successors.length) return connectionPath.setAttribute('d', '');
-
-		const rightConnector = document.getElementById(`right#${task().id}`);
-		if (!rightConnector) return;
-
-		const fromRect = rightConnector.getBoundingClientRect();
-		const svgRect = connectionWrapper.getBoundingClientRect();
-		const startX = fromRect.left + fromRect.width / 2 - svgRect.left;
-		const startY = fromRect.top + fromRect.height / 2 - svgRect.top;
-		const firstVerticalY = fromRect.bottom - svgRect.top + 18;
-
-		const targetConnectors = successors
-			.map((successor) => document.getElementById(`left#${successor.id}`))
-			.filter((connector) => !!connector)
-			.map((connector) => {
-				const bounds = connector.getBoundingClientRect();
-				return {
-					x: bounds.left + bounds.width / 2 - svgRect.left,
-					y: bounds.top + bounds.height / 2 - svgRect.top,
-				};
-			})
-			.sort((a, b) => a.x - b.x);
-
-		if (targetConnectors.length) {
-			let pathD = `M ${startX} ${startY} V ${firstVerticalY} H ${targetConnectors[0].x} V ${targetConnectors[0].y}`;
-			for (let i = 1; i < targetConnectors.length; i++) {
-				pathD += ` V ${targetConnectors[i].y} H ${targetConnectors[i].x}`;
-			}
-			connectionPath.setAttribute('d', pathD);
-		}
-	};
-
-	const offset = (dx: number) => Math.round(dx / props.zoom) * DAY;
-
-	const updatePosition = (start: number, end: number) => {
-		const validStart = start >= props.gridStartDate;
-		const validEnd = end >= start && end <= props.gridEndDate;
-
-		if (validStart && validEnd) {
-			const error = tasks.update(task().id, { start, end });
-			if (error) setValid(false);
-		}
-	};
-
-	// handle task moving and resizing
+	// task actions (moving, resizing, editing)
 	const ref = (role: 'left' | 'center' | 'right') => (el: HTMLSpanElement) => {
+		const offset = (dx: number) => Math.round(dx / props.zoom) * DAY;
+		const updatePosition = (start: number, end: number) => {
+			const validStart = start >= props.gridStartDate;
+			const validEnd = end >= start && end <= props.gridEndDate;
+
+			if (validStart && validEnd) {
+				const error = tasks.update(task().id, { start, end });
+				if (error) setValid(false);
+			}
+		};
+
 		const handleDrag = (ev: PointerEvent) => {
 			ev.preventDefault();
 			const { clientX } = ev;
@@ -277,9 +226,18 @@ const GanttTask = (props: GanttTaskProps) => {
 		});
 	};
 
+	// connection creation logic
 	const connector = (side: 'left' | 'right') => (el: HTMLSpanElement) => {
 		el.setAttribute('data-side', side);
 		el.id = `${side}#${task().id}`;
+
+		const hasPredecessors = createMemo(() => {
+			return task().dependencies.length > 0;
+		});
+
+		const hasSuccessors = createMemo(() => {
+			return props.tasks.some((t) => t.dependencies.includes(task().id));
+		});
 
 		// mark targets
 		createEffect(() => {
@@ -296,7 +254,7 @@ const GanttTask = (props: GanttTaskProps) => {
 			const handleConnect = (ev: PointerEvent) => {
 				ev.preventDefault();
 
-				// calculate mouse position in relation to element
+				// helper to calculate mouse position in relation to element
 				const getDistance = (ev: PointerEvent, el: Element) => {
 					const rect = el.getBoundingClientRect();
 					const centerX = rect.left + rect.width / 2;
@@ -306,10 +264,9 @@ const GanttTask = (props: GanttTaskProps) => {
 					return Math.hypot(disX, disY);
 				};
 
-				// get original position
+				// save original position
 				const { clientX: startX, clientY: startY } = ev;
 
-				// create the line element
 				const Line = (
 					<line
 						x1={startX}
@@ -322,7 +279,6 @@ const GanttTask = (props: GanttTaskProps) => {
 					/>
 				) as SVGLineElement;
 
-				// wrap the line in an svg
 				const SVGwrapper = (
 					<svg>
 						<title>Connection Line</title>
@@ -341,13 +297,10 @@ const GanttTask = (props: GanttTaskProps) => {
 					pointerEvents: 'none',
 				});
 
-				// add line to document
 				document.body.appendChild(SVGwrapper);
 
-				// find target connectors
+				// find valid targets
 				const all = Array.from(document.querySelectorAll('[data-side="left"]'));
-
-				// filter valid targets
 				const validTargets = all.filter((connector: Element) => {
 					const targetID = connector.id.split('#')[1] as Task['id'];
 					const target = tasks.read(targetID);
@@ -372,8 +325,8 @@ const GanttTask = (props: GanttTaskProps) => {
 					connector.setAttribute('data-possible-target', 'true');
 				});
 
+				// update line as mouse moves
 				const handleMove = (ev: PointerEvent) => {
-					// update line as mouse moves
 					Line.setAttribute('x2', ev.clientX.toString());
 					Line.setAttribute('y2', ev.clientY.toString());
 				};
@@ -417,18 +370,48 @@ const GanttTask = (props: GanttTaskProps) => {
 		}
 	};
 
-	onMount(() => {
-		setTimeout(updateConnections, 0);
-	});
+	const successors = createMemo(() =>
+		props.tasks.filter((t) => t.dependencies.includes(task().id)),
+	);
 
-	createEffect(() => {
-		const targetActivities = props.tasks
-			.filter((a) => a.dependencies.includes(task().id))
-			.map((a) => [a.start, a.end]);
+	// handle connection visualization logic
+	const connection = (el: SVGPathElement) => {
+		const svg = el.closest('svg');
 
-		const _ = [targetActivities, task(), props.zoom];
-		requestAnimationFrame(updateConnections);
-	});
+		if (svg) {
+			createEffect(() => {
+				const svgRect = svg.getBoundingClientRect();
+				const right = document.getElementById(`right#${task().id}`);
+
+				if (right) {
+					// calculate connection path
+					const paths = successors()
+						.map((successor) => {
+							const rightRect = right.getBoundingClientRect();
+							const left = document.getElementById(`left#${successor.id}`);
+
+							if (left) {
+								const leftRect = left.getBoundingClientRect();
+								const x1 = rightRect.left + rightRect.width / 2 - svgRect.left;
+								const y1 = rightRect.top + rightRect.height / 2 - svgRect.top;
+								const x2 = leftRect.left + leftRect.width / 2 - svgRect.left;
+								const y2 = leftRect.top + leftRect.height / 2 - svgRect.top;
+								const vy = rightRect.bottom - svgRect.top + 16;
+
+								return `M ${x1} ${y1} V ${vy} H ${x2} V ${y2}`;
+							}
+						})
+						.join(' ');
+
+					// force rerender when props change
+					({ ...props });
+
+					//
+					requestAnimationFrame(() => el.setAttribute('d', paths));
+				}
+			});
+		}
+	};
 
 	return (
 		<div {...sx.attrs(style.taskWrapper(row(), col()))}>
@@ -440,10 +423,10 @@ const GanttTask = (props: GanttTaskProps) => {
 			<span ref={ref('right')} {...sx.attrs(style.taskHandle('right'))} />
 			<span ref={connector('right')} {...sx.attrs(style.connector(false))} />
 
-			<svg ref={connectionWrapper} {...sx.attrs(style.connectorLine)}>
+			<svg {...sx.attrs(style.connectorLine)}>
 				<title>Connector Line</title>
 				<path
-					ref={connectionPath}
+					ref={connection}
 					stroke="rgba(0,0,0,0.7)"
 					fill="none"
 					stroke-width={2}
@@ -495,15 +478,15 @@ const TaskModal = (props: TaskModalProps) => {
 	);
 };
 
-type TimelineHeaderProps = {
+type GanttHeaderProps = {
 	cols: number;
 	zoom: number;
 	gridStartDate: number;
 	gridEndDate: number;
 };
 
-const TimelineHeader = (props: TimelineHeaderProps) => {
-	const timeline = createMemo(() => {
+const GanttHeader = (props: GanttHeaderProps) => {
+	const labels = createMemo(() => {
 		const days = Array.from(
 			{ length: props.cols },
 			(_, i) => props.gridStartDate + i * DAY,
@@ -526,9 +509,9 @@ const TimelineHeader = (props: TimelineHeaderProps) => {
 
 	return (
 		<div {...sx.attrs(style.ganttHeader(props.cols, props.zoom))}>
-			<For each={timeline().months}>
+			<For each={labels().months}>
 				{({ month, start, span }) => (
-					<div {...sx.attrs(style.ganttHeaderLabel(1, { start, span }))}>
+					<div {...sx.attrs(style.hLabel(1, { start, span }))}>
 						<span>{Months[month]}</span>
 					</div>
 				)}
@@ -536,9 +519,9 @@ const TimelineHeader = (props: TimelineHeaderProps) => {
 
 			<Switch>
 				<Match when={props.zoom < 45}>
-					<For each={timeline().weeks}>
+					<For each={labels().weeks}>
 						{({ week, start, span }) => (
-							<div {...sx.attrs(style.ganttHeaderLabel(2, { start, span }))}>
+							<div {...sx.attrs(style.hLabel(2, { start, span }))}>
 								<Show when={span >= 4}>
 									<span>Week {week}</span>
 								</Show>
@@ -548,13 +531,9 @@ const TimelineHeader = (props: TimelineHeaderProps) => {
 				</Match>
 
 				<Match when={props.zoom >= 45}>
-					<For each={timeline().days}>
+					<For each={labels().days}>
 						{(day, i) => (
-							<div
-								{...sx.attrs(
-									style.ganttHeaderLabel(2, { start: i() + 1, span: 1 }),
-								)}
-							>
+							<div {...sx.attrs(style.hLabel(2, { start: i() + 1, span: 1 }))}>
 								<span>{new Date(day).getDate()}</span>
 								<span>
 									{Weekdays[new Date(day).getDay()].slice(0, 3).toUpperCase()}
@@ -757,7 +736,7 @@ const style = sx.create({
 		background: 'gray',
 	}),
 
-	ganttHeaderLabel: (row: number, col: { start: number; span: number }) => ({
+	hLabel: (row: number, col: { start: number; span: number }) => ({
 		background: 'white',
 		textWrap: 'nowrap',
 		overflow: 'hidden',
