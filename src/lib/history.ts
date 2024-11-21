@@ -1,9 +1,9 @@
 import { setTaskStore, taskStore, type Task } from '@features/Task';
-import { batch } from 'solid-js';
+import { batch, createSignal } from 'solid-js';
 import { unwrap } from 'solid-js/store';
 
-const undoStack: Task[][] = [];
-const redoStack: Task[][] = [];
+export const undoStack: Task[][] = [];
+export const redoStack: Task[][] = [];
 const MAX_HISTORY = 4;
 
 export const handleHistory = (state: Task[]) => {
@@ -20,6 +20,8 @@ export const handleHistory = (state: Task[]) => {
 	}
 
 	undoStack.push(copy);
+	setCanUndo(undoStack.length > 0);
+	setCanRedo(redoStack.length > 0);
 };
 
 export const undo = () => {
@@ -32,6 +34,9 @@ export const undo = () => {
 			setTaskStore(latestState);
 		});
 	}
+
+	setCanUndo(undoStack.length > 0);
+	setCanRedo(redoStack.length > 0);
 };
 
 export const redo = () => {
@@ -44,4 +49,13 @@ export const redo = () => {
 			setTaskStore(latestState);
 		});
 	}
+
+	setCanUndo(undoStack.length > 0);
+	setCanRedo(redoStack.length > 0);
 };
+
+// export const canUndo = (): boolean => undoStack.length > 0;
+// export const canRedo = (): boolean => redoStack.length > 0;
+
+export const [canUndo, setCanUndo] = createSignal(undoStack.length > 0);
+export const [canRedo, setCanRedo] = createSignal(redoStack.length > 0);
