@@ -152,22 +152,26 @@ const style = sx.create({
 	input: {
 		padding: '1rem',
 		fontSize: '16px',
+		border: '1px solid rgba(0, 0, 0, 0.35)',
 	},
 
 	select: (variant: SelectFieldProps['variant']) => ({
 		padding: variant ? '.25rem' : '1rem',
 		fontSize: 'inherit',
+		border: '1px solid rgba(0, 0, 0, 0.35)',
 	}),
 
 	button: {
 		padding: '1rem',
 		outline: 'none',
 		boxSizing: 'border-box',
-		border: '2px solid black',
 		fontSize: 'inherit',
 	},
 
 	primaryButton: {
+		boxShadow:
+			'rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px',
+		border: '1px solid rgba(0, 0, 0, 0.25)',
 		background: {
 			default: '#f0f0f0',
 			':hover': '#ccc',
