@@ -602,6 +602,11 @@ const style = sx.create({
 		  `,
 		borderRadius: '4px',
 		border: '1px solid rgba(0, 0, 0, 0.1)',
+
+		// optimize rendering
+		willChange: 'transform',
+		transform: 'translateZ(0)',
+		backfaceVisibility: 'hidden',
 	},
 
 	gantt: (cols: number, rows: number, zoom: number) => ({
@@ -618,6 +623,11 @@ const style = sx.create({
 		backgroundSize: `${100 / cols}%`,
 		backgroundImage:
 			'linear-gradient(to right, rgba(0, 0, 0, 0.06) 1px, transparent 1px)',
+
+		// optimize rendering
+		willChange: 'transform',
+		transform: 'translateZ(0)',
+		backfaceVisibility: 'hidden',
 	}),
 
 	connector: (isTarget: boolean) => ({
@@ -785,6 +795,11 @@ const style = sx.create({
 		background: 'rgba(0,0,0,0.15)',
 		boxShadow:
 			'rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px',
+
+		// optimize rendering
+		willChange: 'transform',
+		transform: 'translateZ(0)',
+		backfaceVisibility: 'hidden',
 	}),
 
 	hLabel: (row: number, col: { start: number; span: number }) => ({
@@ -800,5 +815,10 @@ const style = sx.create({
 		color: 'rgba(0,0,0,0.75)',
 		fontWeight: 'bold',
 		fontSize: '0.9rem',
+
+		// optimize rendering
+		willChange: 'transform',
+		transform: 'translateZ(0)',
+		backfaceVisibility: 'hidden',
 	}),
 });
