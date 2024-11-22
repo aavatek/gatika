@@ -74,7 +74,7 @@ export const Gantt = (props: { tasks: Task[] }) => {
 			if (ev.ctrlKey) {
 				ev.preventDefault();
 
-				const MIN = 20;
+				const MIN = 28;
 				const MAX = 168;
 				const SENSITIVITY = 0.001;
 
