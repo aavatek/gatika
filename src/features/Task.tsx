@@ -318,7 +318,7 @@ type TaskFormProps = {
 };
 
 export const TaskForm = (props: TaskFormProps) => {
-	const [formStore, { Form, Field, FieldArray }] = props.form;
+	const [_, { Form, Field, FieldArray }] = props.form;
 	const Buttons = children(() => props.children);
 
 	const typeOptions = taskTypes.map((type) => ({
