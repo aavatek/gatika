@@ -394,7 +394,6 @@ const GanttTask = (props: GanttTaskProps) => {
 				const right = document.getElementById(`right#${task().id}`);
 
 				if (right) {
-					// calculate connection path
 					const paths = successors()
 						.map((successor) => {
 							const rightRect = right.getBoundingClientRect();
@@ -406,17 +405,31 @@ const GanttTask = (props: GanttTaskProps) => {
 								const y1 = rightRect.top + rightRect.height / 2 - svgRect.top;
 								const x2 = leftRect.left + leftRect.width / 2 - svgRect.left;
 								const y2 = leftRect.top + leftRect.height / 2 - svgRect.top;
-								const vy = rightRect.bottom - svgRect.top + 16;
 
-								return `M ${x1} ${y1} V ${vy} H ${x2} V ${y2}`;
+								const nextTaskTop =
+									document
+										.getElementById(`right#${props.tasks[props.index + 1]?.id}`)
+										?.getBoundingClientRect().top ?? rightRect.bottom + 32;
+								const vy1 = (rightRect.bottom + nextTaskTop) / 2 - svgRect.top;
+
+								const firstSuccessor = props.tasks.find((t) =>
+									t.dependencies.includes(task().id),
+								);
+
+								const firstSuccessorLeft = document.getElementById(
+									`left#${firstSuccessor?.id}`,
+								);
+								const targetX = firstSuccessorLeft
+									? firstSuccessorLeft.getBoundingClientRect().left +
+										firstSuccessorLeft.getBoundingClientRect().width / 2 -
+										svgRect.left
+									: x2;
+
+								return `M ${x1} ${y1} V ${vy1} H ${targetX} V ${y2} H ${x2}`;
 							}
 						})
 						.join(' ');
 
-					// force rerender when props change
-					({ ...props });
-
-					//
 					requestAnimationFrame(() => el.setAttribute('d', paths));
 				}
 			});
