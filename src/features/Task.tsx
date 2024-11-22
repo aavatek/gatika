@@ -686,8 +686,10 @@ const style = sx.create({
 		display: 'flex',
 		gap: '.5rem',
 		flexDirection: 'column',
-		border: '2px solid black',
 		padding: '1rem',
+		boxShadow:
+			'rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px',
+		border: '1px solid rgba(0, 0, 0, 0.25)',
 	},
 
 	formDependencyField: {
