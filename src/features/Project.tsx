@@ -169,6 +169,19 @@ export const ProjectCreateForm = () => {
 	const handleSubmit: mf.SubmitHandler<ProjectInput> = (data, _) => {
 		const validate = v.safeParse(ProjectSchema, data);
 		if (validate.success) {
+			const projectList = projects.list();
+			for (const project of projectList) {
+				if (project.name === validate.output.name) {
+					if (project.id !== validate.output.id) {
+						return mf.setError(
+							form[0],
+							'name',
+							`Projekti nimeltä ${project.name} on jo olemassa`,
+						);
+					}
+				}
+			}
+
 			projects.create(validate.output);
 			setNotification({
 				variant: 'success',
@@ -208,6 +221,19 @@ export const ProjectEditForm = (props: ProjectEditFormProps) => {
 	const handleSubmit: mf.SubmitHandler<ProjectInput> = (data, _) => {
 		const validate = v.safeParse(ProjectEditSchema, data);
 		if (validate.success) {
+			const projectList = projects.list();
+			for (const project of projectList) {
+				if (project.name === validate.output.name) {
+					if (project.id !== props.project().id) {
+						return mf.setError(
+							form[0],
+							'name',
+							`Projekti nimeltä ${project.name} on jo olemassa`,
+						);
+					}
+				}
+			}
+
 			setNotification({
 				variant: 'success',
 				message: notificationMsg.projectEdited,
