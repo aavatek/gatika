@@ -570,6 +570,8 @@ const style = sx.create({
 		minHeight: `${rows * 3}rem`,
 		paddingTop: '1rem',
 		paddingBottom: '1rem',
+		columnGap: 1,
+		paddingLeft: 1,
 		backgroundSize: `${100 / cols}%`,
 		backgroundImage:
 			'linear-gradient(to right, rgba(0, 0, 0, 0.06) 1px, transparent 1px)',
