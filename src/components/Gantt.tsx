@@ -162,9 +162,9 @@ const GanttTask = (props: GanttTaskProps) => {
 				: props.gridAnchorDate + WEEK,
 	}));
 
-	const projectColor = createMemo(() => {
+	const project = createMemo(() => {
 		const projectId = props.task.project as Project['id'];
-		return projects.read(projectId)?.color;
+		return projects.read(projectId);
 	});
 
 	const task = createMemo(() => ({
@@ -172,7 +172,7 @@ const GanttTask = (props: GanttTaskProps) => {
 		...getEffectiveDates(),
 		floating: floating(),
 		valid: valid(),
-		color: projectColor(),
+		color: project()?.color || 'Coral',
 	}));
 
 	// calculate grid position
@@ -430,6 +430,9 @@ const GanttTask = (props: GanttTaskProps) => {
 						})
 						.join(' ');
 
+					// force rerender if any props change
+					({ ...props });
+
 					requestAnimationFrame(() => el.setAttribute('d', paths));
 				}
 			});
@@ -458,7 +461,7 @@ const GanttTask = (props: GanttTaskProps) => {
 			<span ref={connector('left')} {...sx.attrs(style.connector(true))} />
 			<span ref={ref('left')} {...sx.attrs(style.taskHandle('left'))} />
 			<span ref={ref('center')} {...sx.attrs(style.task(task))}>
-				{props.task.name}
+				{task().name}
 			</span>
 			<span ref={ref('right')} {...sx.attrs(style.taskHandle('right'))} />
 			<span ref={connector('right')} {...sx.attrs(style.connector(false))} />
@@ -714,6 +717,9 @@ const style = sx.create({
 		alignItems: 'center',
 		justifyContent: 'center',
 		zIndex: 1,
+		color: 'rgba(0,0,0,0.75)',
+		fontWeight: 'bold',
+		fontSize: '0.9rem',
 	}),
 
 	taskHandle: (side: 'left' | 'right') => ({
@@ -742,8 +748,10 @@ const style = sx.create({
 		background: 'white',
 		position: 'relative',
 		padding: '2rem 1.5rem',
-		border: '3px solid black',
 		zIndex: 2,
+		boxShadow:
+			'rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px',
+		border: '1px solid rgba(0, 0, 0, 0.25)',
 	},
 
 	modalHeader: {
@@ -774,8 +782,9 @@ const style = sx.create({
 		gridTemplateColumns: `repeat(${cols}, 1fr)`,
 		width: `${cols * zoom}px`,
 		paddingLeft: 1,
-		paddingBottom: 1,
-		background: 'gray',
+		background: 'rgba(0,0,0,0.15)',
+		boxShadow:
+			'rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px',
 	}),
 
 	hLabel: (row: number, col: { start: number; span: number }) => ({
@@ -788,5 +797,8 @@ const style = sx.create({
 		alignItems: 'center',
 		gridRow: row,
 		gridColumn: `${col.start} / span ${col.span}`,
+		color: 'rgba(0,0,0,0.75)',
+		fontWeight: 'bold',
+		fontSize: '0.9rem',
 	}),
 });
