@@ -199,7 +199,10 @@ const GanttTask = (props: GanttTaskProps) => {
 			ev.preventDefault();
 			const { clientX } = ev;
 			const { start, end } = task();
+
+			// save original state to history
 			handleHistory([...taskStore]);
+
 			const handleMove = (ev: PointerEvent) => {
 				const dx = ev.clientX - clientX;
 				switch (role) {
