@@ -41,7 +41,7 @@ export const PView = () => {
 	const handleBack = () => navigate(-1);
 
 	onMount(() => {
-		if (project()) {
+		if (project) {
 			addToLastVisited(projectID);
 		}
 	});
@@ -49,7 +49,7 @@ export const PView = () => {
 	return (
 		<PageLayout>
 			<Show
-				when={project()}
+				when={project}
 				fallback={
 					<PageHeader>
 						<Heading content="Projektia ei löytynyt" level="h1" />
@@ -84,13 +84,16 @@ export const PEditView = () => {
 	const projectID = params.projectID as Project['id'];
 	const project = projects.read(projectID);
 
+	const navigate = useNavigate();
+	const handleBack = () => navigate(-1);
+
 	return (
-		<Show when={project()}>
+		<Show when={project}>
 			{(project) => (
 				<PageLayout>
 					<PageHeader>
 						<Heading content={project().name} level="h1" />
-						<Link href={`/projects/${projectID}`} content="Takaisin" />
+						<Button variant="link" label="Takaisin" onClick={handleBack} />
 					</PageHeader>
 
 					<ProjectEditForm project={project} />

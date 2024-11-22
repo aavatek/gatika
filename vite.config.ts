@@ -51,6 +51,7 @@ export default defineConfig({
 		},
 		testTimeout: 1000,
 	},
+
 	resolve: {
 		alias: {
 			'@root': path.resolve(__dirname, '.'),

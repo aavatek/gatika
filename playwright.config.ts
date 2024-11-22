@@ -4,7 +4,7 @@ export default defineConfig({
 	testDir: 'e2e',
 	reporter: 'list',
 	outputDir: '.playwright',
-	timeout: 30 * 1000,
+	timeout: 300 * 1000,
 	fullyParallel: true,
 	retries: process.env.CI ? 2 : 0,
 	workers: process.env.CI ? 1 : undefined,

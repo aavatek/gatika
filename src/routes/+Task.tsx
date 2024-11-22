@@ -15,7 +15,7 @@ export function TView() {
 	return (
 		<PageLayout>
 			<Show
-				when={task()}
+				when={task}
 				fallback={
 					<PageHeader>
 						<Heading content="Tehtävää ei löytynyt" level="h1" />

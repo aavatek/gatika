@@ -25,7 +25,7 @@ test('create, edit and remove a project', async ({ page }) => {
 		.getByRole('textbox', { name: 'Projektin nimi' })
 		.fill('Projekti Y');
 	await page.getByRole('button', { name: 'Tallenna' }).click();
-	await page.getByRole('link', { name: 'Takaisin' }).click();
+	await page.getByRole('button', { name: 'Takaisin' }).click();
 	await expect(page.locator('h1')).toHaveText('Projekti Y');
 	await page.getByRole('link', { name: 'Projektit' }).click();
 	await expect(page.locator('a', { hasText: 'Projekti Y' })).toBeVisible();

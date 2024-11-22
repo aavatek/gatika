@@ -1,13 +1,6 @@
 import type { Accessor, JSX } from 'solid-js';
-import {
-	For,
-	Show,
-	children,
-	createEffect,
-	createMemo,
-	splitProps,
-} from 'solid-js';
-import { getTime, getDate, formatDate, DAY } from '@solid-primitives/date';
+import { For, Show, children, createMemo, splitProps } from 'solid-js';
+import { getDate, formatDate, DAY } from '@solid-primitives/date';
 import * as mf from '@modular-forms/solid';
 import * as v from 'valibot';
 import * as sx from '@stylexjs/stylex';
@@ -18,9 +11,13 @@ import { projects, type Project } from '@features/Project';
 import { Heading } from '@components/Layout';
 import { List, ListItem } from '@features/List';
 import { notificationMsg, setNotification } from '@features/Notification';
-import { normalizeTime } from '@lib/dates';
+import { normalizeDate } from '@lib/dates';
 
 // -------------------------------------------------------------------------------------
+
+export const isFloating = (task: Task) => {
+	return Number.isNaN(task.start) && Number.isNaN(task.end);
+};
 
 export const [taskStore, setTaskStore] = makePersisted(
 	createStore<Task[]>([]),
@@ -56,11 +53,7 @@ export const tasks = {
 
 		if (predecessorsSorted.length > 0) {
 			const firstPossibleStart = predecessorsSorted[0].end as number;
-			if (
-				data.start &&
-				formatDate(getDate(data.start)) <=
-					formatDate(getDate(firstPossibleStart))
-			)
+			if (data.start && data.start <= firstPossibleStart)
 				return new Error(err.date.dependencyConflict);
 		}
 
@@ -76,7 +69,7 @@ export const tasks = {
 						...data.dependencies
 							.map((id) => tasks.read(id as Task['id']))
 							.filter((task) => !!task)
-							.map((task) => task()?.end as number),
+							.map((task) => task.end as number),
 					) + DAY;
 
 				let duration = currentTask.end - currentTask.start;
@@ -102,7 +95,7 @@ export const tasks = {
 					duration =
 						Number.isNaN(duration) || duration < 0 ? DAY * 7 : duration;
 
-					const newEnd = normalizeTime(data.start - DAY);
+					const newEnd = normalizeDate(data.start - DAY);
 
 					tasks.update(
 						predecessor.id,
@@ -127,8 +120,8 @@ export const tasks = {
 					duration =
 						Number.isNaN(duration) || duration < 0 ? DAY * 7 : duration;
 
-					const newStart = normalizeTime(data.end + DAY);
-					const newEnd = normalizeTime(newStart + duration);
+					const newStart = normalizeDate(data.end + DAY);
+					const newEnd = normalizeDate(newStart + duration);
 
 					tasks.update(
 						successor.id,
@@ -144,8 +137,9 @@ export const tasks = {
 		}
 	},
 
-	read: (id: Task['id']) =>
-		createMemo(() => taskStore.find((task) => task.id === id)),
+	read: (id: Task['id']) => {
+		return taskStore.find((task) => task.id === id);
+	},
 
 	delete: (id: Task['id']) => {
 		setTaskStore((store) => store.filter((task) => task.id !== id));
@@ -199,7 +193,9 @@ export const taskStatus = [
 
 const DateSchema = v.pipe(
 	v.string(),
-	v.transform((value) => (value ? normalizeTime(getTime(value)) : Number.NaN)),
+	v.transform((value) =>
+		value ? normalizeDate(new Date(value).getTime()) : Number.NaN,
+	),
 );
 
 const NameSchema = v.pipe(
@@ -254,8 +250,8 @@ export const TaskSchema = v.pipe(
 						Math.max(
 							...input.dependencies
 								.map((id) => tasks.read(id as Task['id']))
-								.filter((task) => task()?.end !== undefined)
-								.map((task) => task()?.end as number),
+								.filter((task) => !!task?.end)
+								.map((task) => task?.end as number),
 						) || -999999999;
 
 					return input.start >= lastEndDate;
@@ -324,8 +320,6 @@ export const TaskForm = (props: TaskFormProps) => {
 			(task) => task.id !== props.task,
 		),
 	);
-
-	createEffect(() => console.log(mf.getValue(formStore, 'dependencies')));
 
 	return (
 		<Form onSubmit={props.onSubmit} {...sx.props(style.form)}>
@@ -649,7 +643,7 @@ export const TaskList = (props: TaskListProps) => {
 								name={task.name}
 								extraStyles={style.listItem}
 							>
-								<Show when={!props.project}>{project()?.name}</Show>
+								<Show when={!props.project}>{project?.name}</Show>
 								<Show when={start() || end()}>
 									<span>
 										{start() ?? ''} <Show when={end()}>- {end()} </Show>
@@ -683,8 +677,10 @@ const style = sx.create({
 		display: 'flex',
 		gap: '.5rem',
 		flexDirection: 'column',
-		border: '2px solid black',
 		padding: '1rem',
+		boxShadow:
+			'rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px',
+		border: '1px solid rgba(0, 0, 0, 0.25)',
 	},
 
 	formDependencyField: {
