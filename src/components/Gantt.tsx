@@ -646,25 +646,25 @@ const style = sx.create({
 				? `linear-gradient(to right, ${
 						current().valid
 							? `lch(from ${ProjectColors[current().color as ColorKey]} l c h / 0.25)`
-							: '#ffebee'
+							: 'lch(82% 80 25)'
 					} 20%, ${current().valid ? ProjectColors[current().color as ColorKey] : '#ffebee'})`
 				: current().floating === 'end'
 					? `linear-gradient(to right, ${
 							current().valid
 								? ProjectColors[current().color as ColorKey]
-								: '#ffebee'
+								: 'lch(82% 80 25)'
 						}, ${
 							current().valid
 								? `lch(from ${ProjectColors[current().color as ColorKey]} l c h / 0.25)`
-								: '#ffebee'
+								: 'lch(82% 80 25)'
 						} 100%)`
 					: current().floating === 'full'
 						? current().valid
 							? `lch(from ${ProjectColors[current().color as ColorKey]} l c h / 0.25)`
-							: '#ffebee'
+							: 'lch(82% 80 25)'
 						: current().valid
 							? ProjectColors[current().color as ColorKey]
-							: '#ffebee',
+							: 'lch(82% 80 25)',
 		borderLeft: 'none',
 		borderRight: 'none',
 		cursor: 'pointer',
