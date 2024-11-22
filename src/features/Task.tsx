@@ -1,12 +1,5 @@
 import type { Accessor, JSX } from 'solid-js';
-import {
-	For,
-	Show,
-	children,
-	createEffect,
-	createMemo,
-	splitProps,
-} from 'solid-js';
+import { For, Show, children, createMemo, splitProps } from 'solid-js';
 import { getDate, formatDate, DAY } from '@solid-primitives/date';
 import * as mf from '@modular-forms/solid';
 import * as v from 'valibot';
@@ -327,8 +320,6 @@ export const TaskForm = (props: TaskFormProps) => {
 			(task) => task.id !== props.task,
 		),
 	);
-
-	createEffect(() => console.log(mf.getValue(formStore, 'dependencies')));
 
 	return (
 		<Form onSubmit={props.onSubmit} {...sx.props(style.form)}>

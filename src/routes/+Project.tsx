@@ -84,13 +84,16 @@ export const PEditView = () => {
 	const projectID = params.projectID as Project['id'];
 	const project = projects.read(projectID);
 
+	const navigate = useNavigate();
+	const handleBack = () => navigate(-1);
+
 	return (
 		<Show when={project}>
 			{(project) => (
 				<PageLayout>
 					<PageHeader>
 						<Heading content={project().name} level="h1" />
-						<Link href={`/projects/${projectID}`} content="Takaisin" />
+						<Button variant="link" label="Takaisin" onClick={handleBack} />
 					</PageHeader>
 
 					<ProjectEditForm project={project} />

@@ -81,6 +81,7 @@ export enum ProjectColors {
 	Teal = 'lch(83% 34 190)', // More vibrant teal
 	Coral = 'lch(84% 36 35)', // More defined coral
 }
+
 export type ColorKey = keyof typeof ProjectColors;
 
 const colorUsed = (color: ColorKey): boolean =>
