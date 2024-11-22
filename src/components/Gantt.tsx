@@ -566,7 +566,7 @@ const GanttHeader = (props: GanttHeaderProps) => {
 						{({ week, start, span }) => (
 							<div {...sx.attrs(style.hLabel(2, { start, span }))}>
 								<Show when={span >= 4}>
-									<span>Week {week}</span>
+									<span>Viikko {week}</span>
 								</Show>
 							</div>
 						)}
