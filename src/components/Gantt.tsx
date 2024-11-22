@@ -6,7 +6,13 @@ import {
 	createEffect,
 } from 'solid-js';
 import { For, Switch, Match, Show } from 'solid-js';
-import { TaskEditForm, tasks, isFloating, type Task } from '@features/Task';
+import {
+	TaskEditForm,
+	tasks,
+	taskStore,
+	isFloating,
+	type Task,
+} from '@features/Task';
 import { DAY, WEEK, MONTH } from '@lib/dates';
 import { Weekdays, Months } from '@lib/dates';
 import { getDateDiff, getMonth, getWeek, normalizeDate } from '@lib/dates';
@@ -21,6 +27,7 @@ import {
 	type Project,
 	type ColorKey,
 } from '@features/Project';
+import { handleHistory, redo, undo } from '../lib/history';
 
 export const Gantt = (props: { tasks: Task[] }) => {
 	const gridStartDate = normalizeDate(Date.now() - MONTH * 2);
@@ -192,7 +199,7 @@ const GanttTask = (props: GanttTaskProps) => {
 			ev.preventDefault();
 			const { clientX } = ev;
 			const { start, end } = task();
-
+			handleHistory([...taskStore]);
 			const handleMove = (ev: PointerEvent) => {
 				const dx = ev.clientX - clientX;
 				switch (role) {
@@ -412,6 +419,23 @@ const GanttTask = (props: GanttTaskProps) => {
 			});
 		}
 	};
+
+	onMount(() => {
+		const handleKeydown = (e: KeyboardEvent) => {
+			if (e.ctrlKey && !e.shiftKey && e.key.toLowerCase() === 'z') {
+				e.preventDefault();
+				undo();
+			}
+
+			if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'z') {
+				e.preventDefault();
+				redo();
+			}
+		};
+
+		window.addEventListener('keydown', handleKeydown);
+		onCleanup(() => window.removeEventListener('keydown', handleKeydown));
+	});
 
 	return (
 		<div {...sx.attrs(style.taskWrapper(row(), col()))}>

@@ -1,9 +1,11 @@
 import { createMemo, createSignal } from 'solid-js';
-import { SelectField } from '@components/Form';
+import { Button, SelectField } from '@components/Form';
 import { projects, type Project } from '@features/Project';
 import { tasks } from '@features/Task';
 import { Heading, PageHeader, PageLayout } from '@components/Layout';
 import { Gantt } from '@components/Gantt';
+import { redo, undo, canUndo, canRedo } from '@lib/history';
+import * as sx from '@stylexjs/stylex';
 
 export const Page = () => {
 	const [selected, setSelected] = createSignal('');
@@ -23,17 +25,68 @@ export const Page = () => {
 
 	return (
 		<PageLayout>
-			<PageHeader>
-				<Heading content="Gantt" level="h1" />
-				<SelectField
-					variant="small"
-					placeholder="Kaikki"
-					options={projectSelectOptions}
-					value={selected()}
-					onChange={(e) => setSelected(e.target.value)}
-				/>
+			<PageHeader extraStyles={style.header}>
+				<div {...sx.attrs(style.headingWrapper)}>
+					<Heading content="Gantt" level="h1" />
+					<SelectField
+						variant="small"
+						placeholder="Kaikki"
+						options={projectSelectOptions}
+						value={selected()}
+						onChange={(e) => setSelected(e.target.value)}
+					/>
+				</div>
+
+				<div {...sx.attrs(style.historyButtonWrapper)}>
+					<Button
+						label="undo"
+						variant="primary"
+						extraStyle={style.historyButton}
+						onClick={() => undo()}
+						disabled={!canUndo()}
+					/>
+					<Button
+						label="redo"
+						variant="primary"
+						extraStyle={style.historyButton}
+						onClick={() => redo()}
+						disabled={!canRedo()}
+					/>
+				</div>
 			</PageHeader>
 			<Gantt tasks={ganttTasks()} />
 		</PageLayout>
 	);
 };
+
+const style = sx.create({
+	headingWrapper: {
+		display: 'flex',
+		gap: '1rem',
+		alignItems: 'center',
+	},
+
+	historyButton: {
+		placeSelf: 'end',
+		padding: '.5rem',
+		':disabled': {
+			background: 'lightgray',
+			border: '2px solid gray',
+			':hover': {
+				background: 'lightgray',
+			},
+		},
+	},
+
+	historyButtonWrapper: {
+		display: 'flex',
+		gap: '1rem',
+		alignItems: 'center',
+	},
+
+	header: {
+		display: 'flex',
+		justifyContent: 'space-between',
+		alignItems: 'center',
+	},
+});
