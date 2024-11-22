@@ -71,7 +71,6 @@ const style = sx.create({
 		padding: '.5rem',
 		':disabled': {
 			background: 'lightgray',
-			border: '2px solid gray',
 			':hover': {
 				background: 'lightgray',
 			},

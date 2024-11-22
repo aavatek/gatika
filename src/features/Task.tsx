@@ -62,7 +62,7 @@ export const tasks = {
 			produce((task) => Object.assign(task, data)),
 		);
 
-		if (data.dependencies) {
+		if (data.dependencies && data.dependencies !== currentTask.dependencies) {
 			if (data.dependencies.length > 0) {
 				const newStart =
 					Math.max(
@@ -88,27 +88,43 @@ export const tasks = {
 			}
 		}
 
-		if (updatePredecessors && predecessorsSorted.length > 0) {
-			predecessorsSorted.forEach((predecessor) => {
-				if (predecessor.end && data.start) {
-					let duration = predecessor.end - predecessor.start;
-					duration =
-						Number.isNaN(duration) || duration < 0 ? DAY * 7 : duration;
-
-					const newEnd = normalizeDate(data.start - DAY);
-
+		if (updatePredecessors && predecessorsSorted.length > 0 && data.start) {
+			if (predecessorsSorted.length > 1) {
+				const lastPredecessor = predecessorsSorted[0];
+				if (lastPredecessor.end && lastPredecessor.start) {
+					const shift = lastPredecessor.end - data.start + DAY;
 					tasks.update(
-						predecessor.id,
+						lastPredecessor.id,
 						{
-							end: newEnd,
+							end: lastPredecessor.end - shift,
 						},
-						false,
 						true,
+						false,
 					);
 				}
-			});
-		}
+			} else {
+				predecessorsSorted.forEach((predecessor) => {
+					if (predecessor.end) {
+						let duration = predecessor.end - predecessor.start;
+						duration =
+							Number.isNaN(duration) || duration <= 0 ? DAY * 7 : duration;
 
+						if (data.start) {
+							const newEnd = normalizeDate(data.start - DAY);
+
+							tasks.update(
+								predecessor.id,
+								{
+									end: newEnd,
+								},
+								false,
+								true,
+							);
+						}
+					}
+				});
+			}
+		}
 		const successors = taskStore.filter((task) =>
 			task.dependencies.includes(id),
 		);
@@ -302,7 +318,7 @@ type TaskFormProps = {
 };
 
 export const TaskForm = (props: TaskFormProps) => {
-	const [formStore, { Form, Field, FieldArray }] = props.form;
+	const [_, { Form, Field, FieldArray }] = props.form;
 	const Buttons = children(() => props.children);
 
 	const typeOptions = taskTypes.map((type) => ({
