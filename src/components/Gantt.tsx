@@ -182,6 +182,9 @@ const GanttTask = (props: GanttTaskProps) => {
 		span: getDateDiff(task().end, task().start),
 	}));
 
+	// reactive task width
+	const [taskWidth, setTaskWidth] = createSignal(0);
+
 	// task actions (moving, resizing, editing)
 	const ref = (role: 'left' | 'center' | 'right') => (el: HTMLSpanElement) => {
 		const offset = (dx: number) => Math.round(dx / props.zoom) * DAY;
@@ -229,10 +232,21 @@ const GanttTask = (props: GanttTaskProps) => {
 			el.addEventListener('pointerdown', handleDrag);
 			el.addEventListener('dblclick', () => setEditing(true));
 
+			// track task width
+			if (role === 'center') setTaskWidth(el.getBoundingClientRect().width);
+
 			onCleanup(() => {
 				el.removeEventListener('pointerdown', handleDrag);
 				el.removeEventListener('dblclick', () => setEditing(true));
 			});
+		});
+
+		// track task width
+		createEffect(() => {
+			if (role === 'center') setTaskWidth(el.getBoundingClientRect().width);
+
+			// run when props change
+			({ ...props });
 		});
 	};
 
@@ -462,6 +476,7 @@ const GanttTask = (props: GanttTaskProps) => {
 			<span ref={ref('left')} {...sx.attrs(style.taskHandle('left'))} />
 			<span ref={ref('center')} {...sx.attrs(style.task(task))}>
 				{task().name}
+				<Show when={taskWidth() > 300}> - ({project()?.name})</Show>
 			</span>
 			<span ref={ref('right')} {...sx.attrs(style.taskHandle('right'))} />
 			<span ref={connector('right')} {...sx.attrs(style.connector(false))} />

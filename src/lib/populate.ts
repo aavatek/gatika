@@ -16,7 +16,7 @@ export const [version, setVersion] = makePersisted(createSignal<string>(), {
 });
 
 export const populate = () => {
-	const versionKey = '17.11';
+	const versionKey = '23.11';
 	if (version() !== versionKey) {
 		setVersion(versionKey);
 		setTaskStore(() => []);
@@ -98,7 +98,7 @@ export const populate = () => {
 
 		const B1 = {
 			id: crypto.randomUUID(),
-			name: 'Tehtävä B1 (ei loppua)',
+			name: 'Tehtävä B1',
 			start: normalizeDate(Date.now() - WEEK),
 			end: Number.NaN,
 			project: PB.id,
@@ -108,7 +108,7 @@ export const populate = () => {
 
 		const B2 = {
 			id: crypto.randomUUID(),
-			name: 'Tehtävä B2 (ei alkua)',
+			name: 'Tehtävä B2',
 			start: Number.NaN,
 			end: normalizeDate(Date.now() + WEEK + DAY * 2),
 			project: PB.id,
