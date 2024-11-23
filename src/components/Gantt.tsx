@@ -194,7 +194,8 @@ const GanttTask = (props: GanttTaskProps) => {
 
 			if (validStart && validEnd) {
 				const error = tasks.update(task().id, { start, end });
-				if (error) setValid(false);
+				if (error) return setValid(false);
+				setValid(true);
 			}
 		};
 
@@ -228,8 +229,33 @@ const GanttTask = (props: GanttTaskProps) => {
 			document.addEventListener('pointerup', handleCleanup);
 		};
 
+		// keyboard and touch support
+		const handleKeyDown = (ev: KeyboardEvent) => {
+			if (!['ArrowLeft', 'ArrowRight'].includes(ev.key)) return;
+			ev.preventDefault();
+
+			const dx = (ev.key === 'ArrowLeft' ? -1 : 1) * props.zoom;
+			const { start, end } = task();
+
+			switch (role) {
+				case 'left':
+					return updatePosition(start + offset(dx), end);
+				case 'center':
+					return updatePosition(start + offset(dx), end + offset(dx));
+				case 'right':
+					return updatePosition(start, end + offset(dx));
+			}
+		};
+
+		// reset valid state
+		const handleKeyUp = () => {
+			setValid(true);
+		};
+
 		onMount(() => {
 			el.addEventListener('pointerdown', handleDrag);
+			el.addEventListener('keydown', handleKeyDown);
+			el.addEventListener('keyup', handleKeyUp);
 			el.addEventListener('dblclick', () => setEditing(true));
 
 			// track task width
@@ -237,6 +263,8 @@ const GanttTask = (props: GanttTaskProps) => {
 
 			onCleanup(() => {
 				el.removeEventListener('pointerdown', handleDrag);
+				el.removeEventListener('keydown', handleKeyDown);
+				el.removeEventListener('keyup', handleKeyUp);
 				el.removeEventListener('dblclick', () => setEditing(true));
 			});
 		});
@@ -473,12 +501,20 @@ const GanttTask = (props: GanttTaskProps) => {
 	return (
 		<div {...sx.attrs(style.taskWrapper(row(), col()))}>
 			<span ref={connector('left')} {...sx.attrs(style.connector(true))} />
-			<span ref={ref('left')} {...sx.attrs(style.taskHandle('left'))} />
-			<span ref={ref('center')} {...sx.attrs(style.task(task))}>
+			<span
+				ref={ref('left')}
+				{...sx.attrs(style.taskHandle('left'))}
+				tabindex={2}
+			/>
+			<span ref={ref('center')} {...sx.attrs(style.task(task))} tabindex={2}>
 				{task().name}
 				<Show when={taskWidth() > 300}> - ({project()?.name})</Show>
 			</span>
-			<span ref={ref('right')} {...sx.attrs(style.taskHandle('right'))} />
+			<span
+				ref={ref('right')}
+				{...sx.attrs(style.taskHandle('right'))}
+				tabindex={2}
+			/>
 			<span ref={connector('right')} {...sx.attrs(style.connector(false))} />
 
 			<svg {...sx.attrs(style.connectorLine)}>
