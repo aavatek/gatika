@@ -318,7 +318,7 @@ type TaskFormProps = {
 };
 
 export const TaskForm = (props: TaskFormProps) => {
-	const [_, { Form, Field, FieldArray }] = props.form;
+	const [_, { Form, Field }] = props.form;
 	const Buttons = children(() => props.children);
 
 	const typeOptions = taskTypes.map((type) => ({
@@ -351,7 +351,6 @@ export const TaskForm = (props: TaskFormProps) => {
 					/>
 				)}
 			</Field>
-
 			<Field name="type">
 				{(field, props) => (
 					<SelectField
@@ -364,7 +363,6 @@ export const TaskForm = (props: TaskFormProps) => {
 					/>
 				)}
 			</Field>
-
 			<Field name="status">
 				{(field, props) => (
 					<SelectField
@@ -377,7 +375,6 @@ export const TaskForm = (props: TaskFormProps) => {
 					/>
 				)}
 			</Field>
-
 			<Field name="start">
 				{(field, props) => (
 					<InputField
@@ -389,7 +386,6 @@ export const TaskForm = (props: TaskFormProps) => {
 					/>
 				)}
 			</Field>
-
 			<Field name="end">
 				{(field, props) => (
 					<InputField
@@ -401,65 +397,42 @@ export const TaskForm = (props: TaskFormProps) => {
 					/>
 				)}
 			</Field>
-
 			<Show when={availableTasks().length > 0}>
-				<FieldArray name="dependencies">
-					{(deps) => (
-						<div {...sx.props(style.formDependencyField)}>
-							<Button
-								type="button"
-								variant="primary"
-								label="Lisää riippuvuus"
-								onClick={() => {
-									const availableTask = availableTasks().find(
-										(task) =>
-											!deps.items.some(
-												(_, i) =>
-													mf.getValue(props.form[0], `${deps.name}.${i}`) ===
-													task.id,
-											),
-									);
-									if (availableTask) {
-										mf.insert(props.form[0], deps.name, {
-											value: availableTask.id,
-										});
-									}
-								}}
-							/>
-							<For each={deps.items}>
-								{(_, index) => (
-									<div {...sx.props(style.formDependency)}>
-										<Field name={`${deps.name}.${index()}`}>
-											{(field, props) => (
-												<SelectField
-													{...props}
-													value={field.value}
-													error={field.error}
-													options={availableTasks().map((task) => ({
-														label: task.name,
-														value: task.id,
-													}))}
-												/>
-											)}
-										</Field>
-										<Button
-											type="button"
-											variant="primary"
-											label="Poista"
-											onClick={() =>
-												mf.remove(props.form[0], deps.name, {
-													at: index(),
-												})
-											}
-										/>
-									</div>
-								)}
-							</For>
-						</div>
-					)}
-				</FieldArray>
-			</Show>
+				<fieldset>
+					<legend>Lisää riippuvuuksia:</legend>
 
+					<For each={availableTasks()}>
+						{({ id, name }) => (
+							<Field name="dependencies" type="string[]">
+								{(field, fieldProps) => (
+									<label>
+										<input
+											{...fieldProps}
+											type="checkbox"
+											value={id}
+											checked={field.value?.includes(id)}
+											onChange={(e) => {
+												const current = field.value || [];
+												if (e.target.checked) {
+													const newValue = [...new Set([...current, id])];
+													mf.setValue(props.form[0], field.name, newValue);
+
+													return;
+												}
+												const newValue = current.filter(
+													(value) => value !== id,
+												);
+												mf.setValue(props.form[0], 'dependencies', newValue);
+											}}
+										/>
+										{name}
+									</label>
+								)}
+							</Field>
+						)}
+					</For>
+				</fieldset>
+			</Show>
 			{Buttons()}
 		</Form>
 	);
