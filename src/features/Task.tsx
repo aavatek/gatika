@@ -398,7 +398,7 @@ export const TaskForm = (props: TaskFormProps) => {
 				)}
 			</Field>
 			<Show when={availableTasks().length > 0}>
-				<fieldset {...sx.props(style.dependencyFieldSet)}>
+				<fieldset>
 					<legend>Lisää riippuvuuksia:</legend>
 
 					<div {...sx.props(style.formDependencyWrapper)}>
