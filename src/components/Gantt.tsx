@@ -45,7 +45,7 @@ export const Gantt = (props: { tasks: Task[] }) => {
 	);
 
 	// calculate grid rows and columns
-	const rows = createMemo(() => Math.max(15, tasksInRange.length));
+	const rows = createMemo(() => Math.max(15, tasksInRange().length));
 	const cols = createMemo(() => getDateDiff(gridStartDate, gridEndDate));
 
 	// sort tasks
