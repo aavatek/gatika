@@ -20,14 +20,14 @@ test('create, edit and remove a task', async ({ page }) => {
 	await page.selectOption('[name="status"]', { label: 'Suunniteltu' });
 	await page.click('button:has-text("Luo tehtävä")');
 
-	await page.getByText('Tehtävä X1').click();
+	await page.getByRole('link', { name: 'Tehtävä X1' }).click();
 	await page.getByRole('textbox', { name: 'Tehtävän nimi' }).fill('Tehtävä Y1');
 	await page.selectOption('[name="type"]', { label: 'InvestmentTask' });
 	await page.getByRole('button', { name: 'Tallenna' }).click();
 	await page.getByRole('button', { name: 'Takaisin' }).click();
 	await expect(page.locator('a', { hasText: 'Tehtävä Y1' })).toBeVisible();
 
-	await page.getByText('Tehtävä Y1').click();
+	await page.getByRole('link', { name: 'Tehtävä Y1' }).click();
 	await page.click('button:has-text("Poista")');
 	await expect(page.getByText('Tehtävä Y1')).not.toBeVisible();
 });
