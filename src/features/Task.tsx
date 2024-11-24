@@ -398,39 +398,41 @@ export const TaskForm = (props: TaskFormProps) => {
 				)}
 			</Field>
 			<Show when={availableTasks().length > 0}>
-				<fieldset>
+				<fieldset {...sx.props(style.dependencyFieldSet)}>
 					<legend>Lisää riippuvuuksia:</legend>
 
-					<For each={availableTasks()}>
-						{({ id, name }) => (
-							<Field name="dependencies" type="string[]">
-								{(field, fieldProps) => (
-									<label>
-										<input
-											{...fieldProps}
-											type="checkbox"
-											value={id}
-											checked={field.value?.includes(id)}
-											onChange={(e) => {
-												const current = field.value || [];
-												if (e.target.checked) {
-													const newValue = [...new Set([...current, id])];
-													mf.setValue(props.form[0], field.name, newValue);
+					<div {...sx.props(style.formDependencyWrapper)}>
+						<For each={availableTasks()}>
+							{({ id, name }) => (
+								<Field name="dependencies" type="string[]">
+									{(field, fieldProps) => (
+										<label {...sx.attrs(style.dependencyLabelWrapper)}>
+											<input
+												{...fieldProps}
+												type="checkbox"
+												value={id}
+												checked={field.value?.includes(id)}
+												onChange={(e) => {
+													const current = field.value || [];
+													if (e.target.checked) {
+														const newValue = [...new Set([...current, id])];
+														mf.setValue(props.form[0], field.name, newValue);
 
-													return;
-												}
-												const newValue = current.filter(
-													(value) => value !== id,
-												);
-												mf.setValue(props.form[0], 'dependencies', newValue);
-											}}
-										/>
-										{name}
-									</label>
-								)}
-							</Field>
-						)}
-					</For>
+														return;
+													}
+													const newValue = current.filter(
+														(value) => value !== id,
+													);
+													mf.setValue(props.form[0], 'dependencies', newValue);
+												}}
+											/>
+											<span {...sx.props(style.dependencyLabel)}>{name}</span>
+										</label>
+									)}
+								</Field>
+							)}
+						</For>
+					</div>
 				</fieldset>
 			</Show>
 			{Buttons()}
@@ -672,17 +674,29 @@ const style = sx.create({
 		border: '1px solid rgba(0, 0, 0, 0.25)',
 	},
 
-	formDependencyField: {
+	formDependencyWrapper: {
+		marginTop: '.25rem',
+		padding: '1rem',
 		display: 'flex',
-		gap: '.5rem',
 		flexDirection: 'column',
+		gap: '1rem',
+		border: '1px solid rgba(0, 0, 0, 0.35)',
+		maxHeight: '8rem',
+		overflowY: 'auto',
 	},
 
-	formDependency: {
-		display: 'grid',
-		gap: '1rem',
-		gridTemplateColumns: '1fr auto',
-		alignItems: 'end',
+	dependencyLabelWrapper: {
+		display: 'flex',
+		gap: '.5rem',
+		alignItems: 'center',
+		container: 'dep-wrapper / inline-size',
+	},
+
+	dependencyLabel: {
+		textOverflow: 'ellipsis',
+		whiteSpace: 'nowrap',
+		overflow: 'hidden',
+		maxWidth: '90cqw',
 	},
 });
 
