@@ -573,6 +573,10 @@ const TaskModal = (props: TaskModalProps) => {
 		}
 	};
 
+	const handleClose = () => {
+		props.handleClose();
+	};
+
 	return (
 		<Show when={task}>
 			{(task) => (
@@ -588,7 +592,7 @@ const TaskModal = (props: TaskModalProps) => {
 									onClick={props.handleClose}
 								/>
 							</header>
-							<TaskEditForm task={task} />
+							<TaskEditForm task={task} handleClose={handleClose} />
 						</section>
 					</div>
 				</Portal>

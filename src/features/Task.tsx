@@ -12,6 +12,7 @@ import { Heading } from '@components/Layout';
 import { List, ListItem } from '@features/List';
 import { notificationMsg, setNotification } from '@features/Notification';
 import { normalizeDate } from '@lib/dates';
+import { useLocation } from '@solidjs/router';
 
 // -------------------------------------------------------------------------------------
 
@@ -501,9 +502,12 @@ export const TaskCreateForm = (props: TaskCreateFormProps) => {
 type TaskEditFormProps = {
 	task: Accessor<Task>;
 	handleBack?: () => void;
+	handleClose?: () => void;
 };
 
 export const TaskEditForm = (props: TaskEditFormProps) => {
+	const location = useLocation();
+
 	const form = mf.createForm<TaskInput>({
 		validate: mf.valiForm(TaskSchema),
 	});
@@ -530,6 +534,13 @@ export const TaskEditForm = (props: TaskEditFormProps) => {
 				variant: 'success',
 				message: notificationMsg.taskEdited,
 			});
+			if (location.pathname.startsWith('/projects/') && props.handleBack) {
+				props.handleBack();
+			}
+
+			if (location.pathname.startsWith('/gantt') && props.handleClose) {
+				props.handleClose();
+			}
 
 			return tasks.update(props.task().id, validate.output);
 		}
