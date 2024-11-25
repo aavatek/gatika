@@ -4,7 +4,7 @@ import * as sx from '@stylexjs/stylex';
 import type { Accessor, JSX } from 'solid-js';
 import { For, children, createMemo, createSignal, splitProps } from 'solid-js';
 import { createStore, produce } from 'solid-js/store';
-import { useNavigate } from '@solidjs/router';
+import { useLocation, useNavigate } from '@solidjs/router';
 import { makePersisted, storageSync } from '@solid-primitives/storage';
 import { Button, InputField } from '@components/Form';
 import { tasks } from '@features/Task';
@@ -214,6 +214,7 @@ type ProjectEditFormProps = {
 };
 
 export const ProjectEditForm = (props: ProjectEditFormProps) => {
+	const location = useLocation();
 	const navigate = useNavigate();
 	const form = mf.createForm<ProjectInput>({
 		validate: mf.valiForm(ProjectSchema),
@@ -239,6 +240,10 @@ export const ProjectEditForm = (props: ProjectEditFormProps) => {
 				variant: 'success',
 				message: notificationMsg.projectEdited,
 			});
+
+			if (location.pathname.startsWith('/projects/')) {
+				navigate(-1);
+			}
 
 			return projects.update(props.project().id, validate.output);
 		}
