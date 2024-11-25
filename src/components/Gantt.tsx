@@ -364,13 +364,14 @@ const GanttTask = (props: GanttTaskProps) => {
 							current.id !== target.id &&
 							// must share project
 							current.project === target.project &&
-							// must not break constraints
-							current.end < target.start &&
 							// must be a unique connection
 							!target.dependencies.includes(task().id)
 						);
 					}
 				});
+
+				// mark self for visibility
+				el.setAttribute('data-possible-target', 'true');
 
 				// mark possible targets
 				validTargets.forEach((connector) => {
@@ -391,6 +392,27 @@ const GanttTask = (props: GanttTaskProps) => {
 							const target = tasks.read(targetID);
 
 							if (target) {
+								// add end for predecessor if it doesnt exist
+								if (!props.task.end) {
+									tasks.update(task().id, {
+										end: task().end,
+									});
+								}
+
+								// add end for successor if it doesnt exist
+								if (!target.end) {
+									tasks.update(target.id, {
+										end: task().end + DAY * 7,
+									});
+								}
+
+								// add start for successor if it doesnt exist
+								if (!target.start) {
+									tasks.update(target.id, {
+										start: task().end + DAY,
+									});
+								}
+
 								tasks.update(target.id, {
 									dependencies: [...target.dependencies, task().id],
 								});
@@ -401,6 +423,9 @@ const GanttTask = (props: GanttTaskProps) => {
 								});
 							}
 						}
+
+						// unmark self
+						el.removeAttribute('data-possible-target');
 
 						// unmark possible targets
 						validTargets.forEach((connector) => {
