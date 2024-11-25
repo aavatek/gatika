@@ -372,6 +372,9 @@ const GanttTask = (props: GanttTaskProps) => {
 					}
 				});
 
+				// mark self for visibility
+				el.setAttribute('data-possible-target', 'true');
+
 				// mark possible targets
 				validTargets.forEach((connector) => {
 					connector.setAttribute('data-possible-target', 'true');
@@ -401,6 +404,9 @@ const GanttTask = (props: GanttTaskProps) => {
 								});
 							}
 						}
+
+						// unmark self
+						el.removeAttribute('data-possible-target');
 
 						// unmark possible targets
 						validTargets.forEach((connector) => {
