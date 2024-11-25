@@ -364,8 +364,6 @@ const GanttTask = (props: GanttTaskProps) => {
 							current.id !== target.id &&
 							// must share project
 							current.project === target.project &&
-							// must not break constraints
-							current.end < target.start &&
 							// must be a unique connection
 							!target.dependencies.includes(task().id)
 						);
@@ -394,6 +392,27 @@ const GanttTask = (props: GanttTaskProps) => {
 							const target = tasks.read(targetID);
 
 							if (target) {
+								// add end for predecessor if it doesnt exist
+								if (!props.task.end) {
+									tasks.update(task().id, {
+										end: task().end,
+									});
+								}
+
+								// add end for successor if it doesnt exist
+								if (!target.end) {
+									tasks.update(target.id, {
+										end: task().end + DAY * 7,
+									});
+								}
+
+								// add start for successor if it doesnt exist
+								if (!target.start) {
+									tasks.update(target.id, {
+										start: task().end + DAY,
+									});
+								}
+
 								tasks.update(target.id, {
 									dependencies: [...target.dependencies, task().id],
 								});
