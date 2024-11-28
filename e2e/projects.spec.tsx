@@ -25,7 +25,6 @@ test('create, edit and remove a project', async ({ page }) => {
 		.getByRole('textbox', { name: 'Projektin nimi' })
 		.fill('Projekti Y');
 	await page.getByRole('button', { name: 'Tallenna' }).click();
-	await page.getByRole('link', { name: 'Takaisin' }).click();
 	await expect(page.locator('h1')).toHaveText('Projekti Y');
 	await page.getByRole('link', { name: 'Projektit' }).click();
 	await expect(page.locator('a', { hasText: 'Projekti Y' })).toBeVisible();
@@ -46,3 +45,6 @@ test('show error when creating a project without name', async ({ page }) => {
 	await page.click('button:has-text("Luo")');
 	await expect(page.getByText('Anna projektille nimi')).toBeVisible();
 });
+
+// TODO: add test
+test.skip('test navigation when using the back button', async () => {});

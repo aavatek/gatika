@@ -4,7 +4,7 @@ import * as sx from '@stylexjs/stylex';
 import type { Accessor, JSX } from 'solid-js';
 import { For, children, createMemo, createSignal, splitProps } from 'solid-js';
 import { createStore, produce } from 'solid-js/store';
-import { useNavigate } from '@solidjs/router';
+import { useLocation, useNavigate } from '@solidjs/router';
 import { makePersisted, storageSync } from '@solid-primitives/storage';
 import { Button, InputField } from '@components/Form';
 import { tasks } from '@features/Task';
@@ -27,8 +27,9 @@ export const projects = {
 	create: (project: Project) =>
 		setProjectStore(produce((store) => store.push(project))),
 
-	read: (id: Project['id']) =>
-		createMemo(() => projectStore.find((project) => project.id === id)),
+	read: (id: Project['id']) => {
+		return projectStore.find((project) => project.id === id);
+	},
 
 	update: (id: Project['id'], data: Partial<Project>) => {
 		setProjectStore(
@@ -80,6 +81,7 @@ export enum ProjectColors {
 	Teal = 'lch(83% 34 190)', // More vibrant teal
 	Coral = 'lch(84% 36 35)', // More defined coral
 }
+
 export type ColorKey = keyof typeof ProjectColors;
 
 const colorUsed = (color: ColorKey): boolean =>
@@ -168,6 +170,19 @@ export const ProjectCreateForm = () => {
 	const handleSubmit: mf.SubmitHandler<ProjectInput> = (data, _) => {
 		const validate = v.safeParse(ProjectSchema, data);
 		if (validate.success) {
+			const projectList = projects.list();
+			for (const project of projectList) {
+				if (project.name === validate.output.name) {
+					if (project.id !== validate.output.id) {
+						return mf.setError(
+							form[0],
+							'name',
+							`Projekti nimeltä ${project.name} on jo olemassa`,
+						);
+					}
+				}
+			}
+
 			projects.create(validate.output);
 			setNotification({
 				variant: 'success',
@@ -199,6 +214,7 @@ type ProjectEditFormProps = {
 };
 
 export const ProjectEditForm = (props: ProjectEditFormProps) => {
+	const location = useLocation();
 	const navigate = useNavigate();
 	const form = mf.createForm<ProjectInput>({
 		validate: mf.valiForm(ProjectSchema),
@@ -207,10 +223,27 @@ export const ProjectEditForm = (props: ProjectEditFormProps) => {
 	const handleSubmit: mf.SubmitHandler<ProjectInput> = (data, _) => {
 		const validate = v.safeParse(ProjectEditSchema, data);
 		if (validate.success) {
+			const projectList = projects.list();
+			for (const project of projectList) {
+				if (project.name === validate.output.name) {
+					if (project.id !== props.project().id) {
+						return mf.setError(
+							form[0],
+							'name',
+							`Projekti nimeltä ${project.name} on jo olemassa`,
+						);
+					}
+				}
+			}
+
 			setNotification({
 				variant: 'success',
 				message: notificationMsg.projectEdited,
 			});
+
+			if (location.pathname.startsWith('/projects/')) {
+				navigate(-1);
+			}
 
 			return projects.update(props.project().id, validate.output);
 		}
@@ -261,7 +294,7 @@ type ProjectListProps = {
 export const ProjectList = (props: ProjectListProps) => {
 	const listItem = createMemo(() => {
 		return props.filter === 'lastAccessed'
-			? visited().map((id) => projects.read(id)())
+			? visited().map((id) => projects.read(id))
 			: projects.list();
 	}) as () => Project[];
 
@@ -299,7 +332,9 @@ const style = sx.create({
 		display: 'flex',
 		gap: '.5rem',
 		flexDirection: 'column',
-		border: '2px solid black',
 		padding: '1rem',
+		boxShadow:
+			'rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px',
+		border: '1px solid rgba(0, 0, 0, 0.25)',
 	},
 });

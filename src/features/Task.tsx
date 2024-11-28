@@ -1,13 +1,6 @@
 import type { Accessor, JSX } from 'solid-js';
-import {
-	For,
-	Show,
-	children,
-	createEffect,
-	createMemo,
-	splitProps,
-} from 'solid-js';
-import { getTime, getDate, formatDate, DAY } from '@solid-primitives/date';
+import { For, Show, children, createMemo, splitProps } from 'solid-js';
+import { getDate, formatDate, DAY } from '@solid-primitives/date';
 import * as mf from '@modular-forms/solid';
 import * as v from 'valibot';
 import * as sx from '@stylexjs/stylex';
@@ -18,9 +11,14 @@ import { projects, type Project } from '@features/Project';
 import { Heading } from '@components/Layout';
 import { List, ListItem } from '@features/List';
 import { notificationMsg, setNotification } from '@features/Notification';
-import { normalizeTime } from '@lib/dates';
+import { normalizeDate } from '@lib/dates';
+import { useLocation } from '@solidjs/router';
 
 // -------------------------------------------------------------------------------------
+
+export const isFloating = (task: Task) => {
+	return Number.isNaN(task.start) && Number.isNaN(task.end);
+};
 
 export const [taskStore, setTaskStore] = makePersisted(
 	createStore<Task[]>([]),
@@ -56,11 +54,7 @@ export const tasks = {
 
 		if (predecessorsSorted.length > 0) {
 			const firstPossibleStart = predecessorsSorted[0].end as number;
-			if (
-				data.start &&
-				formatDate(getDate(data.start)) <=
-					formatDate(getDate(firstPossibleStart))
-			)
+			if (data.start && data.start <= firstPossibleStart)
 				return new Error(err.date.dependencyConflict);
 		}
 
@@ -69,14 +63,14 @@ export const tasks = {
 			produce((task) => Object.assign(task, data)),
 		);
 
-		if (data.dependencies) {
+		if (data.dependencies && data.dependencies !== currentTask.dependencies) {
 			if (data.dependencies.length > 0) {
 				const newStart =
 					Math.max(
 						...data.dependencies
 							.map((id) => tasks.read(id as Task['id']))
 							.filter((task) => !!task)
-							.map((task) => task()?.end as number),
+							.map((task) => task.end as number),
 					) + DAY;
 
 				let duration = currentTask.end - currentTask.start;
@@ -95,27 +89,43 @@ export const tasks = {
 			}
 		}
 
-		if (updatePredecessors && predecessorsSorted.length > 0) {
-			predecessorsSorted.forEach((predecessor) => {
-				if (predecessor.end && data.start) {
-					let duration = predecessor.end - predecessor.start;
-					duration =
-						Number.isNaN(duration) || duration < 0 ? DAY * 7 : duration;
-
-					const newEnd = normalizeTime(data.start - DAY);
-
+		if (updatePredecessors && predecessorsSorted.length > 0 && data.start) {
+			if (predecessorsSorted.length > 1) {
+				const lastPredecessor = predecessorsSorted[0];
+				if (lastPredecessor.end && lastPredecessor.start) {
+					const shift = lastPredecessor.end - data.start + DAY;
 					tasks.update(
-						predecessor.id,
+						lastPredecessor.id,
 						{
-							end: newEnd,
+							end: lastPredecessor.end - shift,
 						},
-						false,
 						true,
+						false,
 					);
 				}
-			});
-		}
+			} else {
+				predecessorsSorted.forEach((predecessor) => {
+					if (predecessor.end) {
+						let duration = predecessor.end - predecessor.start;
+						duration =
+							Number.isNaN(duration) || duration <= 0 ? DAY * 7 : duration;
 
+						if (data.start) {
+							const newEnd = normalizeDate(data.start - DAY);
+
+							tasks.update(
+								predecessor.id,
+								{
+									end: newEnd,
+								},
+								false,
+								true,
+							);
+						}
+					}
+				});
+			}
+		}
 		const successors = taskStore.filter((task) =>
 			task.dependencies.includes(id),
 		);
@@ -127,8 +137,8 @@ export const tasks = {
 					duration =
 						Number.isNaN(duration) || duration < 0 ? DAY * 7 : duration;
 
-					const newStart = normalizeTime(data.end + DAY);
-					const newEnd = normalizeTime(newStart + duration);
+					const newStart = normalizeDate(data.end + DAY);
+					const newEnd = normalizeDate(newStart + duration);
 
 					tasks.update(
 						successor.id,
@@ -144,8 +154,9 @@ export const tasks = {
 		}
 	},
 
-	read: (id: Task['id']) =>
-		createMemo(() => taskStore.find((task) => task.id === id)),
+	read: (id: Task['id']) => {
+		return taskStore.find((task) => task.id === id);
+	},
 
 	delete: (id: Task['id']) => {
 		setTaskStore((store) => store.filter((task) => task.id !== id));
@@ -199,7 +210,9 @@ export const taskStatus = [
 
 const DateSchema = v.pipe(
 	v.string(),
-	v.transform((value) => (value ? normalizeTime(getTime(value)) : Number.NaN)),
+	v.transform((value) =>
+		value ? normalizeDate(new Date(value).getTime()) : Number.NaN,
+	),
 );
 
 const NameSchema = v.pipe(
@@ -254,8 +267,8 @@ export const TaskSchema = v.pipe(
 						Math.max(
 							...input.dependencies
 								.map((id) => tasks.read(id as Task['id']))
-								.filter((task) => task()?.end !== undefined)
-								.map((task) => task()?.end as number),
+								.filter((task) => !!task?.end)
+								.map((task) => task?.end as number),
 						) || -999999999;
 
 					return input.start >= lastEndDate;
@@ -306,7 +319,7 @@ type TaskFormProps = {
 };
 
 export const TaskForm = (props: TaskFormProps) => {
-	const [formStore, { Form, Field, FieldArray }] = props.form;
+	const [_, { Form, Field }] = props.form;
 	const Buttons = children(() => props.children);
 
 	const typeOptions = taskTypes.map((type) => ({
@@ -325,8 +338,6 @@ export const TaskForm = (props: TaskFormProps) => {
 		),
 	);
 
-	createEffect(() => console.log(mf.getValue(formStore, 'dependencies')));
-
 	return (
 		<Form onSubmit={props.onSubmit} {...sx.props(style.form)}>
 			<Field name="name">
@@ -341,7 +352,6 @@ export const TaskForm = (props: TaskFormProps) => {
 					/>
 				)}
 			</Field>
-
 			<Field name="type">
 				{(field, props) => (
 					<SelectField
@@ -354,7 +364,6 @@ export const TaskForm = (props: TaskFormProps) => {
 					/>
 				)}
 			</Field>
-
 			<Field name="status">
 				{(field, props) => (
 					<SelectField
@@ -367,7 +376,6 @@ export const TaskForm = (props: TaskFormProps) => {
 					/>
 				)}
 			</Field>
-
 			<Field name="start">
 				{(field, props) => (
 					<InputField
@@ -379,7 +387,6 @@ export const TaskForm = (props: TaskFormProps) => {
 					/>
 				)}
 			</Field>
-
 			<Field name="end">
 				{(field, props) => (
 					<InputField
@@ -391,65 +398,44 @@ export const TaskForm = (props: TaskFormProps) => {
 					/>
 				)}
 			</Field>
-
 			<Show when={availableTasks().length > 0}>
-				<FieldArray name="dependencies">
-					{(deps) => (
-						<div {...sx.props(style.formDependencyField)}>
-							<Button
-								type="button"
-								variant="primary"
-								label="Lisää riippuvuus"
-								onClick={() => {
-									const availableTask = availableTasks().find(
-										(task) =>
-											!deps.items.some(
-												(_, i) =>
-													mf.getValue(props.form[0], `${deps.name}.${i}`) ===
-													task.id,
-											),
-									);
-									if (availableTask) {
-										mf.insert(props.form[0], deps.name, {
-											value: availableTask.id,
-										});
-									}
-								}}
-							/>
-							<For each={deps.items}>
-								{(_, index) => (
-									<div {...sx.props(style.formDependency)}>
-										<Field name={`${deps.name}.${index()}`}>
-											{(field, props) => (
-												<SelectField
-													{...props}
-													value={field.value}
-													error={field.error}
-													options={availableTasks().map((task) => ({
-														label: task.name,
-														value: task.id,
-													}))}
-												/>
-											)}
-										</Field>
-										<Button
-											type="button"
-											variant="primary"
-											label="Poista"
-											onClick={() =>
-												mf.remove(props.form[0], deps.name, {
-													at: index(),
-												})
-											}
-										/>
-									</div>
-								)}
-							</For>
-						</div>
-					)}
-				</FieldArray>
-			</Show>
+				<fieldset>
+					<legend>Lisää riippuvuuksia:</legend>
 
+					<div {...sx.props(style.formDependencyWrapper)}>
+						<For each={availableTasks()}>
+							{({ id, name }) => (
+								<Field name="dependencies" type="string[]">
+									{(field, fieldProps) => (
+										<label {...sx.attrs(style.dependencyLabelWrapper)}>
+											<input
+												{...fieldProps}
+												type="checkbox"
+												value={id}
+												checked={field.value?.includes(id)}
+												onChange={(e) => {
+													const current = field.value || [];
+													if (e.target.checked) {
+														const newValue = [...new Set([...current, id])];
+														mf.setValue(props.form[0], field.name, newValue);
+
+														return;
+													}
+													const newValue = current.filter(
+														(value) => value !== id,
+													);
+													mf.setValue(props.form[0], 'dependencies', newValue);
+												}}
+											/>
+											<span {...sx.props(style.dependencyLabel)}>{name}</span>
+										</label>
+									)}
+								</Field>
+							)}
+						</For>
+					</div>
+				</fieldset>
+			</Show>
 			{Buttons()}
 		</Form>
 	);
@@ -516,9 +502,12 @@ export const TaskCreateForm = (props: TaskCreateFormProps) => {
 type TaskEditFormProps = {
 	task: Accessor<Task>;
 	handleBack?: () => void;
+	handleClose?: () => void;
 };
 
 export const TaskEditForm = (props: TaskEditFormProps) => {
+	const location = useLocation();
+
 	const form = mf.createForm<TaskInput>({
 		validate: mf.valiForm(TaskSchema),
 	});
@@ -545,6 +534,13 @@ export const TaskEditForm = (props: TaskEditFormProps) => {
 				variant: 'success',
 				message: notificationMsg.taskEdited,
 			});
+			if (location.pathname.startsWith('/projects/') && props.handleBack) {
+				props.handleBack();
+			}
+
+			if (location.pathname.startsWith('/gantt') && props.handleClose) {
+				props.handleClose();
+			}
 
 			return tasks.update(props.task().id, validate.output);
 		}
@@ -649,7 +645,7 @@ export const TaskList = (props: TaskListProps) => {
 								name={task.name}
 								extraStyles={style.listItem}
 							>
-								<Show when={!props.project}>{project()?.name}</Show>
+								<Show when={!props.project}>{project?.name}</Show>
 								<Show when={start() || end()}>
 									<span>
 										{start() ?? ''} <Show when={end()}>- {end()} </Show>
@@ -683,21 +679,35 @@ const style = sx.create({
 		display: 'flex',
 		gap: '.5rem',
 		flexDirection: 'column',
-		border: '2px solid black',
 		padding: '1rem',
+		boxShadow:
+			'rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px',
+		border: '1px solid rgba(0, 0, 0, 0.25)',
 	},
 
-	formDependencyField: {
+	formDependencyWrapper: {
+		marginTop: '.25rem',
+		padding: '1rem',
+		display: 'flex',
+		flexDirection: 'column',
+		gap: '1rem',
+		border: '1px solid rgba(0, 0, 0, 0.35)',
+		maxHeight: '8rem',
+		overflowY: 'auto',
+	},
+
+	dependencyLabelWrapper: {
 		display: 'flex',
 		gap: '.5rem',
-		flexDirection: 'column',
+		alignItems: 'center',
+		container: 'dep-wrapper / inline-size',
 	},
 
-	formDependency: {
-		display: 'grid',
-		gap: '1rem',
-		gridTemplateColumns: '1fr auto',
-		alignItems: 'end',
+	dependencyLabel: {
+		textOverflow: 'ellipsis',
+		whiteSpace: 'nowrap',
+		overflow: 'hidden',
+		maxWidth: '90cqw',
 	},
 });
 

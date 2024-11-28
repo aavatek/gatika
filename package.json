@@ -1,9 +1,9 @@
 {
-	"name": "template-solid-vita",
-	"description": "Minimalistic SolidJS template",
+	"name": "gatika-demo",
+	"description": "PoC Gantt Chart",
 	"version": "0.0.1",
 	"private": true,
-	"author": "hffeka",
+	"author": "AavaTek",
 	"type": "module",
 	"scripts": {
 		"dev": "vite",
