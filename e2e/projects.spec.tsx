@@ -46,5 +46,17 @@ test('show error when creating a project without name', async ({ page }) => {
 	await expect(page.getByText('Anna projektille nimi')).toBeVisible();
 });
 
-// TODO: add test
-test.skip('test navigation when using the back button', async () => {});
+test('test navigation when using the back button', async ({ page }) => {
+	// when inspecting project from projects view
+	await page.fill('label:has-text("Projektin nimi")', 'Projekti X');
+	await page.click('button:has-text("Luo")');
+	await page.getByText('Projekti X').click();
+	await page.getByRole('button', { name: 'Takaisin' }).click();
+	await expect(page).toHaveURL('/projects');
+
+	// when inspecting project from index page
+	await page.goto('/');
+	await page.getByText('Projekti X').click();
+	await page.getByRole('button', { name: 'Takaisin' }).click();
+	await expect(page).toHaveURL('/');
+});
