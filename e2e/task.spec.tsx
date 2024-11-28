@@ -79,5 +79,24 @@ test('check that index page shows task correctly', async ({ page }) => {
 	await expect(page.locator('a', { hasText: 'Tehtävä Y1' })).toBeVisible();
 });
 
-// TODO: add test
-test.skip('test navigation when using the back button', async () => {});
+test('test navigation when using the back button', async ({ page }) => {
+	// when inspecting task inside project
+	await page.getByText('Projekti X').click();
+	await page.getByRole('textbox', { name: 'Tehtävän nimi' }).fill('Tehtävä X1');
+	const date = new Date();
+	const formattedDate = date.toISOString().split('T')[0];
+	await page.fill('[name="start"]', formattedDate);
+	await page.fill('[name="end"]', formattedDate);
+	await page.click('button:has-text("Luo tehtävä")');
+
+	await page.getByRole('link', { name: 'Tehtävä X1' }).click();
+	await page.getByRole('button', { name: 'Takaisin' }).click();
+	await page.getByRole('button', { name: 'Takaisin' }).click();
+	await expect(page).toHaveURL('/projects');
+
+	// when inspecting task from index page
+	await page.goto('/');
+	await page.getByText('Tehtävä X1').click();
+	await page.getByRole('button', { name: 'Takaisin' }).click();
+	await expect(page).toHaveURL('/');
+});
