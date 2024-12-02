@@ -625,7 +625,7 @@ export const TaskList = (props: TaskListProps) => {
 	return (
 		<>
 			<List label={props.label}>
-				<For each={list()} fallback={<div>Ei tulevia tehtäviä</div>}>
+				<For each={list()} fallback={<li>Ei tulevia tehtäviä</li>}>
 					{(task) => {
 						const start = createMemo(() => {
 							if (!task.start) return undefined;

@@ -11,12 +11,15 @@ type ListItemProps = ParentProps<{
 
 export const ListItem = (props: ListItemProps) => {
 	return (
-		<A href={props.href} {...sx.props(style.itemWrapperLink)}>
-			<li {...sx.props(style.item, props.extraStyles)}>
+		<li {...sx.props(style.item)}>
+			<A
+				href={props.href}
+				{...sx.props(style.itemWrapperLink, props.extraStyles)}
+			>
 				<span>{props.name}</span>
 				{props.children}
-			</li>
-		</A>
+			</A>
+		</li>
 	);
 };
 

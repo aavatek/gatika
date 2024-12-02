@@ -7,8 +7,7 @@ test('index page exists and opens', async ({ page }) => {
 	expect(res?.status()).toBeLessThan(400);
 });
 
-// investigate why this fails
-test.skip('index page has no accessibility violations', async ({ page }) => {
+test('index page has no accessibility violations', async ({ page }) => {
 	await page.goto('/');
 	const results = (await new AxeBuilder({ page }).analyze()).violations;
 	expect(results).toEqual([]);
