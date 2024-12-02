@@ -300,7 +300,7 @@ export const ProjectList = (props: ProjectListProps) => {
 
 	return (
 		<List label={props.label}>
-			<For each={listItem()} fallback={<div>Ei viimeksi katsottuja</div>}>
+			<For each={listItem()} fallback={<li>Ei viimeksi katsottuja</li>}>
 				{(project: Project) => (
 					<ListItem
 						href={`/projects/${project.id}`}
