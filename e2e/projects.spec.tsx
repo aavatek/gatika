@@ -46,6 +46,21 @@ test('show error when creating a project without name', async ({ page }) => {
 	await expect(page.getByText('Anna projektille nimi')).toBeVisible();
 });
 
+test('show error when creating a duplicate project', async ({ page }) => {
+	await page
+		.getByRole('textbox', { name: 'Projektin nimi' })
+		.fill('Projekti X');
+	await page.click('button:has-text("Luo")');
+	await page
+		.getByRole('textbox', { name: 'Projektin nimi' })
+		.fill('Projekti X');
+	await page.click('button:has-text("Luo")');
+
+	await expect(
+		page.getByText('Projekti nimeltä Projekti X on jo olemassa'),
+	).toBeVisible();
+});
+
 test('test navigation when using the back button', async ({ page }) => {
 	// when inspecting project from projects view
 	await page.fill('label:has-text("Projektin nimi")', 'Projekti X');
