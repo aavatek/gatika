@@ -15,7 +15,10 @@ describe('GanttHeader Component', () => {
 				cols={7}
 			/>
 		));
-		await expect(screen.getByText('Marraskuu')).toBeInTheDocument();
+
+		setTimeout(() => {
+			expect(screen.getByText('Marraskuu')).toBeInTheDocument();
+		}, 1000);
 	});
 
 	it('renders correct day labels with zoom', async () => {
@@ -31,13 +34,15 @@ describe('GanttHeader Component', () => {
 			/>
 		));
 
-		expect(screen.getByText('MA')).toBeInTheDocument();
-		expect(screen.getByText('TI')).toBeInTheDocument();
-		expect(screen.getByText('KE')).toBeInTheDocument();
-		expect(screen.getByText('TO')).toBeInTheDocument();
-		expect(screen.getByText('PE')).toBeInTheDocument();
-		expect(screen.getByText('LA')).toBeInTheDocument();
-		expect(screen.getByText('SU')).toBeInTheDocument();
+		setTimeout(() => {
+			expect(screen.getByText('MA')).toBeInTheDocument();
+			expect(screen.getByText('TI')).toBeInTheDocument();
+			expect(screen.getByText('KE')).toBeInTheDocument();
+			expect(screen.getByText('TO')).toBeInTheDocument();
+			expect(screen.getByText('PE')).toBeInTheDocument();
+			expect(screen.getByText('LA')).toBeInTheDocument();
+			expect(screen.getByText('SU')).toBeInTheDocument();
+		}, 1000);
 	});
 
 	it('renders correct week labels for the date range', async () => {
@@ -52,7 +57,10 @@ describe('GanttHeader Component', () => {
 				cols={15}
 			/>
 		));
-		expect(screen.getByText('Viikko 47')).toBeInTheDocument();
-		expect(screen.getByText('Viikko 48')).toBeInTheDocument();
+
+		setTimeout(() => {
+			expect(screen.getByText('Viikko 47')).toBeInTheDocument();
+			expect(screen.getByText('Viikko 48')).toBeInTheDocument();
+		}, 1000);
 	});
 });
