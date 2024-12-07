@@ -3,35 +3,56 @@ import { render, screen } from '@solidjs/testing-library';
 import { GanttHeader } from './Gantt';
 
 describe('GanttHeader Component', () => {
-	const props = {
-		cols: 7,
-		zoom: 50,
-		gridStartDate: Date.now(),
-		gridEndDate: Date.now() + 7 * 24 * 60 * 60 * 1000,
-	};
+	it('renders correct month labels for the date range', () => {
+		const gridStartDate = new Date('2024-11-20').getTime();
+		const gridEndDate = new Date('2024-12-01').getTime();
 
-	it('renders day labels at high zoom', () => {
-		render(() => <GanttHeader {...props} zoom={50} />);
-		expect(screen.getAllByText(/\d+/)).toHaveLength(props.cols);
+		render(() => (
+			<GanttHeader
+				gridStartDate={gridStartDate}
+				gridEndDate={gridEndDate}
+				zoom={0}
+				cols={7}
+			/>
+		));
+		expect(screen.getByText('Marraskuu')).toBeInTheDocument();
 	});
 
-	it('renders week labels at low zoom', () => {
-		render(() => <GanttHeader {...props} zoom={30} />);
-		expect(screen.getByText(/Viikko/)).toBeInTheDocument();
+	it('renders correct month labels for the date range', () => {
+		const gridStartDate = new Date('2024-11-15').getTime();
+		const gridEndDate = new Date('2024-12-01').getTime();
+
+		render(() => (
+			<GanttHeader
+				gridStartDate={gridStartDate}
+				gridEndDate={gridEndDate}
+				zoom={50}
+				cols={7}
+			/>
+		));
+
+		expect(screen.getByText('MA')).toBeInTheDocument();
+		expect(screen.getByText('TI')).toBeInTheDocument();
+		expect(screen.getByText('KE')).toBeInTheDocument();
+		expect(screen.getByText('TO')).toBeInTheDocument();
+		expect(screen.getByText('PE')).toBeInTheDocument();
+		expect(screen.getByText('LA')).toBeInTheDocument();
+		expect(screen.getByText('SU')).toBeInTheDocument();
 	});
 
-	it('renders correct month labels', () => {
-		render(() => <GanttHeader {...props} />);
-		const months = new Set(
-			Array.from({ length: props.cols }, (_, i) => {
-				const date = new Date(props.gridStartDate + i * 24 * 60 * 60 * 1000);
-				return date.toLocaleString('default', { month: 'long' });
-			}),
-		);
-		months.forEach((month) => {
-			const toUppercase =
-				String(month).charAt(0).toUpperCase() + String(month).slice(1);
-			expect(screen.getByText(toUppercase)).toBeInTheDocument();
-		});
+	it('renders correct month labels for the date range', () => {
+		const gridStartDate = new Date('2024-11-15').getTime();
+		const gridEndDate = new Date('2024-11-30').getTime();
+
+		render(() => (
+			<GanttHeader
+				gridStartDate={gridStartDate}
+				gridEndDate={gridEndDate}
+				zoom={30}
+				cols={17}
+			/>
+		));
+		expect(screen.getByText('Viikko 47')).toBeInTheDocument();
+		expect(screen.getByText('Viikko 48')).toBeInTheDocument();
 	});
 });
