@@ -9,9 +9,7 @@ test.beforeEach(async ({ page }) => {
 
 test('Check the tasks view', async ({ page }) => {
 	await expect(page.locator('h1')).toHaveText('Projekti X');
-	expect(page.getByText('Kaikki tehtävät'));
-	expect(page.getByText('Ei tulevia tehtäviä'));
-	expect(page.getByText('Luo Tehtävä'));
+	await expect(page.getByText('Kaikki tehtävät')).toBeVisible();
 });
 
 test('create, edit and remove a task', async ({ page }) => {
