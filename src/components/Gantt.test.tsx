@@ -3,7 +3,7 @@ import { render, screen } from '@solidjs/testing-library';
 import { GanttHeader } from './Gantt';
 
 describe('GanttHeader Component', () => {
-	it('renders correct month labels for the date range', () => {
+	it('renders correct month labels for the date range', async () => {
 		const gridStartDate = new Date('2024-11-20').getTime();
 		const gridEndDate = new Date('2024-12-01').getTime();
 
@@ -15,10 +15,10 @@ describe('GanttHeader Component', () => {
 				cols={7}
 			/>
 		));
-		expect(screen.getByText('Marraskuu')).toBeInTheDocument();
+		await expect(screen.getByText('Marraskuu')).toBeInTheDocument();
 	});
 
-	it('renders correct month labels for the date range', () => {
+	it('renders correct day labels with zoom', async () => {
 		const gridStartDate = new Date('2024-11-15').getTime();
 		const gridEndDate = new Date('2024-12-01').getTime();
 
@@ -40,7 +40,7 @@ describe('GanttHeader Component', () => {
 		expect(screen.getByText('SU')).toBeInTheDocument();
 	});
 
-	it('renders correct month labels for the date range', () => {
+	it('renders correct week labels for the date range', async () => {
 		const gridStartDate = new Date('2024-11-15').getTime();
 		const gridEndDate = new Date('2024-11-30').getTime();
 
@@ -49,7 +49,7 @@ describe('GanttHeader Component', () => {
 				gridStartDate={gridStartDate}
 				gridEndDate={gridEndDate}
 				zoom={30}
-				cols={17}
+				cols={15}
 			/>
 		));
 		expect(screen.getByText('Viikko 47')).toBeInTheDocument();
