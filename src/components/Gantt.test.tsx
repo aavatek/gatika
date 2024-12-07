@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@solidjs/testing-library';
 import { GanttHeader } from './Gantt';
-import '@testing-library/jest-dom'; // For extended matchers
 
 describe('GanttHeader Component', () => {
 	const props = {
