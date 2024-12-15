@@ -63,69 +63,70 @@ export const tasks = {
 			produce((task) => Object.assign(task, data)),
 		);
 
-		if (data.dependencies && data.dependencies !== currentTask.dependencies) {
-			if (data.dependencies.length > 0) {
-				const newStart =
-					Math.max(
-						...data.dependencies
-							.map((id) => tasks.read(id as Task['id']))
-							.filter((task) => !!task)
-							.map((task) => task.end as number),
-					) + DAY;
+		// if (data.dependencies && data.dependencies !== currentTask.dependencies) {
+		// 	if (data.dependencies.length > 0) {
+		// 		const newStart =
+		// 			Math.max(
+		// 				...data.dependencies
+		// 					.map((id) => tasks.read(id as Task['id']))
+		// 					.filter((task) => !!task)
+		// 					.map((task) => task.end as number),
+		// 			) + DAY;
 
-				let duration = currentTask.end - currentTask.start;
-				duration = Number.isNaN(duration) || duration < 0 ? DAY * 7 : duration;
-				const newEnd = newStart + duration;
+		// 		let duration = currentTask.end - currentTask.start;
+		// 		duration = Number.isNaN(duration) || duration < 0 ? DAY * 7 : duration;
+		// 		const newEnd = newStart + duration;
 
-				setTaskStore(
-					(task) => task.id === id,
-					produce((task) =>
-						Object.assign(task, data, {
-							start: newStart,
-							end: newEnd,
-						}),
-					),
-				);
-			}
-		}
+		// 		setTaskStore(
+		// 			(task) => task.id === id,
+		// 			produce((task) =>
+		// 				Object.assign(task, data, {
+		// 					start: newStart,
+		// 					end: newEnd,
+		// 				}),
+		// 			),
+		// 		);
+		// 	}
+		// }
 
-		if (updatePredecessors && predecessorsSorted.length > 0 && data.start) {
-			if (predecessorsSorted.length > 1) {
-				const lastPredecessor = predecessorsSorted[0];
-				if (lastPredecessor.end && lastPredecessor.start) {
-					const shift = lastPredecessor.end - data.start + DAY;
-					tasks.update(
-						lastPredecessor.id,
-						{
-							end: lastPredecessor.end - shift,
-						},
-						true,
-						false,
-					);
-				}
-			} else {
-				predecessorsSorted.forEach((predecessor) => {
-					if (predecessor.end) {
-						let duration = predecessor.end - predecessor.start;
-						duration =
-							Number.isNaN(duration) || duration <= 0 ? DAY * 7 : duration;
+		// if (updatePredecessors && predecessorsSorted.length > 0 && data.start) {
+		// 	if (predecessorsSorted.length > 1) {
+		// 		const lastPredecessor = predecessorsSorted[0];
+		// 		if (lastPredecessor.end && lastPredecessor.start) {
+		// 			const shift = lastPredecessor.end - data.start + DAY;
+		// 			tasks.update(
+		// 				lastPredecessor.id,
+		// 				{
+		// 					end: lastPredecessor.end - shift,
+		// 				},
+		// 				true,
+		// 				false,
+		// 			);
+		// 		}
+		// 	} else {
+		// 		predecessorsSorted.forEach((predecessor) => {
+		// 			if (predecessor.end) {
+		// 				let duration = predecessor.end - predecessor.start;
+		// 				duration =
+		// 					Number.isNaN(duration) || duration <= 0 ? DAY * 7 : duration;
 
-						if (data.start) {
-							const newEnd = normalizeDate(data.start - DAY);
+		// 				if (data.start) {
+		// 					const newEnd = normalizeDate(data.start - DAY);
 
-							tasks.update(
-								predecessor.id,
-								{
-									end: newEnd,
-								},
-								false,
-								true,
-							);
-						}
-					}
-				});
-			}
-		}
+		// 					tasks.update(
+		// 						predecessor.id,
+		// 						{
+		// 							end: newEnd,
+		// 						},
+		// 						false,
+		// 						true,
+		// 					);
+		// 				}
+		// 			}
+		// 		});
+		// 	}
+		// }
+
 		const successors = taskStore.filter((task) =>
 			task.dependencies.includes(id),
 		);
@@ -133,22 +134,24 @@ export const tasks = {
 		if (updateSuccessors && successors.length > 0) {
 			successors.forEach((successor) => {
 				if (successor.start && data.end) {
-					let duration = successor.end - successor.start;
-					duration =
-						Number.isNaN(duration) || duration < 0 ? DAY * 7 : duration;
+					if (successor.start <= data.end) {
+						let duration = successor.end - successor.start;
+						duration =
+							Number.isNaN(duration) || duration < 0 ? DAY * 7 : duration;
 
-					const newStart = normalizeDate(data.end + DAY);
-					const newEnd = normalizeDate(newStart + duration);
+						const newStart = normalizeDate(data.end + DAY);
+						const newEnd = normalizeDate(newStart + duration);
 
-					tasks.update(
-						successor.id,
-						{
-							start: newStart,
-							end: newEnd,
-						},
-						false,
-						true,
-					);
+						tasks.update(
+							successor.id,
+							{
+								start: newStart,
+								end: newEnd,
+							},
+							false,
+							true,
+						);
+					}
 				}
 			});
 		}
