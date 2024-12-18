@@ -564,7 +564,7 @@ type TaskModalProps = {
 	handleClose: () => void;
 };
 
-const TaskModal = (props: TaskModalProps) => {
+export const TaskModal = (props: TaskModalProps) => {
 	const task = tasks.read(props.id);
 
 	const handleOverlayClick = (e: MouseEvent) => {
@@ -608,7 +608,7 @@ type GanttHeaderProps = {
 	gridEndDate: number;
 };
 
-const GanttHeader = (props: GanttHeaderProps) => {
+export const GanttHeader = (props: GanttHeaderProps) => {
 	const labels = createMemo(() => {
 		const days = Array.from(
 			{ length: props.cols },
