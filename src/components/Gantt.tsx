@@ -360,6 +360,11 @@ const GanttTask = (props: GanttTaskProps) => {
 
 					if (target) {
 						return (
+							// must not be floating
+							target.start &&
+							target.end &&
+							// must not break constraints
+							target.start > current.end &&
 							// must not target self
 							current.id !== target.id &&
 							// must share project
@@ -385,6 +390,9 @@ const GanttTask = (props: GanttTaskProps) => {
 				};
 
 				const handleRelease = (ev: PointerEvent) => {
+					// unmark self
+					el.removeAttribute('data-possible-target');
+
 					validTargets.forEach((connector) => {
 						// create connection if hovering connector during release
 						if (getDistance(ev, connector) < 15) {
@@ -392,27 +400,6 @@ const GanttTask = (props: GanttTaskProps) => {
 							const target = tasks.read(targetID);
 
 							if (target) {
-								// add end for predecessor if it doesnt exist
-								if (!props.task.end) {
-									tasks.update(task().id, {
-										end: task().end,
-									});
-								}
-
-								// add end for successor if it doesnt exist
-								if (!target.end) {
-									tasks.update(target.id, {
-										end: task().end + DAY * 7,
-									});
-								}
-
-								// add start for successor if it doesnt exist
-								if (!target.start) {
-									tasks.update(target.id, {
-										start: task().end + DAY,
-									});
-								}
-
 								tasks.update(target.id, {
 									dependencies: [...target.dependencies, task().id],
 								});
@@ -423,9 +410,6 @@ const GanttTask = (props: GanttTaskProps) => {
 								});
 							}
 						}
-
-						// unmark self
-						el.removeAttribute('data-possible-target');
 
 						// unmark possible targets
 						validTargets.forEach((connector) => {
