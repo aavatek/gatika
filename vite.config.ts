@@ -9,6 +9,7 @@ import { default as path } from 'node:path';
 import { default as browserslist } from 'browserslist';
 
 export default defineConfig({
+	base: process.env.GITHUB_ACTIONS ? '/gatika/' : '/',
 	plugins: [
 		uno(),
 		solid({
