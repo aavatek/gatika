@@ -23,7 +23,10 @@ render(
 		<ErrorBoundary fallback={Unexpected}>
 			<MetaProvider>
 				<Suspense>
-					<Router root={Layout}>
+					<Router
+						base={import.meta.env.BASE_URL.replace(/\/$/, '')}
+						root={Layout}
+					>
 						<Route path="*" component={NotFound} />
 						<Route path="/" component={Dashboard} />
 						<Route path="/gantt" component={Page} />
