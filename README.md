@@ -3,7 +3,7 @@
 PoC for a project management application featuring Gantt charts.\
 Built with modern web technologies, focusing on usability and speed.
 
-![Gantt view](docs/banner.png)
+![Gantt view](.readme/banner.png)
 
 ## Stack & Development
 
